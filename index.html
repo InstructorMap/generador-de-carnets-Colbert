@@ -234,9 +234,8 @@
         function generateQRCode(matricula) {
             qrcodeContainer.innerHTML = ''; // Clear previous QR
             if (matricula) {
-                // This URL should point to your real verification site.
-                // For now, it uses the unique matricula to ensure the QR is unique.
-                const verificationUrl = `https://tu-sitio-verificador.com/?id=${matricula}`;
+                // This URL now points to your real verification site.
+                const verificationUrl = `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${matricula}`;
                 qrcode = new QRCode(qrcodeContainer, {
                     text: verificationUrl,
                     width: 72, 
