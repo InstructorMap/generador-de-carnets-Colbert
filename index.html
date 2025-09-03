@@ -3,345 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Herramienta: Generador de Carnets Profesionales</title>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS for styling -->
+    <title>Generador de Carnets v2.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Libraries for QR, PNG, and PDF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom styles to complement Tailwind */
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
-        .card-font {
-            font-family: 'Oswald', sans-serif;
-        }
-        .card-shadow {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        .form-input {
-            transition: all 0.3s ease;
-        }
-        .form-input:focus {
-            border-color: #0052cc;
-            box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.2);
-        }
-        .custom-file-input {
-            color: transparent;
-        }
-        .custom-file-input::-webkit-file-upload-button {
-            visibility: hidden;
-        }
-        .custom-file-input::before {
-            content: 'Seleccionar archivo';
-            color: #0052cc;
-            display: inline-block;
-            background: #f0f5ff;
-            border: 1px solid #dbeafe;
-            border-radius: 6px;
-            padding: 6px 12px;
-            outline: none;
-            white-space: nowrap;
-            -webkit-user-select: none;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        .custom-file-input:hover::before {
-            border-color: #0052cc;
-        }
-        .spinner {
-            border-top-color: #3498db;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        body { font-family: 'Poppins', sans-serif; }
+        .carnet-preview { transition: all 0.3s ease; }
+        #template-upload-label { cursor: pointer; }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 p-4 sm:p-8">
+<body class="bg-gray-100 flex flex-col lg:flex-row items-start justify-center p-4 lg:p-10 space-y-8 lg:space-y-0 lg:space-x-8 min-h-screen">
 
-    <div class="max-w-6xl mx-auto">
-        <header class="text-center mb-10">
-            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Generador de Carnets Profesionales</h1>
-            <p class="text-gray-600 mt-2">Crea, guarda y descarga carnets basados en tu plantilla.</p>
-        </header>
+    <!-- Columna del Formulario -->
+    <div class="w-full lg:w-1/3 bg-white p-8 rounded-xl shadow-lg">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-4">Panel de Creación</h2>
+        
+        <div id="form-content" class="space-y-4">
+            <div>
+                <label for="template-upload" id="template-upload-label" class="block text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 text-center py-2 px-4 rounded-md">
+                    1. Cargar Plantilla de Fondo
+                </label>
+                <input type="file" id="template-upload" class="hidden" accept="image/*">
+            </div>
 
-        <main class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+            <h3 class="text-lg font-semibold pt-4">2. Datos del Titular</h3>
+            <input type="text" id="titulo" placeholder="Título Principal (ej: CARNET GRUPO COLBERT)" class="w-full p-2 border rounded">
+            <input type="text" id="cargo1" placeholder="Cargo 1 (ej: INSTRUCTOR OFICIAL)" class="w-full p-2 border rounded">
+            <input type="text" id="cargo2" placeholder="Cargo 2 / Especialidad" class="w-full p-2 border rounded">
+            <input type="text" id="nombre" placeholder="Nombre y Apellido" class="w-full p-2 border rounded">
+            <input type="text" id="dni" placeholder="DNI (sin puntos)" class="w-full p-2 border rounded">
+            <input type="text" id="vence" placeholder="Fecha de Vencimiento (ej: 31/12/2026)" class="w-full p-2 border rounded">
             
-            <!-- Form Section -->
-            <div class="bg-white p-6 sm:p-8 rounded-xl card-shadow">
-                <h2 class="text-2xl font-bold mb-6">1. Completa los Datos</h2>
-                <form id="student-form" action="https://formspree.io/f/myzdzpnl" method="POST" class="space-y-4">
-                    <!-- Datos del Carnet -->
-                    <input type="text" id="titulo" name="titulo" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm" required placeholder="Título Principal (ej: CARNET GRUPO COLBERT)">
-                    <input type="text" id="cargo1" name="cargo1" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm" required placeholder="Cargo Principal (ej: INSTRUCTOR OFICIAL)">
-                    <input type="text" id="cargo2" name="cargo2" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm" required placeholder="Especialidad (ej: EMERGENTOLOGIA)">
-                    <input type="text" id="nombre" name="nombre" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm" required placeholder="Nombre Completo">
-                    <input type="text" id="dni" name="dni" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm" required placeholder="DNI">
-                    <div>
-                        <label for="matricula" class="block text-sm font-medium text-gray-700">Matrícula (Generada automáticamente)</label>
-                        <input type="text" id="matricula" name="matricula" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100" readonly>
-                    </div>
-                    <input type="text" id="vence" name="vence" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm" required placeholder="Fecha de Vencimiento (ej: 31/12/2026)">
-                    
-                    <!-- Carga de Archivos -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                        <div>
-                            <label for="foto" class="block text-sm font-medium text-gray-700 mb-1">Foto del Titular</label>
-                            <input type="file" id="foto" name="foto" accept="image/*" class="custom-file-input" required>
-                        </div>
-                        <div>
-                            <label for="logo1" class="block text-sm font-medium text-gray-700 mb-1">Logo (junto a DNI)</label>
-                            <input type="file" id="logo1" name="logo1" accept="image/*" class="custom-file-input">
-                        </div>
-                    </div>
-                    
-                    <div class="pt-4">
-                        <button type="submit" class="w-full bg-blue-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-800 transition duration-300 flex items-center justify-center">
-                            <span id="button-text">Generar y Guardar Carnet</span>
-                            <div id="button-spinner" class="spinner w-5 h-5 rounded-full border-2 border-white border-t-transparent hidden ml-2"></div>
-                        </button>
-                    </div>
-                </form>
+            <h3 class="text-lg font-semibold pt-4">3. Logos e Imágenes</h3>
+            <div>
+                <label class="text-sm font-medium text-gray-700">Logo Principal (cuadrado)</label>
+                <input type="file" id="logo1-upload" class="w-full text-sm" accept="image/*">
+            </div>
+             <div>
+                <label class="text-sm font-medium text-gray-700">Foto del Titular</label>
+                <input type="file" id="foto-upload" class="w-full text-sm" accept="image/*">
             </div>
 
-            <!-- ID Card Preview Section -->
-            <div class="bg-white p-6 sm:p-8 rounded-xl card-shadow">
-                <h2 class="text-2xl font-bold mb-6">2. Vista Previa</h2>
-                
-                <div id="card-container" class="w-full max-w-lg mx-auto">
-                    <div id="student-card" class="bg-white card-shadow flex overflow-hidden aspect-[85.6/53.98] w-full">
-                        <!-- Photo Section -->
-                        <div class="w-2/5 flex-shrink-0">
-                            <img id="preview-foto" src="https://placehold.co/400x600/E0E0E0/BDBDBD?text=Foto" alt="Foto del Titular" class="w-full h-full object-cover">
-                        </div>
-                        
-                        <!-- Info Section -->
-                        <div class="w-3/5 bg-[#0052cc] text-white p-4 flex flex-col card-font relative -ml-16 rounded-r-lg">
-                             <!-- Curved shape overlay -->
-                            <div class="absolute top-0 bottom-0 left-0 w-20 bg-[#0052cc]" style="border-top-left-radius: 9999px; border-bottom-left-radius: 9999px;"></div>
-                            
-                            <div class="relative z-10 flex flex-col h-full pl-8">
-                                <div class="flex-grow space-y-2 text-sm sm:text-base md:text-lg lg:text-xl">
-                                    <p id="preview-titulo" class="font-bold tracking-wider">TÍTULO PRINCIPAL</p>
-                                    <hr class="border-t-2 border-white/50">
-                                    <p id="preview-cargo1" class="font-bold tracking-wider">CARGO PRINCIPAL</p>
-                                    <p id="preview-cargo2" class="font-bold tracking-wider">ESPECIALIDAD</p>
-                                    <p id="preview-nombre" class="font-bold tracking-wider">NOMBRE COMPLETO</p>
-                                </div>
-
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center space-x-2">
-                                        <img id="preview-logo1" src="https://placehold.co/100x100/FFFFFF/0052CC?text=Logo" class="h-12 w-12 object-contain">
-                                        <div class="text-xs sm:text-sm font-semibold tracking-wider">
-                                            <p id="preview-dni">DNI: 00.000.000</p>
-                                            <p id="preview-matricula">MATRICULA: 0000</p>
-                                        </div>
-                                    </div>
-                                    <div id="qrcode" class="w-20 h-20 p-1 bg-white rounded-md flex items-center justify-center flex-shrink-0">
-                                        <span class="text-gray-400 text-xs text-center leading-tight">QR Code</span>
-                                    </div>
-                                </div>
-
-
-                                <div class="flex items-center space-x-3 mt-auto pt-2">
-                                    <svg class="w-6 h-6 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C11.3 2 10.6 2.1 10 2.4L4.3 5.3C3.5 5.7 3 6.5 3 7.3V12.3C3 16.5 6.3 21.1 11.4 21.9C11.6 22 11.8 22 12 22C12.2 22 12.4 22 12.6 21.9C17.7 21.1 21 16.5 21 12.3V7.3C21 6.5 20.5 5.7 19.7 5.3L14 2.4C13.4 2.1 12.7 2 12 2ZM16.9 10.2L11.4 15.7C11.2 15.9 10.9 16 10.6 16C10.3 16 10.1 15.9 9.9 15.7L7.1 12.9C6.7 12.5 6.7 11.9 7.1 11.5C7.5 11.1 8.1 11.1 8.5 11.5L10.6 13.6L15.5 8.7C15.9 8.3 16.5 8.3 16.9 8.7C17.3 9.1 17.3 9.8 16.9 10.2Z"/></svg>
-                                    <svg class="w-6 h-6 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C15.9 2 19 5.1 19 9C19 12.4 16.6 16.5 12.8 19.4C12.3 19.8 11.7 19.8 11.2 19.4C7.4 16.5 5 12.4 5 9C5 5.1 8.1 2 12 2ZM12 4C9.2 4 7 6.2 7 9C7 11.5 9 14.8 12 17.3C15 14.8 17 11.5 17 9C17 6.2 14.8 4 12 4ZM12 7C13.1 7 14 7.9 14 9C14 10.1 13.1 11 12 11C10.9 11 10 10.1 10 9C10 7.9 10.9 7 12 7Z"/></svg>
-                                    <p id="preview-vence" class="text-sm sm:text-base font-bold tracking-wider">VENCE: 31/12/2026</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="download-section" class="mt-8 text-center hidden">
-                     <p id="status-message" class="text-green-600 font-semibold mb-3">¡Carnet generado y guardado! Elige un formato para descargar.</p>
-                     <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                        <button id="download-png-btn" class="bg-gray-800 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300">Descargar .PNG</button>
-                        <button id="download-jpg-btn" class="bg-gray-800 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300">Descargar .JPG</button>
-                        <button id="download-pdf-btn" class="bg-gray-800 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-900 transition duration-300">Descargar .PDF</button>
-                     </div>
-                </div>
+            <div class="pt-6">
+                 <button id="submit-btn" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition-colors">
+                    Generar y Guardar Carnet
+                </button>
+                <p id="status-message" class="text-center text-sm mt-2"></p>
             </div>
-        </main>
+        </div>
     </div>
 
-    <script>
-        // Initialize jsPDF
-        window.jsPDF = window.jspdf.jsPDF;
+    <!-- Columna del Carnet y Descarga -->
+    <div class="w-full lg:w-2/3 space-y-6">
+        <div id="carnet-container" class="carnet-preview relative w-[856px] h-[540px] bg-gray-300 rounded-xl shadow-lg overflow-hidden flex items-center justify-center text-gray-500">
+             <div id="template-bg" class="absolute inset-0 bg-cover bg-center"></div>
+             <!-- Los datos se posicionarán aquí con JS -->
+        </div>
 
-        // DOM Elements
-        const form = document.getElementById('student-form');
-        const downloadSection = document.getElementById('download-section');
-        const studentCard = document.getElementById('student-card');
-        const qrcodeContainer = document.getElementById('qrcode');
-        const matriculaInput = document.getElementById('matricula');
-        const statusMessage = document.getElementById('status-message');
-        const buttonText = document.getElementById('button-text');
-        const buttonSpinner = document.getElementById('button-spinner');
-        let qrcode = null;
-        
-        // Function to generate a unique ID for Matricula
-        function generateMatricula() {
-            const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
-            const randomNum = Math.floor(Math.random() * 9000) + 1000; // 4-digit random number
-            return `${randomNum}-${timestamp}`;
-        }
+        <div class="bg-white p-6 rounded-xl shadow-lg flex items-center justify-center space-x-4">
+            <button id="download-png" class="bg-blue-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-blue-700">Descargar PNG</button>
+            <button id="download-jpg" class="bg-teal-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-teal-700">Descargar JPG</button>
+            <button id="download-pdf" class="bg-red-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-red-700">Descargar PDF</button>
+        </div>
+    </div>
 
-        // Function to update any image preview
-        function updateImagePreview(inputId, previewId) {
-            const input = document.getElementById(inputId);
-            const preview = document.getElementById(previewId);
-            input.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        preview.src = e.target.result;
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
-        
-        // Setup image previews
-        updateImagePreview('foto', 'preview-foto');
-        updateImagePreview('logo1', 'preview-logo1');
+<script>
+    // --- LÓGICA DE LA APLICACIÓN ---
+    const form = {
+        template: document.getElementById('template-upload'),
+        titulo: document.getElementById('titulo'),
+        cargo1: document.getElementById('cargo1'),
+        cargo2: document.getElementById('cargo2'),
+        nombre: document.getElementById('nombre'),
+        dni: document.getElementById('dni'),
+        vence: document.getElementById('vence'),
+        logo1: document.getElementById('logo1-upload'),
+        foto: document.getElementById('foto-upload'),
+    };
+    const carnetContainer = document.getElementById('carnet-container');
+    const templateBg = document.getElementById('template-bg');
+    const submitBtn = document.getElementById('submit-btn');
+    const statusMessage = document.getElementById('status-message');
 
-        // Function to update text preview
-        function updateTextPreview() {
-            document.getElementById('preview-titulo').textContent = form.titulo.value.toUpperCase() || 'TÍTULO PRINCIPAL';
-            document.getElementById('preview-cargo1').textContent = form.cargo1.value.toUpperCase() || 'CARGO PRINCIPAL';
-            document.getElementById('preview-cargo2').textContent = form.cargo2.value.toUpperCase() || 'ESPECIALIDAD';
-            document.getElementById('preview-nombre').textContent = form.nombre.value.toUpperCase() || 'NOMBRE COMPLETO';
-            document.getElementById('preview-dni').textContent = `DNI: ${form.dni.value || '00.000.000'}`;
-            document.getElementById('preview-matricula').textContent = `MATRICULA: ${form.matricula.value || '0000-000000'}`;
-            document.getElementById('preview-vence').textContent = `VENCE: ${form.vence.value || '31/12/2026'}`;
-        }
+    let matriculaGenerada = '';
 
-        // Function to generate QR Code
-        function generateQRCode(matricula) {
-            qrcodeContainer.innerHTML = ''; // Clear previous QR
-            if (matricula) {
-                // This URL now points to your real verification site.
-                const verificationUrl = `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${matricula}`;
-                qrcode = new QRCode(qrcodeContainer, {
-                    text: verificationUrl,
-                    width: 72, 
-                    height: 72,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.L
-                });
-            } else {
-                 qrcodeContainer.innerHTML = '<span class="text-gray-400 text-xs text-center leading-tight">QR Code</span>';
-            }
-        }
+    // URL de tu función sin servidor
+    const API_ENDPOINT = 'https://carnet-api-green.vercel.app/api/handler';
 
-        // Event Listeners for live preview
-        form.addEventListener('input', () => {
-            updateTextPreview();
-            generateQRCode(form.matricula.value);
-        });
+    // Actualizar vista previa en tiempo real
+    function updatePreview() {
+        // Limpia el contenedor
+        carnetContainer.innerHTML = '';
+        carnetContainer.appendChild(templateBg); // Re-añade el fondo
 
-        // Form submission with AJAX to Formspree
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-
-            // Show loading state
-            buttonText.textContent = 'Guardando...';
-            buttonSpinner.classList.remove('hidden');
-            form.querySelector('button').disabled = true;
-
-            const formData = new FormData(form);
-            try {
-                const response = await fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    statusMessage.textContent = '¡Carnet generado y guardado! Elige un formato para descargar.';
-                    statusMessage.classList.remove('text-red-600');
-                    statusMessage.classList.add('text-green-600');
-                } else {
-                    throw new Error('Error al guardar los datos.');
-                }
-            } catch (error) {
-                statusMessage.textContent = 'Error al guardar. Revisa la URL de Formspree.';
-                statusMessage.classList.remove('text-green-600');
-                statusMessage.classList.add('text-red-600');
-                console.error('Formspree error:', error);
-            } finally {
-                // Hide loading state
-                buttonText.textContent = 'Generar y Guardar Carnet';
-                buttonSpinner.classList.add('hidden');
-                form.querySelector('button').disabled = false;
-
-                // Show download section regardless of submission success
-                downloadSection.classList.remove('hidden');
-                downloadSection.scrollIntoView({ behavior: 'smooth' });
-            }
-        });
-
-        // Generic download function
-        function downloadCard(format) {
-            const fileExtension = format.toLowerCase();
-            const mimeType = `image/${fileExtension}`;
-            
-            html2canvas(studentCard, { scale: 3, useCORS: true, backgroundColor: null }).then(canvas => {
-                const link = document.createElement('a');
-                const nombre = form.nombre.value.replace(/ /g,"_") || 'titular';
-                link.download = `carnet_${nombre}.${fileExtension}`;
-                link.href = canvas.toDataURL(mimeType, 0.95);
-                link.click();
-            });
-        }
-
-        // Download as PDF
-        document.getElementById('download-pdf-btn').addEventListener('click', () => {
-             html2canvas(studentCard, { scale: 3, useCORS: true, backgroundColor: null }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const pdf = new jsPDF({
-                    orientation: 'landscape',
-                    unit: 'px',
-                    format: [canvas.width, canvas.height]
-                });
-                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-                const nombre = form.nombre.value.replace(/ /g,"_") || 'titular';
-                pdf.save(`carnet_${nombre}.pdf`);
-            });
-        });
-
-        // Download buttons
-        document.getElementById('download-png-btn').addEventListener('click', () => downloadCard('png'));
-        document.getElementById('download-jpg-btn').addEventListener('click', () => downloadCard('jpeg'));
-
-        // Initial setup on page load
-        window.onload = () => {
-            const newMatricula = generateMatricula();
-            matriculaInput.value = newMatricula;
-            updateTextPreview();
-            generateQRCode(newMatricula);
+        // Crear y posicionar elementos de texto
+        const createText = (text, top, left, fontSize, fontWeight, color = 'white') => {
+            const el = document.createElement('div');
+            el.textContent = text.toUpperCase();
+            el.style.position = 'absolute';
+            el.style.top = `${top}px`;
+            el.style.left = `${left}px`;
+            el.style.fontSize = `${fontSize}px`;
+            el.style.fontWeight = fontWeight;
+            el.style.color = color;
+            el.style.textAlign = 'left';
+            carnetContainer.appendChild(el);
         };
-    </script>
+
+        createText(form.titulo.value, 60, 390, 38, '700');
+        createText(form.cargo1.value, 150, 390, 38, '700');
+        createText(form.cargo2.value, 240, 390, 38, '700');
+        createText(form.nombre.value, 330, 390, 38, '700');
+        
+        if (matriculaGenerada) {
+            createText(`DNI: ${form.dni.value}`, 430, 520, 30, '700');
+            createText(`MATRICULA: ${matriculaGenerada}`, 470, 520, 30, '700');
+        } else {
+             createText(`DNI: ${form.dni.value}`, 430, 520, 30, '700');
+        }
+
+        createText(`VENCE: ${form.vence.value}`, 480, 420, 24, '700');
+    }
+
+    // Manejar carga de imágenes
+    const handleImageUpload = (input, callback) => {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => callback(e.target.result);
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
+    
+    form.template.addEventListener('change', () => handleImageUpload(form.template, (src) => {
+        templateBg.style.backgroundImage = `url(${src})`;
+    }));
+
+    form.logo1.addEventListener('change', () => handleImageUpload(form.logo1, (src) => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.style.position = 'absolute';
+        img.style.top = '420px';
+        img.style.left = '420px';
+        img.style.width = '80px';
+        img.style.height = '80px';
+        carnetContainer.appendChild(img);
+    }));
+    
+    form.foto.addEventListener('change', () => handleImageUpload(form.foto, (src) => {
+        const photoContainer = document.createElement('div');
+        photoContainer.style.position = 'absolute';
+        photoContainer.style.top = '50px';
+        photoContainer.style.left = '50px';
+        photoContainer.style.width = '280px';
+        photoContainer.style.height = '440px';
+        photoContainer.style.backgroundImage = `url(${src})`;
+        photoContainer.style.backgroundSize = 'cover';
+        photoContainer.style.backgroundPosition = 'center';
+        photoContainer.style.borderRadius = '140px / 120px'; // Simula el óvalo
+        photoContainer.style.overflow = 'hidden';
+        carnetContainer.appendChild(photoContainer);
+    }));
+    
+    // Generar QR
+    function generateQRCode() {
+        const qrCanvas = document.createElement('canvas');
+        // Apunta a la página verificadora con la matrícula
+        const verifierBaseUrl = 'https://instructormap.github.io/verificador-Carnet-Oficial/';
+        new QRious({
+            element: qrCanvas,
+            value: `${verifierBaseUrl}?id=${matriculaGenerada}`,
+            size: 120,
+            level: 'H'
+        });
+        const img = document.createElement('img');
+        img.src = qrCanvas.toDataURL();
+        img.style.position = 'absolute';
+        img.style.top = '40px';
+        img.style.right = '40px';
+        carnetContainer.appendChild(img);
+    }
+    
+    // Enviar datos al "cerebro" (función sin servidor)
+    submitBtn.addEventListener('click', async () => {
+        statusMessage.textContent = 'Procesando...';
+        submitBtn.disabled = true;
+
+        if (!form.dni.value || !form.nombre.value || !form.cargo2.value) {
+            statusMessage.textContent = 'Error: DNI, Nombre y Especialidad son requeridos.';
+            submitBtn.disabled = false;
+            return;
+        }
+
+        try {
+            const response = await fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nombre: form.nombre.value,
+                    dni: form.dni.value,
+                    curso: form.cargo2.value,
+                    // Añade otros campos que quieras guardar
+                    titulo: form.titulo.value,
+                    cargo1: form.cargo1.value,
+                    vence: form.vence.value
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('El servidor devolvió un error.');
+            }
+
+            const result = await response.json();
+            matriculaGenerada = result.matricula;
+            statusMessage.textContent = `¡Éxito! Matrícula: ${matriculaGenerada}`;
+            
+            updatePreview(); // Actualiza la vista previa con la matrícula
+            generateQRCode(); // Y el QR
+
+        } catch (error) {
+            console.error('Error al guardar:', error);
+            statusMessage.textContent = 'Error al guardar los datos.';
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+
+    // Añadir listeners para actualizar la vista previa
+    Object.values(form).forEach(input => {
+        if (input.type !== 'file') {
+            input.addEventListener('input', updatePreview);
+        }
+    });
+
+    // Lógica de Descarga
+    const download = (format, quality = 1.0) => {
+        html2canvas(carnetContainer, { scale: 2 }).then(canvas => {
+            if (format === 'pdf') {
+                const pdf = new jspdf.jsPDF({ orientation: 'landscape', unit: 'px', format: [856, 540] });
+                pdf.addImage(canvas.toDataURL('image/jpeg', quality), 'JPEG', 0, 0, 856, 540);
+                pdf.save(`carnet-${form.dni.value}.pdf`);
+            } else {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL(`image/${format}`, quality);
+                link.download = `carnet-${form.dni.value}.${format}`;
+                link.click();
+            }
+        });
+    };
+    document.getElementById('download-png').addEventListener('click', () => download('png'));
+    document.getElementById('download-jpg').addEventListener('click', () => download('jpeg'));
+    document.getElementById('download-pdf').addEventListener('click', () => download('pdf', 0.95));
+
+</script>
 </body>
 </html>
+
