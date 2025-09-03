@@ -93,11 +93,8 @@
         <!-- Columna del Formulario -->
         <div class="bg-white p-8 rounded-lg shadow-md">
             <!-- Título y Botón Admin -->
-            <div class="flex justify-between items-center mb-6">
+            <div class="text-center mb-6">
                 <h1 class="text-2xl font-bold">Generador de Carnets</h1>
-                <a href="admin.html" target="_blank" class="text-base bg-indigo-100 text-indigo-700 font-semibold py-2 px-4 rounded-lg hover:bg-indigo-200 transition-colors shadow-sm">
-                    Administrador
-                </a>
             </div>
             <form id="carnet-form" class="space-y-4">
                 
@@ -124,6 +121,12 @@
                     Generar y Guardar Carnet
                 </button>
             </form>
+            <!-- Botón de Administrador movido para mayor visibilidad -->
+            <div class="mt-6 border-t pt-6">
+                 <a href="admin.html" target="_blank" class="w-full inline-block text-center bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors">
+                    Acceder al Panel de Administrador
+                </a>
+            </div>
             <div id="status" class="mt-4 text-center"></div>
         </div>
 
@@ -343,5 +346,6 @@
     </script>
 </body>
 </html>
+
 
 
