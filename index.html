@@ -8,6 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- PASO 1: Script de Google reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         body { font-family: 'Poppins', sans-serif; }
         .carnet-preview {
@@ -55,11 +57,22 @@
         #titulo-preview { top: 90px; left: 450px; font-size: 28px; }
         #cargo1-preview { top: 155px; left: 450px; font-size: 28px; }
         #cargo2-preview { top: 220px; left: 450px; font-size: 28px; }
-        /* -- AJUSTE CLAVE 1: Nombre más pequeño -- */
-        #nombre-preview { top: 285px; left: 480px; font-size: 24px; } /* Letra más chica */
-        /* -- AJUSTE CLAVE 2: DNI y Matrícula movidos a la izquierda -- */
-        #dni-preview { top: 380px; left: 490px; font-size: 26px; }      
-        #matricula-preview { top: 415px; left: 490px; font-size: 26px; }
+        
+        #nombre-container {
+            position: absolute;
+            top: 285px;
+            left: 450px;
+            width: 380px; 
+            text-align: left;
+        }
+        #nombre-preview {
+            font-size: 24px;
+            white-space: nowrap;
+            display: inline-block;
+        }
+      
+        #dni-preview { top: 375px; left: 480px; font-size: 26px; }      
+        #matricula-preview { top: 410px; left: 480px; font-size: 26px; }
         #vence-preview { top: 475px; left: 520px; font-size: 24px; }    
         
         #qr-code-preview {
@@ -100,6 +113,9 @@
                 <input type="text" id="dni" name="dni" placeholder="DNI del Titular" class="w-full p-2 border rounded" required>
                 <input type="text" id="vence" name="vence" placeholder="Fecha de Vencimiento (ej: 31/12/2026)" class="w-full p-2 border rounded" required>
                 
+                <!-- Clave del Sitio de reCAPTCHA insertada -->
+                <div class="g-recaptcha" data-sitekey="6LfeJ70rAAAAAEn0dpl4oqfDbbexDvj4M-3AMzwD"></div>
+
                 <button type="submit" id="submit-btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
                     Generar y Guardar Carnet
                 </button>
@@ -117,7 +133,9 @@
                     <div id="titulo-preview" class="text-overlay"></div>
                     <div id="cargo1-preview" class="text-overlay"></div>
                     <div id="cargo2-preview" class="text-overlay"></div>
-                    <div id="nombre-preview" class="text-overlay"></div>
+                    <div id="nombre-container">
+                        <span id="nombre-preview" class="text-overlay" style="position: static;"></span>
+                    </div>
                     <div id="dni-preview" class="text-overlay"></div>
                     <div id="matricula-preview" class="text-overlay"></div>
                     <div id="vence-preview" class="text-overlay"></div>
@@ -159,6 +177,7 @@
         };
         
         const qrCodePreview = document.getElementById('qr-code-preview');
+        const nombreContainer = document.getElementById('nombre-container');
 
         // --- LÓGICA DE VISTA PREVIA ---
         form.addEventListener('input', (e) => {
@@ -168,12 +187,28 @@
                     previewElements.dni.textContent = `DNI: ${value}`;
                 } else if (id === 'vence') {
                     previewElements.vence.textContent = `VENCE: ${value}`;
+                } else if (id === 'nombre') {
+                    previewElements.nombre.textContent = value;
+                    adjustFontSize(); 
                 }
                  else {
                     previewElements[id].textContent = value;
                 }
             }
         });
+        
+        function adjustFontSize() {
+            const el = previewElements.nombre;
+            const container = nombreContainer;
+            el.style.transform = 'scale(1)'; 
+            const containerWidth = container.offsetWidth;
+            const textWidth = el.offsetWidth;
+            if (textWidth > containerWidth) {
+                const scale = containerWidth / textWidth;
+                el.style.transform = `scaleX(${scale})`;
+                el.style.transformOrigin = 'left';
+            }
+        }
 
         templateUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -197,6 +232,14 @@
             
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
+            
+            // PASO 3: Añadir el token de reCAPTCHA a los datos que se envían
+            const recaptchaResponse = grecaptcha.getResponse();
+            if (!recaptchaResponse) {
+                setStatus('Por favor, completa la verificación "No soy un robot".', 'error');
+                return;
+            }
+            data['g-recaptcha-response'] = recaptchaResponse;
 
             try {
                 const response = await fetch(API_ENDPOINT, {
@@ -222,6 +265,9 @@
             } catch (error) {
                 console.error('Error:', error);
                 setStatus(`Error al guardar los datos: ${error.message}`, 'error');
+            } finally {
+                // Resetea el reCAPTCHA después de cada envío
+                grecaptcha.reset();
             }
         });
         
@@ -250,7 +296,6 @@
         
         function generateQRCode(matricula) {
             if (!matricula) return;
-            // Actualiza la URL para apuntar al verificador correcto
             const verificationUrl = `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${matricula}`;
             new QRious({
                 element: qrCodePreview,
