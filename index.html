@@ -32,18 +32,16 @@
             top: 0;
             left: 0;
         }
-        /* -- AJUSTE CLAVE -- */
-        /* Se modificó para crear un marco ovalado que encaje en la plantilla */
+        /* -- AJUSTE CLAVE 1: Marco de foto agrandado -- */
         #photo-preview {
             position: absolute;
-            top: 60px;    /* Posición vertical ajustada */
-            left: 40px;   /* Posición horizontal ajustada */
-            width: 340px;   /* Ancho del óvalo */
-            height: 420px;  /* Altura del óvalo para que sea vertical */
-            /* Usar 50% en un rectángulo crea una forma ovalada perfecta */
+            top: 20px;     /* Sube más cerca del borde */
+            left: 20px;    /* Se acerca más al borde izquierdo */
+            width: 400px;    /* Más ancho para cubrir más espacio */
+            height: 500px;   /* Mucho más alto para crear el óvalo pronunciado */
             border-radius: 50%; 
             object-fit: cover;
-            border: 8px solid white;
+            border: 10px solid white; /* Borde ligeramente más grueso */
         }
         .text-overlay {
             position: absolute;
@@ -54,14 +52,14 @@
             letter-spacing: 1.5px;
             white-space: nowrap;
         }
-        /* Ajustes precisos basados en el carnet de ejemplo */
+        /* -- AJUSTE CLAVE 2: Alineación de texto corregida -- */
         #titulo-preview { top: 90px; left: 450px; font-size: 28px; }
         #cargo1-preview { top: 155px; left: 450px; font-size: 28px; }
         #cargo2-preview { top: 220px; left: 450px; font-size: 28px; }
-        #nombre-preview { top: 285px; left: 450px; font-size: 28px; }
-        #dni-preview { top: 380px; left: 450px; font-size: 26px; }
-        #matricula-preview { top: 415px; left: 450px; font-size: 26px; }
-        #vence-preview { top: 475px; left: 450px; font-size: 24px; }
+        #nombre-preview { top: 285px; left: 480px; font-size: 28px; } /* Movido a la derecha */
+        #dni-preview { top: 380px; left: 520px; font-size: 26px; }      /* Movido a la derecha */
+        #matricula-preview { top: 415px; left: 520px; font-size: 26px; }/* Movido a la derecha */
+        #vence-preview { top: 475px; left: 520px; font-size: 24px; }    /* Movido a la derecha */
         #qr-code-preview {
             position: absolute;
             top: 25px;
@@ -206,7 +204,8 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Error del servidor: ${response.statusText}`);
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Error del servidor: ${response.statusText}`);
                 }
 
                 const result = await response.json();
@@ -216,7 +215,7 @@
                     generateQRCode(result.matricula);
                     setStatus(`Éxito! Matrícula asignada: ${result.matricula}`, 'success');
                 } else {
-                    throw new Error('La respuesta del servidor no fue la esperada.');
+                    throw new Error(result.message || 'La respuesta del servidor no fue la esperada.');
                 }
             } catch (error) {
                 console.error('Error:', error);
