@@ -10,14 +10,14 @@
     <style>
         body { font-family: 'Poppins', sans-serif; }
         .carnet-preview { width: 856px; height: 540px; position: relative; overflow: hidden; border-radius: 12px; }
-        #template-bg, #photo-preview { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+        #template-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        #photo-preview { position: absolute; top: 20px; left: 20px; width: 400px; height: 500px; border-radius: 50%; object-fit: cover; border: 10px solid white; }
         .text-overlay { position: absolute; font-family: 'Arial', sans-serif; font-weight: bold; color: white; text-transform: uppercase; letter-spacing: 1.5px; white-space: nowrap; }
-        /* Estilos de la plantilla (puedes ajustarlos si es necesario) */
         #titulo-preview { top: 90px; left: 450px; font-size: 28px; }
         #cargo1-preview { top: 155px; left: 450px; font-size: 28px; }
         #cargo2-preview { top: 220px; left: 450px; font-size: 28px; }
         #nombre-container { position: absolute; top: 285px; left: 450px; width: 380px; text-align: left; }
-        #nombre-preview { font-size: 24px; white-space: nowrap; display: inline-block; }
+        #nombre-preview { font-size: 24px; white-space: nowrap; display: inline-block; transform-origin: left; }
         #dni-preview { top: 375px; left: 480px; font-size: 26px; }
         #matricula-preview { top: 410px; left: 480px; font-size: 26px; }
         #vence-preview { top: 475px; left: 520px; font-size: 24px; }
@@ -52,12 +52,12 @@
                 </button>
             </div>
 
-            <!-- Columna de Vista Previa (simplificada) -->
+            <!-- Columna de Vista Previa (oculta, solo para generar la imagen) -->
             <div class="hidden">
                  <div class="carnet-preview">
                     <div id="preview-container">
-                        <img id="template-bg" src="" alt="Fondo del carnet">
-                        <img id="photo-preview" src="https://placehold.co/320x320/cccccc/ffffff?text=Tu+Foto" alt="Foto del titular">
+                        <img id="template-bg" src="" alt="Fondo del carnet" crossorigin="anonymous">
+                        <img id="photo-preview" src="https://placehold.co/400x500/cccccc/ffffff?text=Tu+Foto" alt="Foto del titular" crossorigin="anonymous">
                         <div id="titulo-preview" class="text-overlay"></div>
                         <div id="cargo1-preview" class="text-overlay"></div>
                         <div id="cargo2-preview" class="text-overlay"></div>
@@ -84,6 +84,8 @@
         const statusMessage = document.getElementById('status-message');
         const photoUpload = document.getElementById('photo-upload');
         const submitBtn = document.getElementById('submit-btn');
+        const photoPreview = document.getElementById('photo-preview');
+        const templateBg = document.getElementById('template-bg');
 
         let studentData = {};
 
@@ -108,7 +110,7 @@
                 }
                 
                 studentData = result.data;
-                populateData(studentData);
+                await populateData(studentData); // Espera a que los datos e imágenes se carguen
                 mainContent.classList.remove('hidden');
                 statusMessage.classList.add('hidden');
 
@@ -117,15 +119,26 @@
             }
         });
 
-        function populateData(data) {
+        // NUEVA FUNCIÓN MEJORADA: Espera a que las imágenes se carguen
+        function waitForImageLoad(imageElement) {
+            return new Promise((resolve, reject) => {
+                if (imageElement.complete && imageElement.naturalHeight !== 0) {
+                    resolve();
+                } else {
+                    imageElement.onload = () => resolve();
+                    imageElement.onerror = () => reject(new Error('No se pudo cargar una de las imágenes del carnet.'));
+                }
+            });
+        }
+
+        async function populateData(data) {
             document.getElementById('student-name').textContent = data.nombre.split(' ')[0];
             document.getElementById('display-nombre').textContent = data.nombre;
             document.getElementById('display-dni').textContent = data.dni;
-            document.getElementById('display-curso').textContent = data.cursos.split(', ').pop(); // Muestra el último curso
+            document.getElementById('display-curso').textContent = data.cursos.split(', ').pop();
             document.getElementById('display-matricula').textContent = data.matricula;
 
-            // Rellenar la vista previa oculta para la generación de la imagen
-            document.getElementById('template-bg').src = data.plantilla_url;
+            templateBg.src = data.plantilla_url;
             document.getElementById('titulo-preview').textContent = data.titulo;
             document.getElementById('cargo1-preview').textContent = data.cargo1;
             document.getElementById('cargo2-preview').textContent = data.cursos.split(', ').pop();
@@ -133,18 +146,21 @@
             document.getElementById('dni-preview').textContent = `DNI: ${data.dni}`;
             document.getElementById('matricula-preview').textContent = `MATRICULA: ${data.matricula}`;
             document.getElementById('vence-preview').textContent = `VENCE: ${data.vence}`;
-
+            
             new QRious({
                 element: document.getElementById('qr-code-preview'),
                 value: `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${data.matricula}`,
                 size: 100
             });
+
+            // Espera a que la plantilla de fondo se cargue antes de continuar
+            await waitForImageLoad(templateBg);
         }
         
         photoUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
-                document.getElementById('photo-preview').src = URL.createObjectURL(file);
+                photoPreview.src = URL.createObjectURL(file);
             }
         });
 
@@ -157,8 +173,18 @@
             setStatus('Generando tu carnet y enviando el email... Esto puede tardar un momento.', 'loading', true);
 
             try {
-                const canvas = await html2canvas(document.getElementById('preview-container'), { scale: 2 });
+                // Se asegura de que la foto subida esté cargada antes de continuar
+                await waitForImageLoad(photoPreview);
+
+                const previewNode = document.getElementById('preview-container').parentElement;
+                previewNode.parentElement.classList.remove('hidden');
+                previewNode.style.position = 'absolute';
+                previewNode.style.left = '-9999px';
+
+                const canvas = await html2canvas(document.getElementById('preview-container'), { useCORS: true, scale: 2 });
                 const carnetImageBase64 = canvas.toDataURL('image/jpeg', 0.9);
+
+                previewNode.parentElement.classList.add('hidden');
 
                 const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
@@ -194,3 +220,4 @@
     </script>
 </body>
 </html>
+
