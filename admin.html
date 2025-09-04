@@ -27,7 +27,7 @@
     </div>
 
     <!-- Pantalla de Búsqueda (Oculta por defecto) -->
-    <div id="search-screen" class="bg-white p-8 rounded-lg shadow-md w-full max-w-4xl hidden">
+    <div id="search-screen" class="bg-white p-8 rounded-lg shadow-md w-full max-w-6xl hidden">
         <h1 class="text-2xl font-bold mb-6">Buscador de Titulares</h1>
         <form id="search-form" class="flex items-center space-x-2">
             <input type="text" id="search-query" placeholder="Buscar por Nombre o DNI..." class="flex-grow p-2 border rounded">
@@ -35,7 +35,7 @@
                 Buscar
             </button>
         </form>
-        <div id="search-results" class="mt-6">
+        <div id="search-results" class="mt-6 overflow-x-auto">
             <!-- Los resultados aparecerán aquí -->
         </div>
     </div>
@@ -43,7 +43,7 @@
     <script>
         // --- CONFIGURACIÓN ---
         const API_ENDPOINT = 'https://carnet-api-green.vercel.app/api/handler';
-        const PASSWORD = 'cambiame'; // <-- ¡CAMBIA ESTA CONTRASEÑA!
+        const PASSWORD = 'cambiame'; // <-- ¡Recuerda cambiar esta contraseña!
 
         // --- ELEMENTOS DEL DOM ---
         const loginScreen = document.getElementById('login-screen');
@@ -69,15 +69,16 @@
         // --- LÓGICA DE BÚSQUEDA ---
         searchForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            await performSearch();
+        });
+
+        async function performSearch() {
             const query = searchQuery.value.trim();
             if (!query) return;
-
             searchResults.innerHTML = '<p class="text-center text-gray-500">Buscando...</p>';
-
             try {
                 const response = await fetch(`${API_ENDPOINT}?query=${encodeURIComponent(query)}`);
                 const result = await response.json();
-
                 if (response.ok && result.success) {
                     displayResults(result.data);
                 } else {
@@ -86,14 +87,13 @@
             } catch (error) {
                 searchResults.innerHTML = `<p class="text-center text-red-500">Error: ${error.message}</p>`;
             }
-        });
+        }
 
         function displayResults(data) {
             if (data.length === 0) {
                 searchResults.innerHTML = '<p class="text-center text-gray-500">No se encontraron resultados.</p>';
                 return;
             }
-
             const table = `
                 <table class="w-full text-left border-collapse">
                     <thead>
@@ -101,25 +101,65 @@
                             <th class="p-2 border-b">Nombre</th>
                             <th class="p-2 border-b">DNI</th>
                             <th class="p-2 border-b">Matrícula</th>
-                            <th class="p-2 border-b">Cursos</th>
                             <th class="p-2 border-b">Vence</th>
+                            <th class="p-2 border-b text-center">Estado</th>
+                            <th class="p-2 border-b text-center">Acción</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${data.map(item => `
-                            <tr class="hover:bg-gray-50">
-                                <td class="p-2 border-b">${item.nombre}</td>
-                                <td class="p-2 border-b">${item.dni}</td>
-                                <td class="p-2 border-b">${item.matricula}</td>
-                                <td class="p-2 border-b">${item.cursos}</td>
-                                <td class="p-2 border-b">${item.vence}</td>
-                            </tr>
-                        `).join('')}
+                        ${data.map(item => {
+                            const isActivo = item.status === 'Activo';
+                            const statusBadge = isActivo 
+                                ? '<span class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">Activo</span>'
+                                : '<span class="bg-red-100 text-red-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">Vencido</span>';
+                            return `
+                                <tr class="hover:bg-gray-50">
+                                    <td class="p-2 border-b">${item.nombre}</td>
+                                    <td class="p-2 border-b">${item.dni}</td>
+                                    <td class="p-2 border-b">${item.matricula}</td>
+                                    <td class="p-2 border-b">${item.vence}</td>
+                                    <td class="p-2 border-b text-center">${statusBadge}</td>
+                                    <td class="p-2 border-b text-center">
+                                        <button onclick="renewCarnet('${item.matricula}')" class="bg-blue-500 text-white text-sm py-1 px-3 rounded hover:bg-blue-600">Renovar</button>
+                                    </td>
+                                </tr>
+                            `}).join('')}
                     </tbody>
                 </table>
             `;
             searchResults.innerHTML = table;
         }
+
+        // --- LÓGICA DE RENOVACIÓN ---
+        async function renewCarnet(matricula) {
+            const nuevaFecha = prompt('Ingresa la nueva fecha de vencimiento (formato DD/MM/YYYY):', '31/12/2026');
+            if (!nuevaFecha || !/^\d{2}\/\d{2}\/\d{4}$/.test(nuevaFecha)) {
+                alert('Formato de fecha inválido. Por favor, usa DD/MM/YYYY.');
+                return;
+            }
+
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        matricula: matricula,
+                        nuevaFechaVencimiento: nuevaFecha
+                    })
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    alert('¡Carnet renovado con éxito!');
+                    // Refresca la búsqueda para mostrar los datos actualizados
+                    await performSearch();
+                } else {
+                    throw new Error(result.message || 'Error al renovar.');
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
     </script>
 </body>
 </html>
+
