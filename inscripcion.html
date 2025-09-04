@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Inscripción de Carnet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .carnet-preview { width: 856px; height: 540px; position: relative; overflow: hidden; border-radius: 12px; }
+        #template-bg, #photo-preview { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+        .text-overlay { position: absolute; font-family: 'Arial', sans-serif; font-weight: bold; color: white; text-transform: uppercase; letter-spacing: 1.5px; white-space: nowrap; }
+        /* Estilos de la plantilla (puedes ajustarlos si es necesario) */
+        #titulo-preview { top: 90px; left: 450px; font-size: 28px; }
+        #cargo1-preview { top: 155px; left: 450px; font-size: 28px; }
+        #cargo2-preview { top: 220px; left: 450px; font-size: 28px; }
+        #nombre-container { position: absolute; top: 285px; left: 450px; width: 380px; text-align: left; }
+        #nombre-preview { font-size: 24px; white-space: nowrap; display: inline-block; }
+        #dni-preview { top: 375px; left: 480px; font-size: 26px; }
+        #matricula-preview { top: 410px; left: 480px; font-size: 26px; }
+        #vence-preview { top: 475px; left: 520px; font-size: 24px; }
+        #qr-code-preview { position: absolute; bottom: 25px; left: 30px; width: 100px; height: 100px; background-color: white; padding: 5px; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div id="main-content" class="bg-white p-8 rounded-lg shadow-md w-full max-w-4xl text-center hidden">
+        <h1 class="text-3xl font-bold mb-2">¡Casi listo, <span id="student-name"></span>!</h1>
+        <p class="text-gray-600 mb-6">Solo falta un paso para generar tu carnet.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Columna de Datos y Acciones -->
+            <div class="text-left">
+                <h2 class="text-xl font-semibold mb-4">Tus Datos Registrados</h2>
+                <div class="space-y-3 p-4 border rounded-lg bg-gray-50">
+                    <p><strong>Nombre:</strong> <span id="display-nombre"></span></p>
+                    <p><strong>DNI:</strong> <span id="display-dni"></span></p>
+                    <p><strong>Curso/Especialidad:</strong> <span id="display-curso"></span></p>
+                    <p><strong>Matrícula:</strong> <span id="display-matricula"></span></p>
+                </div>
+
+                <div class="mt-6">
+                    <label for="photo-upload" class="block text-lg font-semibold mb-2">Sube tu foto de perfil</label>
+                    <p class="text-sm text-gray-500 mb-2">Asegúrate de que sea una foto clara, tipo carnet y con fondo neutro.</p>
+                    <input type="file" id="photo-upload" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" required>
+                </div>
+
+                <button id="submit-btn" class="mt-8 w-full bg-green-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-green-700 transition-colors disabled:bg-gray-400">
+                    Finalizar y Recibir mi Carnet por Email
+                </button>
+            </div>
+
+            <!-- Columna de Vista Previa (simplificada) -->
+            <div class="hidden">
+                 <div class="carnet-preview">
+                    <div id="preview-container">
+                        <img id="template-bg" src="" alt="Fondo del carnet">
+                        <img id="photo-preview" src="https://placehold.co/320x320/cccccc/ffffff?text=Tu+Foto" alt="Foto del titular">
+                        <div id="titulo-preview" class="text-overlay"></div>
+                        <div id="cargo1-preview" class="text-overlay"></div>
+                        <div id="cargo2-preview" class="text-overlay"></div>
+                        <div id="nombre-container"><span id="nombre-preview" class="text-overlay" style="position: static;"></span></div>
+                        <div id="dni-preview" class="text-overlay"></div>
+                        <div id="matricula-preview" class="text-overlay"></div>
+                        <div id="vence-preview" class="text-overlay"></div>
+                        <img id="qr-code-preview" src="" alt="Código QR">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="status-message" class="bg-white p-8 rounded-lg shadow-md w-full max-w-md text-center">
+        <!-- Mensajes de estado (cargando, error, éxito) -->
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
+    <script>
+        const API_ENDPOINT = 'https://carnet-api-green.vercel.app/api/handler';
+        
+        const mainContent = document.getElementById('main-content');
+        const statusMessage = document.getElementById('status-message');
+        const photoUpload = document.getElementById('photo-upload');
+        const submitBtn = document.getElementById('submit-btn');
+
+        let studentData = {};
+
+        // Al cargar la página, verifica el token
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+
+            setStatus('Verificando tu acceso...', 'loading');
+
+            if (!token) {
+                setStatus('Enlace inválido o expirado. Por favor, solicita uno nuevo.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_ENDPOINT}?verifyToken=${token}`);
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || 'El enlace es inválido o ya ha sido utilizado.');
+                }
+                
+                studentData = result.data;
+                populateData(studentData);
+                mainContent.classList.remove('hidden');
+                statusMessage.classList.add('hidden');
+
+            } catch (error) {
+                setStatus(error.message, 'error');
+            }
+        });
+
+        function populateData(data) {
+            document.getElementById('student-name').textContent = data.nombre.split(' ')[0];
+            document.getElementById('display-nombre').textContent = data.nombre;
+            document.getElementById('display-dni').textContent = data.dni;
+            document.getElementById('display-curso').textContent = data.cursos.split(', ').pop(); // Muestra el último curso
+            document.getElementById('display-matricula').textContent = data.matricula;
+
+            // Rellenar la vista previa oculta para la generación de la imagen
+            document.getElementById('template-bg').src = data.plantilla_url;
+            document.getElementById('titulo-preview').textContent = data.titulo;
+            document.getElementById('cargo1-preview').textContent = data.cargo1;
+            document.getElementById('cargo2-preview').textContent = data.cursos.split(', ').pop();
+            document.getElementById('nombre-preview').textContent = data.nombre;
+            document.getElementById('dni-preview').textContent = `DNI: ${data.dni}`;
+            document.getElementById('matricula-preview').textContent = `MATRICULA: ${data.matricula}`;
+            document.getElementById('vence-preview').textContent = `VENCE: ${data.vence}`;
+
+            new QRious({
+                element: document.getElementById('qr-code-preview'),
+                value: `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${data.matricula}`,
+                size: 100
+            });
+        }
+        
+        photoUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('photo-preview').src = URL.createObjectURL(file);
+            }
+        });
+
+        submitBtn.addEventListener('click', async () => {
+            if (!photoUpload.files[0]) {
+                alert('Por favor, sube una foto antes de finalizar.');
+                return;
+            }
+
+            setStatus('Generando tu carnet y enviando el email... Esto puede tardar un momento.', 'loading', true);
+
+            try {
+                const canvas = await html2canvas(document.getElementById('preview-container'), { scale: 2 });
+                const carnetImageBase64 = canvas.toDataURL('image/jpeg', 0.9);
+
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'finalize',
+                        token: new URLSearchParams(window.location.search).get('token'),
+                        carnetImage: carnetImageBase64
+                    })
+                });
+                
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || 'No se pudo enviar el carnet.');
+                }
+                
+                setStatus('¡Éxito! Hemos enviado tu carnet a tu correo electrónico registrado. Ya puedes cerrar esta ventana.', 'success', true);
+
+            } catch (error) {
+                 setStatus(`Error: ${error.message}`, 'error', true);
+            }
+        });
+
+        function setStatus(message, type, isFinal = false) {
+             if (isFinal) {
+                mainContent.classList.add('hidden');
+                statusMessage.classList.remove('hidden');
+            }
+            statusMessage.innerHTML = `<h2 class="text-2xl font-bold">${message}</h2>`;
+            if (type === 'error') statusMessage.classList.add('text-red-500');
+            if (type === 'success') statusMessage.classList.add('text-green-500');
+        }
+    </script>
+</body>
+</html>
