@@ -89,37 +89,29 @@
 
         let studentData = {};
 
-        // Al cargar la página, verifica el token
         document.addEventListener('DOMContentLoaded', async () => {
             const params = new URLSearchParams(window.location.search);
             const token = params.get('token');
-
             setStatus('Verificando tu acceso...', 'loading');
-
             if (!token) {
                 setStatus('Enlace inválido o expirado. Por favor, solicita uno nuevo.', 'error');
                 return;
             }
-
             try {
                 const response = await fetch(`${API_ENDPOINT}?verifyToken=${token}`);
                 const result = await response.json();
-
                 if (!response.ok || !result.success) {
                     throw new Error(result.message || 'El enlace es inválido o ya ha sido utilizado.');
                 }
-                
                 studentData = result.data;
-                await populateData(studentData); // Espera a que los datos e imágenes se carguen
+                await populateData(studentData);
                 mainContent.classList.remove('hidden');
                 statusMessage.classList.add('hidden');
-
             } catch (error) {
                 setStatus(error.message, 'error');
             }
         });
 
-        // NUEVA FUNCIÓN MEJORADA: Espera a que las imágenes se carguen
         function waitForImageLoad(imageElement) {
             return new Promise((resolve, reject) => {
                 if (imageElement.complete && imageElement.naturalHeight !== 0) {
@@ -132,12 +124,14 @@
         }
 
         async function populateData(data) {
+            if (!data.plantilla_url) {
+                throw new Error('No se ha definido una plantilla para este carnet. Contacta al administrador.');
+            }
             document.getElementById('student-name').textContent = data.nombre.split(' ')[0];
             document.getElementById('display-nombre').textContent = data.nombre;
             document.getElementById('display-dni').textContent = data.dni;
             document.getElementById('display-curso').textContent = data.cursos.split(', ').pop();
             document.getElementById('display-matricula').textContent = data.matricula;
-
             templateBg.src = data.plantilla_url;
             document.getElementById('titulo-preview').textContent = data.titulo;
             document.getElementById('cargo1-preview').textContent = data.cargo1;
@@ -146,14 +140,11 @@
             document.getElementById('dni-preview').textContent = `DNI: ${data.dni}`;
             document.getElementById('matricula-preview').textContent = `MATRICULA: ${data.matricula}`;
             document.getElementById('vence-preview').textContent = `VENCE: ${data.vence}`;
-            
             new QRious({
                 element: document.getElementById('qr-code-preview'),
                 value: `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${data.matricula}`,
                 size: 100
             });
-
-            // Espera a que la plantilla de fondo se cargue antes de continuar
             await waitForImageLoad(templateBg);
         }
         
@@ -169,23 +160,16 @@
                 alert('Por favor, sube una foto antes de finalizar.');
                 return;
             }
-
             setStatus('Generando tu carnet y enviando el email... Esto puede tardar un momento.', 'loading', true);
-
             try {
-                // Se asegura de que la foto subida esté cargada antes de continuar
                 await waitForImageLoad(photoPreview);
-
                 const previewNode = document.getElementById('preview-container').parentElement;
                 previewNode.parentElement.classList.remove('hidden');
                 previewNode.style.position = 'absolute';
                 previewNode.style.left = '-9999px';
-
                 const canvas = await html2canvas(document.getElementById('preview-container'), { useCORS: true, scale: 2 });
                 const carnetImageBase64 = canvas.toDataURL('image/jpeg', 0.9);
-
                 previewNode.parentElement.classList.add('hidden');
-
                 const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -195,14 +179,11 @@
                         carnetImage: carnetImageBase64
                     })
                 });
-                
                 const result = await response.json();
                 if (!response.ok || !result.success) {
                     throw new Error(result.message || 'No se pudo enviar el carnet.');
                 }
-                
                 setStatus('¡Éxito! Hemos enviado tu carnet a tu correo electrónico registrado. Ya puedes cerrar esta ventana.', 'success', true);
-
             } catch (error) {
                  setStatus(`Error: ${error.message}`, 'error', true);
             }
