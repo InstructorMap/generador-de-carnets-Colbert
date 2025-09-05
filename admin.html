@@ -129,23 +129,28 @@
             searchResults.innerHTML = table;
         }
 
-        // --- ¡NUEVO! LÓGICA DE ENVÍO DE "MAGIC LINK" ---
+        // --- LÓGICA DE ENVÍO DE "MAGIC LINK" ---
         async function sendMagicLink(dni, buttonElement) {
-            if (!confirm(`¿Estás seguro de que quieres enviar un enlace de acceso al alumno con DNI ${dni}?`)) {
+            if (!confirm(`¿Estás seguro de que quieres generar un enlace de acceso para el alumno con DNI ${dni}?`)) {
                 return;
             }
             
             buttonElement.disabled = true;
-            buttonElement.textContent = 'Enviando...';
+            buttonElement.textContent = 'Generando...';
 
             try {
                 const response = await fetch(`${API_ENDPOINT}?generateTokenForDni=${encodeURIComponent(dni)}`);
                 const result = await response.json();
 
                 if (response.ok && result.success) {
-                    alert(result.message);
+                    // Muestra el mensaje de confirmación (si el email se envió o no)
+                    alert(result.message); 
+                    // Si la API devuelve el enlace, lo muestra en una ventana para copiar.
+                    if (result.magicLink) {
+                        prompt("Copia este enlace único para enviarlo por WhatsApp:", result.magicLink);
+                    }
                 } else {
-                    throw new Error(result.message || 'Ocurrió un error al enviar el enlace.');
+                    throw new Error(result.message || 'Ocurrió un error al generar el enlace.');
                 }
             } catch (error) {
                 alert(`Error: ${error.message}`);
