@@ -68,6 +68,7 @@
             font-size: 24px;
             white-space: nowrap;
             display: inline-block;
+            transform-origin: left;
         }
       
         #dni-preview { top: 375px; left: 480px; font-size: 26px; }      
@@ -90,7 +91,7 @@
             transition: border-color 0.2s;
         }
         .template-option:hover, .template-option.selected {
-            border-color: #4f46e5; /* Indigo color */
+            border-color: #4f46e5;
         }
     </style>
 </head>
@@ -107,13 +108,13 @@
                 
                 <!-- SECCIÓN DE PLANTILLAS -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">1. Elige una Plantilla</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">1. Elige una Plantilla de la Galería</label>
                     <div id="template-gallery" class="grid grid-cols-3 gap-2">
                         <!-- Las plantillas se insertarán aquí con JavaScript -->
                     </div>
                 </div>
                  <div>
-                    <label for="template-upload" class="block text-sm font-medium text-gray-700">o Sube una Plantilla Personalizada</label>
+                    <label for="template-upload" class="block text-sm font-medium text-gray-700">... o Sube una Plantilla Personalizada</label>
                     <input type="file" id="template-upload" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100">
                 </div>
 
@@ -146,7 +147,7 @@
             <h2 class="text-xl font-bold mb-4">Vista Previa</h2>
             <div class="carnet-preview">
                 <div id="preview-container">
-                    <img id="template-bg" src="https://placehold.co/856x540/34495e/ffffff?text=Cargue+o+seleccione+una+plantilla" alt="Fondo del carnet">
+                    <img id="template-bg" src="https://placehold.co/856x540/34495e/ffffff?text=Seleccione+o+cargue+una+plantilla" alt="Fondo del carnet">
                     <img id="photo-preview" src="https://placehold.co/320x320/cccccc/ffffff?text=Foto" alt="Foto del titular">
                     <div id="titulo-preview" class="text-overlay"></div>
                     <div id="cargo1-preview" class="text-overlay"></div>
@@ -172,6 +173,7 @@
     <script>
         // --- CONFIGURACIÓN ---
         const API_ENDPOINT = 'https://carnet-api-green.vercel.app/api/handler';
+
         const templates = [
             {
                 name: 'Plantilla Azul',
@@ -207,8 +209,6 @@
         };
         const qrCodePreview = document.getElementById('qr-code-preview');
         const nombreContainer = document.getElementById('nombre-container');
-        
-        let currentTemplateUrl = '';
 
         // --- INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -221,17 +221,24 @@
                 img.onclick = () => selectTemplate(index);
                 templateGallery.appendChild(img);
             });
-            if (templates.length > 0) {
-                selectTemplate(0);
-            }
+            if (templates.length > 0) selectTemplate(0);
         });
 
         function selectTemplate(index) {
-            currentTemplateUrl = templates[index].url;
-            templateBg.src = currentTemplateUrl;
+            templateBg.src = templates[index].url;
             document.querySelectorAll('.template-option').forEach(el => el.classList.remove('selected'));
             document.querySelector(`.template-option[data-index='${index}']`).classList.add('selected');
+            templateUpload.value = ''; // Limpia el input de archivo si se selecciona de la galería
         }
+
+        templateUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                templateBg.src = URL.createObjectURL(file);
+                // Deselecciona cualquier plantilla de la galería
+                document.querySelectorAll('.template-option').forEach(el => el.classList.remove('selected'));
+            }
+        });
 
         // --- LÓGICA DE VISTA PREVIA ---
         form.addEventListener('input', (e) => {
@@ -244,8 +251,7 @@
                 } else if (id === 'nombre') {
                     previewElements.nombre.textContent = value;
                     adjustFontSize(); 
-                }
-                 else {
+                } else {
                     previewElements[id].textContent = value;
                 }
             }
@@ -264,16 +270,6 @@
             }
         }
 
-        templateUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const url = URL.createObjectURL(file);
-                templateBg.src = url;
-                currentTemplateUrl = 'custom';
-                document.querySelectorAll('.template-option').forEach(el => el.classList.remove('selected'));
-            }
-        });
-
         photoUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -284,13 +280,18 @@
         // --- LÓGICA DE ENVÍO Y GENERACIÓN ---
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             setStatus('Guardando datos y generando matrícula...', 'loading');
-            
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
             
-            data.plantilla_url = currentTemplateUrl;
+            // LÓGICA MEJORADA: Determinar qué plantilla guardar
+            const selectedTemplate = document.querySelector('.template-option.selected');
+            if (selectedTemplate) {
+                 data.plantilla_url = templates[selectedTemplate.dataset.index].url;
+            } else {
+                // Si se subió una personalizada, se guarda la primera de la galería como la oficial para el alumno.
+                 data.plantilla_url = templates[0].url;
+            }
 
             const recaptchaResponse = grecaptcha.getResponse();
             if (!recaptchaResponse) {
@@ -298,21 +299,17 @@
                 return;
             }
             data['g-recaptcha-response'] = recaptchaResponse;
-
             try {
                 const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.message || `Error del servidor: ${response.statusText}`);
                 }
-
                 const result = await response.json();
-                
                 if (result.success && result.matricula) {
                     previewElements.matricula.textContent = `MATRICULA: ${result.matricula}`;
                     generateQRCode(result.matricula);
@@ -332,33 +329,16 @@
             statusDiv.textContent = message;
             statusDiv.className = 'mt-4 text-center ';
             switch(type) {
-                case 'loading':
-                    statusDiv.classList.add('text-blue-600');
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = 'Procesando...';
-                    break;
-                case 'success':
-                    statusDiv.classList.add('text-green-600');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Generar y Guardar Carnet';
-                    break;
-                case 'error':
-                    statusDiv.classList.add('text-red-600');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Generar y Guardar Carnet';
-                    break;
+                case 'loading': statusDiv.classList.add('text-blue-600'); submitBtn.disabled = true; submitBtn.textContent = 'Procesando...'; break;
+                case 'success': statusDiv.classList.add('text-green-600'); submitBtn.disabled = false; submitBtn.textContent = 'Generar y Guardar Carnet'; break;
+                case 'error': statusDiv.classList.add('text-red-600'); submitBtn.disabled = false; submitBtn.textContent = 'Generar y Guardar Carnet'; break;
             }
         }
         
         function generateQRCode(matricula) {
             if (!matricula) return;
             const verificationUrl = `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${matricula}`;
-            new QRious({
-                element: qrCodePreview,
-                value: verificationUrl,
-                size: 100,
-                level: 'H'
-            });
+            new QRious({ element: qrCodePreview, value: verificationUrl, size: 100, level: 'H' });
         }
 
         // --- LÓGICA DE DESCARGA ---
@@ -373,15 +353,10 @@
 
         function downloadCarnet(format) {
             const fileName = `Carnet_${form.nombre.value.replace(/\s+/g, '_') || 'sin_nombre'}`;
-
-            html2canvas(previewContainer, { scale: 2 }).then(canvas => {
+            html2canvas(previewContainer, { useCORS: true, scale: 2 }).then(canvas => {
                 if (format === 'pdf') {
                     const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF({
-                        orientation: 'landscape',
-                        unit: 'px',
-                        format: [856, 540]
-                    });
+                    const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [856, 540] });
                     pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG', 0, 0, 856, 540);
                     pdf.save(`${fileName}.pdf`);
                 } else {
