@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Carnets Profesionales v4.0</title>
+    <title>Generador de Carnets Profesionales v4.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -11,7 +11,6 @@
     <style>
         body { font-family: 'Poppins', sans-serif; }
         
-        /* Contenedor que será descargado como imagen */
         #download-area {
             width: 856px;
         }
@@ -61,7 +60,6 @@
             pointer-events: none; z-index: 15;
         }
         
-        /* Coordenadas finales y corregidas */
         #titulo-preview { top: 55px; left: 420px; font-size: 26px; }
         #cargo1-preview { top: 105px; left: 420px; font-size: 26px; }
         #cargo2-preview { top: 155px; left: 420px; font-size: 26px; }
@@ -153,8 +151,8 @@
         // URLs de los assets en GitHub
         const URL_LOGO_IC = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logo_ic.png';
         const URL_LOGOS_INFERIORES = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logos_inferiores.png';
-        const URL_HOLOGRAMA = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/holograma_aai.png';
-        const URL_REVERSO = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet%20vuelta.jpg';
+        const URL_HOLOGRAMA = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/holograma1.png';
+        const URL_REVERSO = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet%20vuelta.png';
         
         const templates = [
             { name: 'Plantilla Profesional', url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/plantilla_base_profesional.png' },
@@ -216,13 +214,13 @@
             const { id, value } = e.target;
             const targetElement = previewElements[id];
             if (targetElement) {
-                if (id === 'dni') {
+                 if (id === 'dni') {
                     targetElement.textContent = `DNI: ${value}`;
                 } else if (id === 'vence') {
                     targetElement.textContent = `VENCE: ${value}`;
                 } else if (id === 'nombre') {
                     targetElement.textContent = value;
-                    adjustFontSize();
+                    adjustFontSize(); 
                 } else {
                     targetElement.textContent = value;
                 }
