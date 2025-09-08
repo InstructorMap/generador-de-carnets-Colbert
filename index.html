@@ -12,7 +12,6 @@
     <style>
         body { font-family: 'Poppins', sans-serif; }
 
-        /* Contenedor para el efecto de perspectiva */
         .preview-wrapper {
             perspective: 1500px;
         }
@@ -20,18 +19,15 @@
         .carnet-preview {
             width: 856px;
             height: 540px;
-            /* Sombra mejorada para un efecto de "flotación" */
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.15);
             position: relative;
             overflow: hidden;
             border-radius: 12px;
             background-color: #f0f0f0;
-            /* Transiciones suaves para el efecto 3D */
             transition: transform 0.4s ease, box-shadow 0.4s ease;
             transform-style: preserve-3d;
         }
         
-        /* Efecto 3D al pasar el cursor */
         .preview-wrapper:hover .carnet-preview {
             transform: rotateY(7deg) scale(1.05);
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 0 10px 20px rgba(0, 0, 0, 0.2);
@@ -58,7 +54,6 @@
             height: 450px;
             border-radius: 161px;
             object-fit: cover;
-            /* Sombra interior para dar profundidad a la foto */
             box-shadow: inset 0px 0px 15px rgba(0, 0, 0, 0.4);
         }
         .text-overlay {
@@ -69,10 +64,28 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             white-space: nowrap;
-            /* Sombra de texto para dar relieve */
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
         }
         
+        /* -- ¡NUEVO! Estilo para los logos con relieve -- */
+        .logo-overlay {
+            position: absolute;
+            /* Efecto de relieve con drop-shadow */
+            filter: drop-shadow(1px 1px 3px rgba(0, 0, 0, 0.6));
+        }
+
+        /* -- Posiciones de los nuevos logos -- */
+        #logo-ic-preview {
+            top: 345px;
+            left: 420px;
+            width: 50px;
+        }
+        #logos-inferiores-preview {
+            top: 455px;
+            left: 420px;
+            width: 90px;
+        }
+
         #titulo-preview { top: 60px; left: 420px; font-size: 26px; }
         #cargo1-preview { top: 110px; left: 420px; font-size: 26px; }
         #cargo2-preview { top: 160px; left: 420px; font-size: 26px; }
@@ -163,6 +176,11 @@
                 <div class="carnet-preview">
                     <div id="preview-container">
                         <img id="template-bg" src="https://placehold.co/856x540/34495e/ffffff?text=Seleccione+una+plantilla" alt="Fondo del carnet">
+                        
+                        <!-- ¡NUEVO! Logos como elementos separados -->
+                        <img id="logo-ic-preview" class="logo-overlay" src="" alt="Logo IC">
+                        <img id="logos-inferiores-preview" class="logo-overlay" src="" alt="Logos inferiores">
+
                         <img id="photo-preview" src="https://placehold.co/322x450/cccccc/ffffff?text=Foto" alt="Foto del titular">
                         <div id="titulo-preview" class="text-overlay"></div>
                         <div id="cargo1-preview" class="text-overlay"></div>
@@ -189,22 +207,24 @@
     <script>
         const API_ENDPOINT = 'https://carnet-api-green.vercel.app/api/handler';
         
+        // URLs de los nuevos assets
+        const URL_LOGO_IC = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logo_ic.png';
+        const URL_LOGOS_INFERIORES = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logos_inferiores.png';
+
         const templates = [
             {
                 name: 'Plantilla Profesional',
-                url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/plantilla_profesional.png'
+                // ¡URL de fondo actualizada!
+                url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/plantilla_base_profesional.png'
             },
             {
                 name: 'Plantilla Azul',
                 url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet2.png'
-            },
-            {
-                name: 'Plantilla Alternativa',
-                url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/Fondo%20Carnet.jpg'
             }
         ];
         const OFFICIAL_TEMPLATE_URL = templates[0].url;
 
+        // ... (resto del script sin cambios)
         const form = document.getElementById('carnet-form');
         const statusDiv = document.getElementById('status');
         const submitBtn = document.getElementById('submit-btn');
@@ -212,6 +232,9 @@
         const photoUpload = document.getElementById('photo-upload');
         const templateBg = document.getElementById('template-bg');
         const photoPreview = document.getElementById('photo-preview');
+        // Nuevos elementos de logo
+        const logoIcPreview = document.getElementById('logo-ic-preview');
+        const logosInferioresPreview = document.getElementById('logos-inferiores-preview');
         const previewElements = {
             titulo: document.getElementById('titulo-preview'),
             cargo1: document.getElementById('cargo1-preview'),
@@ -225,6 +248,10 @@
         const nombreContainer = document.getElementById('nombre-container');
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Cargar logos
+            logoIcPreview.src = URL_LOGO_IC;
+            logosInferioresPreview.src = URL_LOGOS_INFERIORES;
+
             templates.forEach((template, index) => {
                 const img = document.createElement('img');
                 img.src = template.url;
