@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Carnets Profesionales v2.0</title>
+    <title>Generador de Carnets Profesionales v3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -35,52 +35,53 @@
         }
         #photo-preview {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            width: 400px;
-            height: 500px;
-            border-radius: 50%; 
+            top: 45px;
+            left: 45px;
+            width: 322px;
+            height: 450px;
+            border-radius: 161px; /* Radio horizontal para crear el óvalo */
             object-fit: cover;
-            border: 10px solid white;
+            
         }
         .text-overlay {
             position: absolute;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Helvetica Neue', 'Arial', sans-serif;
             font-weight: bold;
             color: white;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 2px;
             white-space: nowrap;
         }
         
-        #titulo-preview { top: 90px; left: 450px; font-size: 28px; }
-        #cargo1-preview { top: 155px; left: 450px; font-size: 28px; }
-        #cargo2-preview { top: 220px; left: 450px; font-size: 28px; }
+        /* Coordenadas ajustadas para la nueva plantilla profesional */
+        #titulo-preview { top: 60px; left: 420px; font-size: 26px; }
+        #cargo1-preview { top: 110px; left: 420px; font-size: 26px; }
+        #cargo2-preview { top: 160px; left: 420px; font-size: 26px; }
         
         #nombre-container {
             position: absolute;
-            top: 285px;
-            left: 450px;
-            width: 380px; 
+            top: 250px;
+            left: 420px;
+            width: 410px; 
             text-align: left;
         }
         #nombre-preview {
-            font-size: 24px;
+            font-size: 28px;
             white-space: nowrap;
             display: inline-block;
             transform-origin: left;
         }
       
-        #dni-preview { top: 375px; left: 480px; font-size: 26px; }      
-        #matricula-preview { top: 410px; left: 480px; font-size: 26px; }
-        #vence-preview { top: 475px; left: 520px; font-size: 24px; }    
+        #dni-preview { top: 350px; left: 480px; font-size: 24px; }      
+        #matricula-preview { top: 395px; left: 480px; font-size: 24px; }
+        #vence-preview { top: 460px; left: 520px; font-size: 22px; }    
         
         #qr-code-preview {
             position: absolute;
-            bottom: 25px; 
-            left: 30px;   
-            width: 100px;
-            height: 100px;
+            bottom: 30px; 
+            left: 45px;   
+            width: 110px;
+            height: 110px;
             background-color: white;
             padding: 5px;
             border-radius: 4px;
@@ -107,15 +108,11 @@
             <form id="carnet-form" class="space-y-4">
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">1. Elige una Plantilla de la Galería</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">1. Elige una Plantilla</label>
                     <div id="template-gallery" class="grid grid-cols-3 gap-2">
                     </div>
                 </div>
-                 <div>
-                    <label for="template-upload" class="block text-sm font-medium text-gray-700">... o Sube una Plantilla Personalizada para la Vista Previa</label>
-                    <input type="file" id="template-upload" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100">
-                </div>
-
+                
                 <div>
                     <label for="photo-upload" class="block text-sm font-medium text-gray-700">2. Cargar Foto del Titular</label>
                     <input type="file" id="photo-upload" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
@@ -145,8 +142,8 @@
             <h2 class="text-xl font-bold mb-4">Vista Previa</h2>
             <div class="carnet-preview">
                 <div id="preview-container">
-                    <img id="template-bg" src="https://placehold.co/856x540/34495e/ffffff?text=Seleccione+o+cargue+una+plantilla" alt="Fondo del carnet">
-                    <img id="photo-preview" src="https://placehold.co/320x320/cccccc/ffffff?text=Foto" alt="Foto del titular">
+                    <img id="template-bg" src="https://placehold.co/856x540/34495e/ffffff?text=Seleccione+una+plantilla" alt="Fondo del carnet">
+                    <img id="photo-preview" src="https://placehold.co/322x450/cccccc/ffffff?text=Foto" alt="Foto del titular">
                     <div id="titulo-preview" class="text-overlay"></div>
                     <div id="cargo1-preview" class="text-overlay"></div>
                     <div id="cargo2-preview" class="text-overlay"></div>
@@ -169,30 +166,28 @@
 
     <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
     <script>
-        // --- CONFIGURACIÓN ---
         const API_ENDPOINT = 'https://carnet-api-green.vercel.app/api/handler';
+        
         const templates = [
             {
-                name: 'Plantilla Oficial',
-                url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/Fondo%20Carnet.jpg'
+                name: 'Plantilla Profesional',
+                url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/plantilla_profesional.png'
+            },
+            {
+                name: 'Plantilla Azul',
+                url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet2.png'
             },
             {
                 name: 'Plantilla Alternativa',
-                url: 'https://placehold.co/856x540/c0392b/ffffff?text=Plantilla+2'
-            },
-            {
-                name: 'Plantilla 3',
-                url: 'https://placehold.co/856x540/27ae60/ffffff?text=Plantilla+3'
+                url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/Fondo%20Carnet.jpg'
             }
         ];
-        const OFFICIAL_TEMPLATE_URL = templates[0].url; // La primera plantilla es la oficial
+        const OFFICIAL_TEMPLATE_URL = templates[0].url;
 
-        // --- ELEMENTOS DEL DOM ---
         const form = document.getElementById('carnet-form');
         const statusDiv = document.getElementById('status');
         const submitBtn = document.getElementById('submit-btn');
         const templateGallery = document.getElementById('template-gallery');
-        const templateUpload = document.getElementById('template-upload');
         const photoUpload = document.getElementById('photo-upload');
         const templateBg = document.getElementById('template-bg');
         const photoPreview = document.getElementById('photo-preview');
@@ -207,8 +202,7 @@
         };
         const qrCodePreview = document.getElementById('qr-code-preview');
         const nombreContainer = document.getElementById('nombre-container');
-        
-        // --- INICIALIZACIÓN ---
+
         document.addEventListener('DOMContentLoaded', () => {
             templates.forEach((template, index) => {
                 const img = document.createElement('img');
@@ -226,18 +220,8 @@
             templateBg.src = templates[index].url;
             document.querySelectorAll('.template-option').forEach(el => el.classList.remove('selected'));
             document.querySelector(`.template-option[data-index='${index}']`).classList.add('selected');
-            templateUpload.value = '';
         }
 
-        templateUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                templateBg.src = URL.createObjectURL(file);
-                document.querySelectorAll('.template-option').forEach(el => el.classList.remove('selected'));
-            }
-        });
-
-        // --- LÓGICA DE VISTA PREVIA ---
         form.addEventListener('input', (e) => {
             const { id, value } = e.target;
             if (previewElements[id]) {
@@ -274,19 +258,15 @@
             }
         });
 
-        // --- LÓGICA DE ENVÍO Y GENERACIÓN ---
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            setStatus('Guardando datos y generando matrícula...', 'loading');
+            setStatus('Guardando datos...', 'loading');
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
-            
-            // ¡LÓGICA FINAL! Siempre se guarda la plantilla oficial en la base de datos.
             data.plantilla_url = OFFICIAL_TEMPLATE_URL;
-
             const recaptchaResponse = grecaptcha.getResponse();
             if (!recaptchaResponse) {
-                setStatus('Por favor, completa la verificación "No soy un robot".', 'error');
+                setStatus('Por favor, completa la verificación.', 'error');
                 return;
             }
             data['g-recaptcha-response'] = recaptchaResponse;
@@ -298,19 +278,19 @@
                 });
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.message || `Error del servidor: ${response.statusText}`);
+                    throw new Error(errorData.message || `Error del servidor`);
                 }
                 const result = await response.json();
                 if (result.success && result.matricula) {
                     previewElements.matricula.textContent = `MATRICULA: ${result.matricula}`;
                     generateQRCode(result.matricula);
-                    setStatus(`Éxito! Matrícula asignada: ${result.matricula}`, 'success');
+                    setStatus(`Éxito! Matrícula: ${result.matricula}`, 'success');
                 } else {
-                    throw new Error(result.message || 'La respuesta del servidor no fue la esperada.');
+                    throw new Error(result.message || 'Respuesta inesperada.');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                setStatus(`Error al guardar los datos: ${error.message}`, 'error');
+                setStatus(`Error: ${error.message}`, 'error');
             } finally {
                 grecaptcha.reset();
             }
@@ -332,7 +312,6 @@
             new QRious({ element: qrCodePreview, value: verificationUrl, size: 100, level: 'H' });
         }
 
-        // --- LÓGICA DE DESCARGA ---
         const downloadBtnPng = document.getElementById('download-png-btn');
         const downloadBtnJpg = document.getElementById('download-jpg-btn');
         const downloadBtnPdf = document.getElementById('download-pdf-btn');
@@ -343,7 +322,7 @@
         downloadBtnPdf.addEventListener('click', () => downloadCarnet('pdf'));
 
         function downloadCarnet(format) {
-            const fileName = `Carnet_${form.nombre.value.replace(/\s+/g_, '_') || 'sin_nombre'}`;
+            const fileName = `Carnet_${form.nombre.value.replace(/\s+/g, '_') || 'sin_nombre'}`;
             html2canvas(previewContainer, { useCORS: true, scale: 2 }).then(canvas => {
                 if (format === 'pdf') {
                     const { jsPDF } = window.jspdf;
@@ -361,4 +340,5 @@
         }
     </script>
 </body>
+</html>
 
