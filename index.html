@@ -3,79 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Carnets Profesionales v3.3</title>
+    <title>Generador de Carnets Profesionales v3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         body { font-family: 'Poppins', sans-serif; }
-        
-        /* Contenedor principal para la descarga */
-        #download-area {
-            width: 856px;
+
+        .preview-wrapper {
+            perspective: 1500px;
         }
 
         .carnet-preview {
             width: 856px;
             height: 540px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.15);
             position: relative;
             overflow: hidden;
-            background-color: #f0f0f0;
-        }
-        
-        #preview-container-anverso {
-             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.15);
-             border-radius: 12px;
-        }
-        
-        #reverso-preview {
-            margin-top: 1rem;
             border-radius: 12px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.15);
+            background-color: #f0f0f0;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            transform-style: preserve-3d;
+        }
+        
+        .preview-wrapper:hover .carnet-preview {
+            transform: rotateY(7deg) scale(1.05);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 0 10px 20px rgba(0, 0, 0, 0.2);
         }
 
-        #template-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
+        #preview-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        #template-bg {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
         #photo-preview {
-            position: absolute; top: 45px; left: 45px;
-            width: 322px; height: 450px;
+            position: absolute;
+            top: 45px;
+            left: 45px;
+            width: 322px;
+            height: 450px;
             border-radius: 161px;
             object-fit: cover;
             box-shadow: inset 0px 0px 15px rgba(0, 0, 0, 0.4);
-            z-index: 5;
         }
         .text-overlay {
-            position: absolute; font-family: 'Helvetica Neue', 'Arial', sans-serif;
-            font-weight: bold; color: white;
-            text-transform: uppercase; letter-spacing: 2px;
-            white-space: nowrap; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
-            z-index: 20;
+            position: absolute;
+            font-family: 'Helvetica Neue', 'Arial', sans-serif;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            white-space: nowrap;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
         }
-        .logo-overlay { position: absolute; filter: drop-shadow(1px 1px 3px rgba(0, 0, 0, 0.6)); z-index: 10; }
-        #logo-ic-preview { top: 345px; left: 420px; width: 50px; }
-        #logos-inferiores-preview { top: 455px; left: 420px; width: 90px; }
-        #hologram-preview {
-            position: absolute; bottom: 25px; right: 25px;
-            width: 100px; height: 100px;
-            opacity: 0.6; mix-blend-mode: screen;
-            pointer-events: none; z-index: 15;
+        
+        /* -- ¡NUEVO! Estilo para los logos con relieve -- */
+        .logo-overlay {
+            position: absolute;
+            /* Efecto de relieve con drop-shadow */
+            filter: drop-shadow(1px 1px 3px rgba(0, 0, 0, 0.6));
         }
+
+        /* -- Posiciones de los nuevos logos -- */
+        #logo-ic-preview {
+            top: 345px;
+            left: 420px;
+            width: 50px;
+        }
+        #logos-inferiores-preview {
+            top: 455px;
+            left: 420px;
+            width: 90px;
+        }
+
+        /* -- COORDENADAS CORREGIDAS PARA MEJOR ALINEACIÓN -- */
         #titulo-preview { top: 55px; left: 420px; font-size: 26px; }
         #cargo1-preview { top: 105px; left: 420px; font-size: 26px; }
         #cargo2-preview { top: 155px; left: 420px; font-size: 26px; }
-        #nombre-container { position: absolute; top: 245px; left: 420px; width: 410px; text-align: left; }
-        #nombre-preview { font-size: 28px; white-space: nowrap; display: inline-block; transform-origin: left; }
+        
+        #nombre-container {
+            position: absolute;
+            top: 245px;
+            left: 420px;
+            width: 410px; 
+            text-align: left;
+        }
+        #nombre-preview {
+            font-size: 28px;
+            white-space: nowrap;
+            display: inline-block;
+            transform-origin: left;
+        }
+      
         #dni-preview { top: 345px; left: 480px; font-size: 24px; }      
         #matricula-preview { top: 390px; left: 480px; font-size: 24px; }
         #vence-preview { top: 455px; left: 520px; font-size: 22px; }    
+        
         #qr-code-preview {
-            position: absolute; bottom: 30px; left: 45px;   
-            width: 110px; height: 110px;
-            background-color: white; padding: 5px; border-radius: 4px;
-            z-index: 10;
+            position: absolute;
+            bottom: 30px; 
+            left: 45px;   
+            width: 110px;
+            height: 110px;
+            background-color: white;
+            padding: 5px;
+            border-radius: 4px;
         }
-        .template-option { cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
-        .template-option:hover, .template-option.selected { border-color: #4f46e5; }
+        #hologram-preview {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            width: 100px;
+            height: 100px;
+            opacity: 0.6; /* Semitransparente */
+            mix-blend-mode: screen; /* Efecto de brillo sobre el fondo */
+            pointer-events: none; /* Para que no interfiera con el mouse */
+        }
+        .template-option {
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+        .template-option:hover, .template-option.selected {
+            border-color: #4f46e5;
+        }
     </style>
 </head>
 <body class="bg-gray-100 p-8">
@@ -88,21 +149,27 @@
                 <h1 class="text-2xl font-bold">Generador de Carnets</h1>
             </div>
             <form id="carnet-form" class="space-y-4">
+                
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">1. Elige una Plantilla</label>
-                    <div id="template-gallery" class="grid grid-cols-2 gap-2"></div>
+                    <div id="template-gallery" class="grid grid-cols-2 gap-2">
+                    </div>
                 </div>
+                
                 <div>
                     <label for="photo-upload" class="block text-sm font-medium text-gray-700">2. Cargar Foto del Titular</label>
                     <input type="file" id="photo-upload" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                 </div>
+                
                 <input type="text" id="titulo" name="titulo" placeholder="Título (ej: CARNET GRUPO COLBERT)" class="w-full p-2 border rounded" required>
                 <input type="text" id="cargo1" name="cargo1" placeholder="Línea 2 (ej: INSTRUCTOR OFICIAL)" class="w-full p-2 border rounded" required>
                 <input type="text" id="cargo2" name="cargo2" placeholder="Línea 3 (Curso o Especialidad)" class="w-full p-2 border rounded" required>
                 <input type="text" id="nombre" name="nombre" placeholder="Nombre y Apellido del Titular" class="w-full p-2 border rounded" required>
                 <input type="text" id="dni" name="dni" placeholder="DNI del Titular" class="w-full p-2 border rounded" required>
                 <input type="text" id="vence" name="vence" placeholder="Fecha de Vencimiento (ej: 31/12/2026)" class="w-full p-2 border rounded" required>
+                
                 <div class="g-recaptcha" data-sitekey="6LfeJ70rAAAAAEn0dpl4oqfDbbexDvj4M-3AMzwD"></div>
+
                 <button type="submit" id="submit-btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
                     Generar y Guardar Carnet
                 </button>
@@ -116,34 +183,33 @@
         <!-- Columna de la Vista Previa -->
         <div class="flex flex-col items-center">
             <h2 class="text-xl font-bold mb-4">Vista Previa</h2>
-            
-            <!-- ¡NUEVO! Contenedor para descargar como una sola imagen -->
-            <div id="download-area">
-                <div id="preview-container-anverso" class="carnet-preview">
-                    <img id="template-bg" src="" alt="Fondo del carnet" crossorigin="anonymous">
-                    <img id="logo-ic-preview" class="logo-overlay" src="" alt="Logo IC" crossorigin="anonymous">
-                    <img id="logos-inferiores-preview" class="logo-overlay" src="" alt="Logos inferiores" crossorigin="anonymous">
-                    <img id="photo-preview" src="https://placehold.co/322x450/cccccc/ffffff?text=Foto" alt="Foto del titular" crossorigin="anonymous">
-                    <div id="titulo-preview" class="text-overlay"></div>
-                    <div id="cargo1-preview" class="text-overlay"></div>
-                    <div id="cargo2-preview" class="text-overlay"></div>
-                    <div id="nombre-container"><span id="nombre-preview" class="text-overlay"></span></div>
-                    <div id="dni-preview" class="text-overlay"></div>
-                    <div id="matricula-preview" class="text-overlay"></div>
-                    <div id="vence-preview" class="text-overlay"></div>
-                    <img id="qr-code-preview" src="" alt="Código QR">
-                    <img id="hologram-preview" src="" alt="Holograma de seguridad AAI" crossorigin="anonymous">
+             <div class="preview-wrapper">
+                <div id="download-area">
+                    <div id="preview-container-anverso" class="carnet-preview">
+                        <img id="template-bg" src="" alt="Fondo del carnet" crossorigin="anonymous">
+                        <img id="logo-ic-preview" class="logo-overlay" src="" alt="Logo IC" crossorigin="anonymous">
+                        <img id="logos-inferiores-preview" class="logo-overlay" src="" alt="Logos inferiores" crossorigin="anonymous">
+                        <img id="photo-preview" src="https://placehold.co/322x450/cccccc/ffffff?text=Foto" alt="Foto del titular" crossorigin="anonymous">
+                        <div id="titulo-preview" class="text-overlay"></div>
+                        <div id="cargo1-preview" class="text-overlay"></div>
+                        <div id="cargo2-preview" class="text-overlay"></div>
+                        <div id="nombre-container"><span id="nombre-preview" class="text-overlay"></span></div>
+                        <div id="dni-preview" class="text-overlay"></div>
+                        <div id="matricula-preview" class="text-overlay"></div>
+                        <div id="vence-preview" class="text-overlay"></div>
+                        <img id="qr-code-preview" src="" alt="Código QR">
+                        <img id="hologram-preview" src="" alt="Holograma de seguridad AAI" crossorigin="anonymous">
+                    </div>
+                    <img id="reverso-preview" class="carnet-preview" src="" alt="Reverso del carnet" crossorigin="anonymous">
                 </div>
-                <img id="reverso-preview" class="carnet-preview" src="" alt="Reverso del carnet">
             </div>
-
             <div class="mt-4 flex justify-center space-x-2">
                  <button id="download-png-btn" class="bg-blue-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-blue-700">Descargar (PNG)</button>
                  <button id="download-jpg-btn" class="bg-green-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-green-700">Descargar (JPG)</button>
             </div>
         </div>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
     <script>
         const API_ENDPOINT = 'https://carnet-api-green.vercel.app/api/handler';
@@ -181,6 +247,7 @@
         };
         const qrCodePreview = document.getElementById('qr-code-preview');
         const nombreContainer = document.getElementById('nombre-container');
+        const nombrePreview = document.getElementById('nombre-preview');
         const downloadPngBtn = document.getElementById('download-png-btn');
         const downloadJpgBtn = document.getElementById('download-jpg-btn');
 
@@ -216,7 +283,7 @@
                 } else if (id === 'vence') {
                     previewElements.vence.textContent = `VENCE: ${value}`;
                 } else if (id === 'nombre') {
-                    previewElements.nombre.textContent = value;
+                    nombrePreview.textContent = value;
                     adjustFontSize(); 
                 } else {
                     previewElements[id].textContent = value;
@@ -225,7 +292,7 @@
         });
         
         function adjustFontSize() {
-            const el = previewElements.nombre;
+            const el = nombrePreview;
             const container = nombreContainer;
             el.style.transform = 'scale(1)'; 
             const containerWidth = container.offsetWidth;
@@ -297,8 +364,7 @@
             const verificationUrl = `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${matricula}`;
             new QRious({ element: qrCodePreview, value: verificationUrl, size: 100, level: 'H' });
         }
-
-        // --- LÓGICA DE DESCARGA FINAL ---
+        
         downloadPngBtn.addEventListener('click', () => downloadCombinedImage('png'));
         downloadJpgBtn.addEventListener('click', () => downloadCombinedImage('jpeg'));
 
@@ -306,16 +372,25 @@
             const downloadArea = document.getElementById('download-area');
             const fileName = `Carnet_Completo_${form.nombre.value.replace(/\s+/g, '_') || 'sin_nombre'}`;
             
-            html2canvas(downloadArea, { 
-                useCORS: true, 
-                scale: 2,
-                backgroundColor: null // Mantiene el fondo transparente para PNG
-            }).then(canvas => {
-                const image = canvas.toDataURL(`image/${format}`, 1.0);
-                const link = document.createElement('a');
-                link.href = image;
-                link.download = `${fileName}.${format === 'jpeg' ? 'jpg' : 'png'}`;
-                link.click();
+            // Asegurarse de que las imágenes externas (logos, etc.) estén cargadas
+            const images = downloadArea.querySelectorAll('img');
+            const promises = Array.from(images).map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => { img.onload = resolve; });
+            });
+
+            Promise.all(promises).then(() => {
+                html2canvas(downloadArea, { 
+                    useCORS: true, 
+                    scale: 2,
+                    backgroundColor: null
+                }).then(canvas => {
+                    const image = canvas.toDataURL(`image/${format}`, 1.0);
+                    const link = document.createElement('a');
+                    link.href = image;
+                    link.download = `${fileName}.${format === 'jpeg' ? 'jpg' : 'png'}`;
+                    link.click();
+                });
             });
         }
     </script>
