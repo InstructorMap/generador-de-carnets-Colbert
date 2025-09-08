@@ -141,7 +141,8 @@
         const URL_LOGO_IC = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logo_ic.png';
         const URL_LOGOS_INFERIORES = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logos_inferiores.png';
         const URL_HOLOGRAMA = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/holograma_aai.png';
-        const URL_REVERSO = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet%20vuelta.jpg';
+        // ¡URL DEL REVERSO CORREGIDA!
+        const URL_REVERSO = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet%20vuelta.png';
         
         const templates = [
             { name: 'Plantilla Profesional', url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/plantilla_base_profesional.png' },
@@ -149,7 +150,6 @@
         ];
         const OFFICIAL_TEMPLATE_URL = templates[0].url;
 
-        // --- Resto del script (sin cambios en la lógica, solo carga las URLs) ---
         const form = document.getElementById('carnet-form');
         const statusDiv = document.getElementById('status');
         const submitBtn = document.getElementById('submit-btn');
@@ -300,7 +300,7 @@
             html2canvas(downloadArea, { 
                 useCORS: true, 
                 scale: 2,
-                backgroundColor: null // Mantiene el fondo transparente para PNG
+                backgroundColor: null
             }).then(canvas => {
                 const image = canvas.toDataURL(`image/${format}`, 1.0);
                 const link = document.createElement('a');
