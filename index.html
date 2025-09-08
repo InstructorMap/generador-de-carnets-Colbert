@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Carnets Profesionales v4.0</title>
+    <title>Generador de Carnets Profesionales v4.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -17,13 +17,12 @@
             background-color: #f0f0f0;
         }
         #preview-container-anverso {
-             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.15);
              border-radius: 12px;
         }
         #reverso-preview {
-            margin-top: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            margin-top: 1.5rem; border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.15);
         }
         #template-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         #photo-preview {
@@ -44,12 +43,19 @@
         .logo-overlay { position: absolute; filter: drop-shadow(1px 1px 3px rgba(0, 0, 0, 0.6)); z-index: 10; }
         #logo-ic-preview { top: 345px; left: 420px; width: 50px; }
         #logos-inferiores-preview { top: 455px; left: 420px; width: 90px; }
-        #hologram-preview {
-            position: absolute; bottom: 25px; right: 25px;
-            width: 100px; height: 100px;
-            opacity: 0.6; mix-blend-mode: screen;
-            pointer-events: none; z-index: 15;
+        
+        /* ¡NUEVO! Marca de agua holográfica */
+        #hologram-watermark {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            opacity: 0.15; /* Sutil pero visible */
+            mix-blend-mode: overlay; /* Efecto profesional */
+            pointer-events: none;
+            z-index: 15;
         }
+
         #titulo-preview { top: 55px; left: 420px; font-size: 26px; }
         #cargo1-preview { top: 105px; left: 420px; font-size: 26px; }
         #cargo2-preview { top: 155px; left: 420px; font-size: 26px; }
@@ -113,6 +119,7 @@
                     <img id="logo-ic-preview" class="logo-overlay" src="" alt="Logo IC" crossorigin="anonymous">
                     <img id="logos-inferiores-preview" class="logo-overlay" src="" alt="Logos inferiores" crossorigin="anonymous">
                     <img id="photo-preview" src="https://placehold.co/322x450/cccccc/ffffff?text=Foto" alt="Foto del titular" crossorigin="anonymous">
+                    <img id="hologram-watermark" src="" alt="Marca de agua de seguridad" crossorigin="anonymous">
                     <div id="titulo-preview" class="text-overlay"></div>
                     <div id="cargo1-preview" class="text-overlay"></div>
                     <div id="cargo2-preview" class="text-overlay"></div>
@@ -121,7 +128,6 @@
                     <div id="matricula-preview" class="text-overlay"></div>
                     <div id="vence-preview" class="text-overlay"></div>
                     <img id="qr-code-preview" src="" alt="Código QR">
-                    <img id="hologram-preview" src="" alt="Holograma de seguridad AAI" crossorigin="anonymous">
                 </div>
                 <img id="reverso-preview" class="carnet-preview" src="" alt="Reverso del carnet" crossorigin="anonymous">
             </div>
@@ -140,8 +146,7 @@
         // URLs de los assets en GitHub
         const URL_LOGO_IC = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logo_ic.png';
         const URL_LOGOS_INFERIORES = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logos_inferiores.png';
-        const URL_HOLOGRAMA = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/holograma_aai.png';
-        // ¡URL DEL REVERSO CORREGIDA!
+        const URL_HOLOGRAMA = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/holograma1.png';
         const URL_REVERSO = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet%20vuelta.png';
         
         const templates = [
@@ -159,7 +164,7 @@
         const photoPreview = document.getElementById('photo-preview');
         const logoIcPreview = document.getElementById('logo-ic-preview');
         const logosInferioresPreview = document.getElementById('logos-inferiores-preview');
-        const hologramPreview = document.getElementById('hologram-preview');
+        const hologramWatermark = document.getElementById('hologram-watermark');
         const reversoPreview = document.getElementById('reverso-preview');
         const previewElements = {
             titulo: document.getElementById('titulo-preview'),
@@ -179,7 +184,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             logoIcPreview.src = URL_LOGO_IC;
             logosInferioresPreview.src = URL_LOGOS_INFERIORES;
-            hologramPreview.src = URL_HOLOGRAMA;
+            hologramWatermark.src = URL_HOLOGRAMA;
             reversoPreview.src = URL_REVERSO;
 
             templates.forEach((template, index) => {
