@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Carnets Profesionales v3.0</title>
+    <title>Generador de Carnets Profesionales v3.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -11,11 +11,7 @@
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         body { font-family: 'Poppins', sans-serif; }
-
-        .preview-wrapper {
-            perspective: 1500px;
-        }
-
+        .preview-wrapper { perspective: 1500px; }
         .carnet-preview {
             width: 856px;
             height: 540px;
@@ -27,79 +23,37 @@
             transition: transform 0.4s ease, box-shadow 0.4s ease;
             transform-style: preserve-3d;
         }
-        
         .preview-wrapper:hover .carnet-preview {
             transform: rotateY(7deg) scale(1.05);
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 0 10px 20px rgba(0, 0, 0, 0.2);
         }
-
-        #preview-container {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-        #template-bg {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
+        #preview-container { width: 100%; height: 100%; position: relative; }
+        #template-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         #photo-preview {
-            position: absolute;
-            top: 45px;
-            left: 45px;
-            width: 322px;
-            height: 450px;
+            position: absolute; top: 45px; left: 45px;
+            width: 322px; height: 450px;
             border-radius: 161px;
             object-fit: cover;
             box-shadow: inset 0px 0px 15px rgba(0, 0, 0, 0.4);
             z-index: 5;
         }
         .text-overlay {
-            position: absolute;
-            font-family: 'Helvetica Neue', 'Arial', sans-serif;
-            font-weight: bold;
-            color: white;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            white-space: nowrap;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
-            z-index: 20; /* El texto siempre va encima de todo */
+            position: absolute; font-family: 'Helvetica Neue', 'Arial', sans-serif;
+            font-weight: bold; color: white;
+            text-transform: uppercase; letter-spacing: 2px;
+            white-space: nowrap; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+            z-index: 20;
         }
-        
-        .logo-overlay {
-            position: absolute;
-            filter: drop-shadow(1px 1px 3px rgba(0, 0, 0, 0.6));
-            z-index: 10;
-        }
-
-        #logo-ic-preview {
-            top: 345px;
-            left: 420px;
-            width: 50px;
-        }
-        #logos-inferiores-preview {
-            top: 455px;
-            left: 420px;
-            width: 90px;
-        }
-        
-        /* --- CORRECCIÓN --- Se asegura de que el holograma se muestre correctamente */
+        .logo-overlay { position: absolute; filter: drop-shadow(1px 1px 3px rgba(0, 0, 0, 0.6)); z-index: 10; }
+        #logo-ic-preview { top: 345px; left: 420px; width: 50px; }
+        #logos-inferiores-preview { top: 455px; left: 420px; width: 90px; }
         #hologram-preview {
-            position: absolute;
-            bottom: 25px;
-            right: 25px;
-            width: 100px;
-            height: 100px;
-            opacity: 0.6;
-            mix-blend-mode: screen;
-            pointer-events: none;
-            z-index: 15; /* Por encima de los logos, debajo del texto */
+            position: absolute; bottom: 25px; right: 25px;
+            width: 100px; height: 100px;
+            opacity: 0.6; mix-blend-mode: screen;
+            pointer-events: none; z-index: 15;
         }
-
+        /* -- COORDENADAS CORREGIDAS PARA MEJOR ALINEACIÓN -- */
         #titulo-preview { top: 55px; left: 420px; font-size: 26px; }
         #cargo1-preview { top: 105px; left: 420px; font-size: 26px; }
         #cargo2-preview { top: 155px; left: 420px; font-size: 26px; }
@@ -108,7 +62,6 @@
         #dni-preview { top: 345px; left: 480px; font-size: 24px; }      
         #matricula-preview { top: 390px; left: 480px; font-size: 24px; }
         #vence-preview { top: 455px; left: 520px; font-size: 22px; }    
-        
         #qr-code-preview {
             position: absolute; bottom: 30px; left: 45px;   
             width: 110px; height: 110px;
@@ -160,10 +113,10 @@
             <div class="preview-wrapper">
                 <div class="carnet-preview">
                     <div id="preview-container">
-                        <img id="template-bg" src="https://placehold.co/856x540/34495e/ffffff?text=Seleccione+una+plantilla" alt="Fondo del carnet">
-                        <img id="logo-ic-preview" class="logo-overlay" src="" alt="Logo IC">
-                        <img id="logos-inferiores-preview" class="logo-overlay" src="" alt="Logos inferiores">
-                        <img id="photo-preview" src="https://placehold.co/322x450/cccccc/ffffff?text=Foto" alt="Foto del titular">
+                        <img id="template-bg" src="" alt="Fondo del carnet" crossorigin="anonymous">
+                        <img id="logo-ic-preview" class="logo-overlay" src="" alt="Logo IC" crossorigin="anonymous">
+                        <img id="logos-inferiores-preview" class="logo-overlay" src="" alt="Logos inferiores" crossorigin="anonymous">
+                        <img id="photo-preview" src="https://placehold.co/322x450/cccccc/ffffff?text=Foto" alt="Foto del titular" crossorigin="anonymous">
                         <div id="titulo-preview" class="text-overlay"></div>
                         <div id="cargo1-preview" class="text-overlay"></div>
                         <div id="cargo2-preview" class="text-overlay"></div>
@@ -172,17 +125,20 @@
                         <div id="matricula-preview" class="text-overlay"></div>
                         <div id="vence-preview" class="text-overlay"></div>
                         <img id="qr-code-preview" src="" alt="Código QR">
-                        <!-- CORRECCIÓN: Se quitó la clase innecesaria -->
-                        <img id="hologram-preview" src="" alt="Holograma de seguridad AAI">
+                        <img id="hologram-preview" src="" alt="Holograma de seguridad AAI" crossorigin="anonymous">
                     </div>
                 </div>
             </div>
             <div class="mt-4 flex justify-center space-x-2">
-                 <button id="download-png-btn" class="bg-gray-700 text-white py-2 px-4 rounded hover:bg-gray-800">Descargar Anverso</button>
-                 <button id="download-reverso-btn" class="bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700">Descargar Reverso</button>
+                 <!-- ¡NUEVO! Botón único de descarga -->
+                 <button id="download-pdf-btn" class="bg-red-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-red-700">
+                    Descargar Carnet (PDF)
+                </button>
             </div>
         </div>
     </div>
+    <!-- Imagen oculta para precargar el reverso y usarla en el PDF -->
+    <img id="reverso-img" src="https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet%20vuelta.jpg" class="hidden" crossorigin="anonymous">
 
     <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
     <script>
@@ -191,8 +147,7 @@
         const URL_LOGO_IC = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logo_ic.png';
         const URL_LOGOS_INFERIORES = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logos_inferiores.png';
         const URL_HOLOGRAMA = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/holograma_aai.png';
-        const URL_REVERSO = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet%20vuelta.jpg';
-
+        
         const templates = [
             { name: 'Plantilla Profesional', url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/plantilla_base_profesional.png' },
             { name: 'Plantilla Original', url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet2.png' }
@@ -220,7 +175,7 @@
         };
         const qrCodePreview = document.getElementById('qr-code-preview');
         const nombreContainer = document.getElementById('nombre-container');
-        const downloadReversoBtn = document.getElementById('download-reverso-btn');
+        const downloadPdfBtn = document.getElementById('download-pdf-btn');
 
         document.addEventListener('DOMContentLoaded', () => {
             logoIcPreview.src = URL_LOGO_IC;
@@ -335,28 +290,30 @@
             new QRious({ element: qrCodePreview, value: verificationUrl, size: 100, level: 'H' });
         }
 
-        const downloadBtnPng = document.getElementById('download-png-btn');
-        const downloadReversoBtn = document.getElementById('download-reverso-btn');
-        const previewContainer = document.getElementById('preview-container');
-
-        downloadBtnPng.addEventListener('click', () => {
-             const fileName = `Carnet_Anverso_${form.nombre.value.replace(/\s+/g, '_') || 'sin_nombre'}`;
-            html2canvas(previewContainer, { useCORS: true, scale: 2 }).then(canvas => {
-                const image = canvas.toDataURL(`image/png`, 1.0);
-                const link = document.createElement('a');
-                link.href = image;
-                link.download = `${fileName}.png`;
-                link.click();
+        // --- ¡NUEVA! LÓGICA DE DESCARGA PDF DE DOS PÁGINAS ---
+        downloadPdfBtn.addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'px',
+                format: [856, 540]
             });
-        });
-        
-        downloadReversoBtn.addEventListener('click', () => {
-            const link = document.createElement('a');
-            link.href = URL_REVERSO;
-            link.download = 'Carnet_Reverso.jpg';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const previewContainer = document.getElementById('preview-container');
+            const reversoImg = document.getElementById('reverso-img');
+            const fileName = `Carnet_${form.nombre.value.replace(/\s+/g, '_') || 'sin_nombre'}.pdf`;
+
+            // 1. Generar el anverso
+            html2canvas(previewContainer, { useCORS: true, scale: 2 }).then(canvas => {
+                const anversoDataUrl = canvas.toDataURL('image/jpeg', 1.0);
+                pdf.addImage(anversoDataUrl, 'JPEG', 0, 0, 856, 540);
+
+                // 2. Añadir nueva página y el reverso
+                pdf.addPage();
+                pdf.addImage(reversoImg, 'JPEG', 0, 0, 856, 540);
+
+                // 3. Guardar el PDF
+                pdf.save(fileName);
+            });
         });
     </script>
 </body>
