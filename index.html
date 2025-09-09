@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Carnets Profesionales v3.1</title>
+    <title>Generador de Carnets Profesionales v4.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -11,8 +11,11 @@
     <style>
         body { font-family: 'Poppins', sans-serif; }
         
+        /* Contenedor que será descargado como imagen */
         #download-area {
             width: 856px;
+            background-color: #f0f0f0; /* Fondo para la descarga */
+            padding: 1rem;
         }
 
         .carnet-preview {
@@ -20,7 +23,6 @@
             height: 540px;
             position: relative;
             overflow: hidden;
-            background-color: #f0f0f0;
         }
         
         #preview-container-anverso {
@@ -60,15 +62,15 @@
             pointer-events: none; z-index: 15;
         }
         
-        /* --- COORDENADAS AJUSTADAS --- */
-        #titulo-preview { top: 50px; left: 420px; font-size: 26px; }
-        #cargo1-preview { top: 100px; left: 420px; font-size: 26px; }
-        #cargo2-preview { top: 150px; left: 420px; font-size: 26px; }
-        #nombre-container { position: absolute; top: 240px; left: 420px; width: 410px; text-align: left; }
+        /* Coordenadas finales y corregidas para flotar sobre la línea */
+        #titulo-preview { top: 55px; left: 420px; font-size: 26px; }
+        #cargo1-preview { top: 105px; left: 420px; font-size: 26px; }
+        #cargo2-preview { top: 155px; left: 420px; font-size: 26px; }
+        #nombre-container { position: absolute; top: 245px; left: 420px; width: 410px; text-align: left; }
         #nombre-preview { font-size: 28px; white-space: nowrap; display: inline-block; transform-origin: left; }
-        #dni-preview { top: 340px; left: 520px; font-size: 24px; }      
-        #matricula-preview { top: 385px; left: 520px; font-size: 24px; }
-        #vence-preview { top: 450px; left: 520px; font-size: 22px; }    
+        #dni-preview { top: 345px; left: 480px; font-size: 24px; }      
+        #matricula-preview { top: 390px; left: 480px; font-size: 24px; }
+        #vence-preview { top: 455px; left: 520px; font-size: 22px; }    
         
         #qr-code-preview {
             position: absolute; bottom: 30px; left: 45px;   
@@ -149,6 +151,7 @@
     <script>
         const API_ENDPOINT = 'https://carnet-api-green.vercel.app/api/handler';
         
+        // URLs de los assets en GitHub
         const URL_LOGO_IC = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logo_ic.png';
         const URL_LOGOS_INFERIORES = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logos_inferiores.png';
         const URL_HOLOGRAMA = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/holograma_aai.png';
