@@ -3,84 +3,93 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Generador de Carnets Profesionales v4.3</title>
+  <title>Generador de Carnets Profesionales v5.0</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Oswald:wght@700&display=swap" rel="stylesheet">
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Oswald:wght@700&display=swap" rel="stylesheet"/>
   <style>
     body { font-family: 'Poppins', sans-serif; }
-    #download-area { width: 856px; background-color: #f0f0f0; padding: 1.5rem; border-radius: 12px; }
-    .carnet-preview { width: 856px; height: 540px; position: relative; overflow: hidden; background-color: #e9e9e9; }
-    #preview-container-anverso { box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-radius: 12px; }
-    #reverso-preview { margin-top: 1.5rem; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    #download-area { width: 856px; padding: 1.5rem; border-radius: 12px; background-color: #f0f0f0; }
+    .carnet-preview { width: 856px; height: 540px; position: relative; overflow: hidden; border-radius: 12px; background-color: #0050c8; }
     .preview-asset { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-    #photo-preview { position: absolute; top: 45px; left: 45px; width: 322px; height: 450px; border-radius: 50% / 35%; object-fit: cover; box-shadow: inset 0px 0px 15px rgba(0,0,0,0.4); z-index: 5; }
-    .text-overlay { position: absolute; font-family: 'Oswald', sans-serif; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 2px; white-space: nowrap; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); z-index: 20; }
-    .logo-overlay { position: absolute; filter: drop-shadow(1px 1px 3px rgba(0,0,0,0.6)); z-index: 10; }
-    #logo-ic-preview { top: 345px; left: 420px; width: 50px; }
-    #logos-inferiores-preview { top: 455px; left: 420px; width: 90px; }
-    #hologram-preview { position: absolute; bottom: 25px; right: 25px; width: 100px; height: 100px; opacity: 0.6; mix-blend-mode: screen; pointer-events: none; z-index: 15; }
-    #titulo-preview { top: 52px; left: 420px; font-size: 26px; }
-    #cargo1-preview { top: 102px; left: 420px; font-size: 26px; }
-    #cargo2-preview { top: 152px; left: 420px; font-size: 26px; }
-    #nombre-container { position: absolute; top: 242px; left: 420px; width: 410px; text-align: left; }
-    #nombre-preview { font-size: 28px; display: inline-block; transform-origin: left; position: static; }
-    #dni-preview { top: 342px; left: 520px; font-size: 24px; }
-    #matricula-preview { top: 387px; left: 520px; font-size: 24px; }
-    #vence-preview { top: 452px; left: 520px; font-size: 22px; }
-    #qr-code-preview { position: absolute; bottom: 30px; left: 45px; width: 110px; height: 110px; background-color: white; padding: 5px; border-radius: 4px; z-index: 10; }
-    .template-option { cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
-    .template-option:hover, .template-option.selected { border-color: #4f46e5; }
+
+    /* Foto */
+    #photo-preview {
+      position: absolute; top: 40px; left: 40px;
+      width: 240px; height: 320px;
+      border-radius: 120px / 160px; /* Ovalado */
+      object-fit: cover;
+      box-shadow: 0 0 12px rgba(0,0,0,0.5);
+      z-index: 5;
+    }
+
+    /* Textos */
+    .text-overlay {
+      position: absolute;
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      white-space: nowrap;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+      z-index: 20;
+    }
+    #titulo-preview { top: 40px; left: 320px; font-size: 28px; }
+    #cargo1-preview { top: 85px; left: 320px; font-size: 26px; }
+    #cargo2-preview { top: 130px; left: 320px; font-size: 30px; letter-spacing: 4px; }
+    #nombre-preview { top: 185px; left: 320px; font-size: 28px; }
+    #dni-preview { top: 260px; left: 320px; font-size: 24px; }
+    #matricula-preview { top: 300px; left: 320px; font-size: 24px; }
+    #vence-preview { top: 340px; left: 320px; font-size: 24px; }
+
+    /* QR */
+    #qr-code-preview {
+      position: absolute; bottom: 25px; left: 40px;
+      width: 110px; height: 110px;
+      background: white; padding: 5px; border-radius: 6px;
+      z-index: 10;
+    }
+
+    /* Panel de controles */
+    #controls-panel { display: none; }
+    #controls-panel.active { display: block; }
+    .control-label { font-size: 0.875rem; margin-top: 0.5rem; display: block; }
   </style>
 </head>
 <body class="bg-gray-100 p-8">
   <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
     <!-- Columna del Formulario -->
     <div class="bg-white p-8 rounded-lg shadow-md">
-      <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">Generador de Carnets</h1>
-      </div>
+      <h1 class="text-2xl font-bold mb-6">Generador de Carnets</h1>
       <form id="carnet-form" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">1. Elige una Plantilla</label>
-          <div id="template-gallery" class="grid grid-cols-2 gap-2"></div>
-        </div>
-        <div>
-          <label for="photo-upload" class="block text-sm font-medium text-gray-700">2. Cargar Foto del Titular</label>
-          <input type="file" id="photo-upload" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-        </div>
         <input type="text" id="titulo" name="titulo" placeholder="Título (ej: CARNET GRUPO COLBERT)" class="w-full p-2 border rounded" required>
         <input type="text" id="cargo1" name="cargo1" placeholder="Línea 2 (ej: INSTRUCTOR OFICIAL)" class="w-full p-2 border rounded" required>
         <input type="text" id="cargo2" name="cargo2" placeholder="Línea 3 (Curso o Especialidad)" class="w-full p-2 border rounded" required>
         <input type="text" id="nombre" name="nombre" placeholder="Nombre y Apellido del Titular" class="w-full p-2 border rounded" required>
         <input type="text" id="dni" name="dni" placeholder="DNI del Titular" class="w-full p-2 border rounded" required>
         <input type="text" id="vence" name="vence" placeholder="Fecha de Vencimiento (ej: 31/12/2026)" class="w-full p-2 border rounded" required>
-
-        <!-- Controles de edición tipográfica -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Tamaño Nombre</label>
-          <input type="range" id="font-size-control" min="18" max="60" value="28" class="w-full">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Espaciado Letras</label>
-          <input type="range" id="letter-spacing-control" min="0" max="10" value="2" class="w-full">
-        </div>
+        <label class="block text-sm font-medium text-gray-700">Foto del titular</label>
+        <input type="file" id="photo-upload" accept="image/*" class="mt-1 block w-full text-sm text-gray-500">
 
         <div class="g-recaptcha" data-sitekey="6LfeJ70rAAAAAEn0dpl4oqfDbbexDvj4M-3AMzwD"></div>
-        <button type="submit" id="submit-btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
-          Generar y Guardar Carnet
-        </button>
+        <button type="submit" id="submit-btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">Generar y Guardar Carnet</button>
       </form>
 
-      <!-- Botón Panel Admin -->
-      <div class="mt-4">
-        <a href="admin.html" target="_blank" class="w-full block text-center bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors">
-          Administrador
-        </a>
-      </div>
-
+      <a href="admin.html" target="_blank" class="mt-4 w-full block text-center bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700">Administrador</a>
       <div id="status" class="mt-4 text-center"></div>
+
+      <!-- Botón para mostrar controles -->
+      <button id="toggle-controls" class="mt-6 w-full bg-yellow-500 text-white py-2 rounded-lg font-semibold hover:bg-yellow-600">Mostrar/Ocultar Controles Avanzados</button>
+
+      <!-- Panel de controles -->
+      <div id="controls-panel" class="mt-4 space-y-2">
+        <label class="control-label">Foto - Ancho <input type="range" id="photo-width" min="100" max="400" value="240"></label>
+        <label class="control-label">Foto - Alto <input type="range" id="photo-height" min="100" max="500" value="320"></label>
+        <label class="control-label">Foto - Posición X <input type="range" id="photo-x" min="0" max="600" value="40"></label>
+        <label class="control-label">Foto - Posición Y <input type="range" id="photo-y" min="0" max="400" value="40"></label>
+      </div>
     </div>
 
     <!-- Columna de la Vista Previa -->
@@ -88,23 +97,19 @@
       <h2 class="text-xl font-bold mb-4">Vista Previa</h2>
       <div id="download-area">
         <div id="preview-container-anverso" class="carnet-preview">
-          <img id="template-bg" src="" alt="Fondo del carnet" crossorigin="anonymous">
-          <img id="logo-ic-preview" class="logo-overlay" src="" alt="Logo IC" crossorigin="anonymous">
-          <img id="logos-inferiores-preview" class="logo-overlay" src="" alt="Logos inferiores" crossorigin="anonymous">
-          <img id="photo-preview" src="https://placehold.co/322x450/cccccc/ffffff?text=Foto" alt="Foto del titular" crossorigin="anonymous">
+          <img id="photo-preview" src="https://placehold.co/240x320/cccccc/ffffff?text=Foto" alt="Foto">
           <div id="titulo-preview" class="text-overlay"></div>
           <div id="cargo1-preview" class="text-overlay"></div>
           <div id="cargo2-preview" class="text-overlay"></div>
-          <div id="nombre-container"><span id="nombre-preview" class="text-overlay"></span></div>
+          <div id="nombre-preview" class="text-overlay"></div>
           <div id="dni-preview" class="text-overlay"></div>
           <div id="matricula-preview" class="text-overlay"></div>
           <div id="vence-preview" class="text-overlay"></div>
-          <img id="qr-code-preview" src="" alt="Código QR">
-          <img id="hologram-preview" src="" alt="Holograma" crossorigin="anonymous">
+          <canvas id="qr-code-preview"></canvas>
         </div>
-        <img id="reverso-preview" class="carnet-preview" src="" alt="Reverso del carnet" crossorigin="anonymous">
+        <img id="reverso-preview" class="carnet-preview mt-4" src="fondo_carnet_vuelta.png" alt="Reverso">
       </div>
-      <div class="mt-4 flex justify-center space-x-2">
+      <div class="mt-4 flex space-x-2">
         <button id="download-png-btn" class="bg-blue-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-blue-700">Descargar (PNG)</button>
         <button id="download-jpg-btn" class="bg-green-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-green-700">Descargar (JPG)</button>
       </div>
@@ -113,132 +118,70 @@
 
   <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
   <script>
-    const API_ENDPOINT = 'https://carnet-api-green.vercel.app/api/handler';
-    const URL_LOGO_IC = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logo_ic.png';
-    const URL_LOGOS_INFERIORES = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logos_inferiores.png';
-    const URL_HOLOGRAMA = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/holograma_aai.png';
-    const URL_REVERSO = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo_carnet_vuelta.png';
+    const API_ENDPOINT = "https://carnet-api-green.vercel.app/api/handler";
 
-    const templates = [
-      { name: 'Plantilla Oficial Colbert', url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/anverso_carnet_colbert.jpeg' },
-      { name: 'Plantilla Original', url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet2.png' }
-    ];
-
-    const form = document.getElementById('carnet-form');
-    const statusDiv = document.getElementById('status');
-    const submitBtn = document.getElementById('submit-btn');
-    const templateGallery = document.getElementById('template-gallery');
-    const photoUpload = document.getElementById('photo-upload');
-    const templateBg = document.getElementById('template-bg');
-    const photoPreview = document.getElementById('photo-preview');
-    const logoIcPreview = document.getElementById('logo-ic-preview');
-    const logosInferioresPreview = document.getElementById('logos-inferiores-preview');
-    const hologramPreview = document.getElementById('hologram-preview');
-    const reversoPreview = document.getElementById('reverso-preview');
-    const qrCodePreview = document.getElementById('qr-code-preview');
-    const nombreContainer = document.getElementById('nombre-container');
-    const nombrePreview = document.getElementById('nombre-preview');
+    const form = document.getElementById("carnet-form");
+    const statusDiv = document.getElementById("status");
+    const submitBtn = document.getElementById("submit-btn");
+    const photoUpload = document.getElementById("photo-upload");
+    const photoPreview = document.getElementById("photo-preview");
 
     const previewElements = {
-      titulo: document.getElementById('titulo-preview'),
-      cargo1: document.getElementById('cargo1-preview'),
-      cargo2: document.getElementById('cargo2-preview'),
-      nombre: nombrePreview,
-      dni: document.getElementById('dni-preview'),
-      matricula: document.getElementById('matricula-preview'),
-      vence: document.getElementById('vence-preview')
+      titulo: document.getElementById("titulo-preview"),
+      cargo1: document.getElementById("cargo1-preview"),
+      cargo2: document.getElementById("cargo2-preview"),
+      nombre: document.getElementById("nombre-preview"),
+      dni: document.getElementById("dni-preview"),
+      matricula: document.getElementById("matricula-preview"),
+      vence: document.getElementById("vence-preview"),
     };
+    const qrCodePreview = document.getElementById("qr-code-preview");
 
-    const fontSizeControl = document.getElementById('font-size-control');
-    const letterSpacingControl = document.getElementById('letter-spacing-control');
-    const downloadPngBtn = document.getElementById('download-png-btn');
-    const downloadJpgBtn = document.getElementById('download-jpg-btn');
-
-    document.addEventListener('DOMContentLoaded', () => {
-      logoIcPreview.src = URL_LOGO_IC;
-      logosInferioresPreview.src = URL_LOGOS_INFERIORES;
-      hologramPreview.src = URL_HOLOGRAMA;
-      reversoPreview.src = URL_REVERSO;
-
-      templates.forEach((t, i) => {
-        const img = document.createElement('img');
-        img.src = t.url;
-        img.alt = t.name;
-        img.className = 'template-option rounded-md object-cover h-24 w-full';
-        img.dataset.index = i;
-        img.onclick = () => selectTemplate(i);
-        templateGallery.appendChild(img);
-      });
-      selectTemplate(0);
-    });
-
-    function selectTemplate(index) {
-      templateBg.src = templates[index].url;
-      document.querySelectorAll('.template-option').forEach(el => el.classList.remove('selected'));
-      document.querySelector(`.template-option[data-index='${index}']`).classList.add('selected');
-    }
-
-    form.addEventListener('input', e => {
+    // Actualizar vista previa
+    form.addEventListener("input", (e) => {
       const { id, value } = e.target;
       const target = previewElements[id];
       if (target) {
-        if (id === 'dni') target.textContent = `DNI: ${value}`;
-        else if (id === 'vence') target.textContent = `VENCE: ${value}`;
+        if (id === "dni") target.textContent = `DNI: ${value}`;
+        else if (id === "vence") target.textContent = `VENCE: ${value}`;
         else target.textContent = value;
-        if (id === 'nombre') adjustFontSize();
       }
     });
 
-    function adjustFontSize() {
-      nombrePreview.style.transform = 'scale(1)';
-      const containerWidth = nombreContainer.offsetWidth;
-      const textWidth = nombrePreview.offsetWidth;
-      if (textWidth > containerWidth) {
-        const scale = containerWidth / textWidth;
-        nombrePreview.style.transform = `scaleX(${scale})`;
-        nombrePreview.style.transformOrigin = 'left';
-      }
-    }
-
-    photoUpload.addEventListener('change', e => {
+    // Foto
+    photoUpload.addEventListener("change", (e) => {
       const file = e.target.files[0];
       if (file) photoPreview.src = URL.createObjectURL(file);
     });
 
-    fontSizeControl.addEventListener('input', () => {
-      nombrePreview.style.fontSize = `${fontSizeControl.value}px`;
-      adjustFontSize();
-    });
-
-    letterSpacingControl.addEventListener('input', () => {
-      nombrePreview.style.letterSpacing = `${letterSpacingControl.value}px`;
-      adjustFontSize();
-    });
-
-    form.addEventListener('submit', async e => {
+    // Submit con API
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      setStatus('Guardando datos...', 'loading');
-      const recaptchaResponse = grecaptcha.getResponse();
-      if (!recaptchaResponse) { setStatus('Completa la verificación.', 'error'); return; }
-
+      setStatus("Guardando datos...", "loading");
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());
-      data['g-recaptcha-response'] = recaptchaResponse;
+      const recaptchaResponse = grecaptcha.getResponse();
+      if (!recaptchaResponse) {
+        setStatus("Por favor, completa la verificación.", "error");
+        return;
+      }
+      data["g-recaptcha-response"] = recaptchaResponse;
 
       try {
-        const res = await fetch(API_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
+        const response = await fetch(API_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
         });
-        const result = await res.json();
-        if (!res.ok || !result.success) throw new Error(result.message || 'Error al guardar');
-
-        previewElements.matricula.textContent = `MATRÍCULA: ${result.matricula}`;
-        generateQRCode(result.matricula);
-        setStatus(`Carnet guardado. Matrícula: ${result.matricula}`, 'success');
+        const result = await response.json();
+        if (result.success && result.matricula) {
+          previewElements.matricula.textContent = `MATRICULA: ${result.matricula}`;
+          generateQRCode(result.matricula);
+          setStatus(`Éxito! Matrícula: ${result.matricula}`, "success");
+        } else throw new Error(result.message || "Respuesta inesperada.");
       } catch (err) {
-        setStatus(`Error: ${err.message}`, 'error');
+        console.error(err);
+        setStatus(`Error: ${err.message}`, "error");
       } finally {
         grecaptcha.reset();
       }
@@ -246,28 +189,59 @@
 
     function setStatus(msg, type) {
       statusDiv.textContent = msg;
-      statusDiv.className = 'mt-4 text-center';
-      if (type === 'loading') { statusDiv.classList.add('text-blue-600'); submitBtn.disabled = true; submitBtn.textContent = 'Procesando...'; }
-      if (type === 'success') { statusDiv.classList.add('text-green-600'); submitBtn.disabled = false; submitBtn.textContent = 'Generar y Guardar Carnet'; }
-      if (type === 'error') { statusDiv.classList.add('text-red-600'); submitBtn.disabled = false; submitBtn.textContent = 'Generar y Guardar Carnet'; }
+      statusDiv.className = "mt-4 text-center";
+      if (type === "loading") {
+        statusDiv.classList.add("text-blue-600");
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Procesando...";
+      } else if (type === "success") {
+        statusDiv.classList.add("text-green-600");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Generar y Guardar Carnet";
+      } else {
+        statusDiv.classList.add("text-red-600");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Generar y Guardar Carnet";
+      }
     }
 
     function generateQRCode(matricula) {
       const url = `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${matricula}`;
-      new QRious({ element: qrCodePreview, value: url, size: 100, level: 'H' });
+      new QRious({ element: qrCodePreview, value: url, size: 100, level: "H" });
     }
 
+    // Descargar
     function downloadCombinedImage(format) {
-      html2canvas(document.getElementById('download-area'), { useCORS: true, scale: 2 }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `carnet.${format}`;
+      html2canvas(document.getElementById("download-area"), { scale: 2 }).then((canvas) => {
+        const link = document.createElement("a");
+        link.download = `Carnet.${format}`;
         link.href = canvas.toDataURL(`image/${format}`);
         link.click();
       });
     }
+    document.getElementById("download-png-btn").onclick = () => downloadCombinedImage("png");
+    document.getElementById("download-jpg-btn").onclick = () => downloadCombinedImage("jpeg");
 
-    downloadPngBtn.addEventListener('click', () => downloadCombinedImage('png'));
-    downloadJpgBtn.addEventListener('click', () => downloadCombinedImage('jpeg'));
+    // Controles avanzados
+    const toggleBtn = document.getElementById("toggle-controls");
+    const controlsPanel = document.getElementById("controls-panel");
+    toggleBtn.addEventListener("click", () => controlsPanel.classList.toggle("active"));
+
+    const photoWidth = document.getElementById("photo-width");
+    const photoHeight = document.getElementById("photo-height");
+    const photoX = document.getElementById("photo-x");
+    const photoY = document.getElementById("photo-y");
+
+    function updatePhoto() {
+      photoPreview.style.width = photoWidth.value + "px";
+      photoPreview.style.height = photoHeight.value + "px";
+      photoPreview.style.left = photoX.value + "px";
+      photoPreview.style.top = photoY.value + "px";
+      photoPreview.style.borderRadius = `${photoWidth.value/2}px / ${photoHeight.value/2}px`;
+    }
+    [photoWidth, photoHeight, photoX, photoY].forEach(slider => {
+      slider.addEventListener("input", updatePhoto);
+    });
   </script>
 </body>
 </html>
