@@ -1,188 +1,163 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Generador de Carnets Colbert</title>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>Generador de Carnets - Grupo Colbert</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { background: #f3f4f6; }
-    .carnet { position: relative; width: 800px; height: 500px; margin: auto; }
-    .carnet img.bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; border-radius: 1rem; }
-    .photo-frame { position: absolute; top: 40px; left: 40px; width: 260px; height: 340px; border-radius: 50%/60%; overflow: hidden; background: #fff; }
-    .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
-    .qr-code { position:absolute; bottom: 20px; left: 80px; width:120px; height:120px; background:#fff; padding:4px; }
-    .text-block { position:absolute; color:#fff; font-weight:bold; text-transform:uppercase; text-align:left; }
-    .title { top:40px; left:330px; width:430px; font-size:28px; text-align:center; }
-    .subtitle { top:90px; left:330px; width:430px; font-size:24px; text-align:center; }
-    .specialty { top:135px; left:330px; width:430px; font-size:30px; letter-spacing:2px; text-align:center; }
-    .name { top:185px; left:330px; width:430px; font-size:26px; text-align:center; }
-    .dni { top:250px; left:330px; font-size:22px; }
-    .matricula { top:290px; left:330px; font-size:22px; }
-    .vence { top:330px; left:330px; font-size:22px; }
-    .logos-bottom { position:absolute; bottom:20px; right:40px; width:350px; }
-    .hologram { position:absolute; bottom:20px; right:20px; width:80px; opacity:0.7; }
-    .line { position:absolute; left:330px; width:430px; height:2px; background:white; }
-    .line1 { top:80px; } .line2 { top:125px; }
-    .selected { outline:3px solid #2563eb; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .form-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 400px;
+    }
+    .form-container h2 {
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    .form-container label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .form-container input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .carnet-container {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      border-radius: 12px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      border: none;
+      background: #007bff;
+      color: white;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
   </style>
 </head>
-<body class="p-6">
-  <div class="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-lg">
-    <h1 class="text-2xl font-bold mb-4">Generador de Carnets - Grupo Colbert</h1>
-    
-    <!-- Formulario -->
-    <form id="carnetForm" class="grid grid-cols-2 gap-6">
-      <div>
-        <label class="block">Nombre completo</label>
-        <input id="nombre" class="w-full border rounded p-2" required>
-        <label class="block mt-2">Especialidad</label>
-        <input id="especialidad" class="w-full border rounded p-2" required>
-        <label class="block mt-2">DNI</label>
-        <input id="dni" class="w-full border rounded p-2" required>
-        <label class="block mt-2">Vencimiento</label>
-        <input id="vence" type="date" class="w-full border rounded p-2" required>
-      </div>
-      <div>
-        <label class="block">Foto del titular</label>
-        <input type="file" id="foto" accept="image/*" class="w-full border rounded p-2" required>
-        <div class="mt-4 g-recaptcha" data-sitekey="TU_SITE_KEY"></div>
-      </div>
+<body>
+  <div class="form-container">
+    <h2>Generador de Carnets</h2>
+    <form id="carnetForm">
+      <label>DNI:</label>
+      <input type="text" id="dni" required>
+      <label>Matrícula:</label>
+      <input type="text" id="matricula" required>
+      <label>Nombre Completo:</label>
+      <input type="text" id="nombre" required>
+      <label>Vencimiento:</label>
+      <input type="date" id="vence" required>
+      <label>Foto:</label>
+      <input type="file" id="foto" accept="image/*" required>
+      
+      <!-- reCAPTCHA con tu site key -->
+      <div class="g-recaptcha" data-sitekey="6Lflrj0pAAAAAOPuQyoYw5mUJvMHDLShxBgbqLEd"></div>
+      
+      <button type="submit" id="generarBtn">Generar Carnet</button>
     </form>
-
-    <!-- Vista previa -->
-    <div class="mt-6">
-      <h2 class="font-bold">Vista previa</h2>
-      <div class="carnet" id="carnetFront">
-        <img id="templateBg" class="bg" src="https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/anverso_carnet_colbert.jpeg">
-        <div class="photo-frame"><img id="fotoPreview"></div>
-        <canvas id="qrCanvas" class="qr-code"></canvas>
-        <div class="line line1"></div>
-        <div class="line line2"></div>
-        <div id="titleText" class="text-block title">CARNET GRUPO COLBERT</div>
-        <div id="subtitleText" class="text-block subtitle">INSTRUCTOR OFICIAL</div>
-        <div id="specialtyText" class="text-block specialty">ESPECIALIDAD</div>
-        <div id="nameText" class="text-block name">NOMBRE COMPLETO</div>
-        <div id="dniText" class="text-block dni">DNI:</div>
-        <div id="matriculaText" class="text-block matricula">MATRICULA:</div>
-        <div id="venceText" class="text-block vence">VENCE:</div>
-        <img id="logosInferioresPreview" class="logos-bottom" src="https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logos_inferiores.png">
-        <img id="hologramPreview" class="hologram" src="https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/holograma_aai.png">
-      </div>
-      <div class="carnet mt-6" id="carnetBack">
-        <img id="reversoPreview" class="bg" src="https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo_carnet_vuelta.png">
-      </div>
-    </div>
-
-    <!-- Controles -->
-    <div class="mt-6 space-x-3">
-      <button id="generateBtn" class="bg-blue-600 text-white px-4 py-2 rounded">Generar y Guardar</button>
-      <button id="downloadPngBtn" type="button" class="bg-green-600 text-white px-4 py-2 rounded">Descargar PNG</button>
-      <button id="downloadJpgBtn" type="button" class="bg-yellow-600 text-white px-4 py-2 rounded">Descargar JPG</button>
-    </div>
-
-    <!-- Panel Avanzado -->
-    <div class="mt-6 bg-gray-100 p-4 rounded">
-      <h3 class="font-bold">Controles avanzados</h3>
-      <label>Escala Foto <input type="range" id="fotoScale" min="0.5" max="1.5" step="0.05" value="1"></label>
-      <label>Posición X <input type="range" id="fotoX" min="0" max="200" value="40"></label>
-      <label>Posición Y <input type="range" id="fotoY" min="0" max="200" value="40"></label>
-    </div>
-
-    <div class="mt-6 text-center">
-      <a href="admin.html" class="bg-gray-700 text-white px-4 py-2 rounded">Panel de Admin</a>
-    </div>
   </div>
 
+  <div class="carnet-container">
+    <canvas id="anverso" width="680" height="480"></canvas>
+    <canvas id="reverso" width="680" height="480"></canvas>
+  </div>
+
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <script>
-    const qr = new QRious({ element: document.getElementById('qrCanvas'), size: 120, value: '' });
+    const form = document.getElementById("carnetForm");
+    const anversoCanvas = document.getElementById("anverso");
+    const reversoCanvas = document.getElementById("reverso");
+    const ctxAnverso = anversoCanvas.getContext("2d");
+    const ctxReverso = reversoCanvas.getContext("2d");
 
-    // Autoajuste de texto
-    function fitText(el, maxSize) {
-      let size = maxSize;
-      el.style.fontSize = size + "px";
-      while (el.scrollWidth > el.clientWidth && size > 12) {
-        size -= 1;
-        el.style.fontSize = size + "px";
-      }
-    }
-
-    function updatePreview() {
-      const nombre = document.getElementById("nombre").value;
-      const esp = document.getElementById("especialidad").value;
-      const dni = document.getElementById("dni").value;
-      const vence = document.getElementById("vence").value;
-
-      const nameText = document.getElementById("nameText");
-      nameText.textContent = nombre || "NOMBRE COMPLETO";
-      fitText(nameText, 26);
-
-      const specialtyText = document.getElementById("specialtyText");
-      specialtyText.textContent = esp || "ESPECIALIDAD";
-      fitText(specialtyText, 30);
-
-      document.getElementById("dniText").textContent = "DNI: " + (dni || "");
-      document.getElementById("venceText").textContent = "VENCE: " + (vence || "");
-
-      qr.set({ value: `DNI:${dni} | ${nombre} | ${esp}` });
-    }
-
-    ["nombre","especialidad","dni","vence"].forEach(id=>{
-      document.getElementById(id).addEventListener("input", updatePreview);
-    });
-
-    // Foto
-    document.getElementById("foto").addEventListener("change", e=>{
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => document.getElementById("fotoPreview").src = ev.target.result;
-      reader.readAsDataURL(file);
-    });
-
-    // Sliders avanzados
-    const photoFrame = document.querySelector(".photo-frame");
-    document.getElementById("fotoScale").addEventListener("input", e=>{
-      photoFrame.style.transform = `scale(${e.target.value})`;
-    });
-    document.getElementById("fotoX").addEventListener("input", e=>{
-      photoFrame.style.left = e.target.value+"px";
-    });
-    document.getElementById("fotoY").addEventListener("input", e=>{
-      photoFrame.style.top = e.target.value+"px";
-    });
-
-    // Guardar y generar
-    document.getElementById("generateBtn").addEventListener("click", async (e)=>{
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const resp = await fetch("https://carnet-api-green.vercel.app/api/handler",{method:"POST"});
-      const data = await resp.json();
-      document.getElementById("matriculaText").textContent = "MATRICULA: " + data.matricula;
-      qr.set({ value: qr.value + " | MAT:" + data.matricula });
+
+      // Verificar captcha
+      const captchaResponse = grecaptcha.getResponse();
+      if (!captchaResponse) {
+        alert("Por favor, completa el reCAPTCHA.");
+        return;
+      }
+
+      const dni = document.getElementById("dni").value;
+      const matricula = document.getElementById("matricula").value;
+      const nombre = document.getElementById("nombre").value;
+      const vence = document.getElementById("vence").value;
+      const fotoFile = document.getElementById("foto").files[0];
+
+      if (!fotoFile) {
+        alert("Por favor, selecciona una foto.");
+        return;
+      }
+
+      const foto = new Image();
+      foto.src = URL.createObjectURL(fotoFile);
+
+      foto.onload = () => {
+        // Cargar fondo anverso
+        const fondoAnverso = new Image();
+        fondoAnverso.src = "anverso_carnet_colbert.jpeg";
+
+        fondoAnverso.onload = () => {
+          ctxAnverso.clearRect(0, 0, anversoCanvas.width, anversoCanvas.height);
+          ctxAnverso.drawImage(fondoAnverso, 0, 0, anversoCanvas.width, anversoCanvas.height);
+
+          // Foto ovalada
+          ctxAnverso.save();
+          ctxAnverso.beginPath();
+          ctxAnverso.ellipse(140, 200, 100, 130, 0, 0, 2 * Math.PI);
+          ctxAnverso.clip();
+          ctxAnverso.drawImage(foto, 40, 70, 200, 260);
+          ctxAnverso.restore();
+
+          ctxAnverso.fillStyle = "#fff";
+          ctxAnverso.font = "bold 22px Arial";
+          ctxAnverso.fillText(`DNI: ${dni}`, 360, 260);
+          ctxAnverso.fillText(`MATRICULA: ${matricula}`, 360, 300);
+          ctxAnverso.fillText(`VENCE: ${vence}`, 360, 340);
+          ctxAnverso.fillText(nombre, 360, 200);
+        };
+
+        // Cargar fondo reverso
+        const fondoReverso = new Image();
+        fondoReverso.src = "fondo_carnet_vuelta.png";
+
+        fondoReverso.onload = () => {
+          ctxReverso.clearRect(0, 0, reversoCanvas.width, reversoCanvas.height);
+          ctxReverso.drawImage(fondoReverso, 0, 0, reversoCanvas.width, reversoCanvas.height);
+        };
+      };
     });
-
-    // Descargar imágenes
-    async function downloadCombinedImage(format="png") {
-      const frontCanvas = await html2canvas(document.getElementById("carnetFront"));
-      const backCanvas = await html2canvas(document.getElementById("carnetBack"));
-      const combined = document.createElement("canvas");
-      combined.width = frontCanvas.width;
-      combined.height = frontCanvas.height + backCanvas.height;
-      const ctx = combined.getContext("2d");
-      ctx.drawImage(frontCanvas,0,0);
-      ctx.drawImage(backCanvas,0,frontCanvas.height);
-      const link = document.createElement("a");
-      link.download = `carnet.${format}`;
-      link.href = combined.toDataURL("image/"+format);
-      link.click();
-    }
-    document.getElementById("downloadPngBtn").onclick=()=>downloadCombinedImage("png");
-    document.getElementById("downloadJpgBtn").onclick=()=>downloadCombinedImage("jpeg");
-
-    updatePreview();
   </script>
 </body>
 </html>
