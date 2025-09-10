@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Carnets Profesionales v4.1</title>
+    <title>Generador de Carnets Profesionales v5.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -33,13 +33,21 @@
             box-shadow: inset 0px 0px 15px rgba(0, 0, 0, 0.4);
             z-index: 5;
         }
+        .text-container {
+            position: absolute;
+            padding: 5px;
+            cursor: move;
+            z-index: 20;
+            border: 1px dashed rgba(255, 255, 255, 0); /* Borde invisible */
+        }
+        .text-container:hover {
+            border-color: rgba(255, 255, 255, 0.5); /* Borde visible al pasar el mouse */
+        }
         .text-overlay {
-            position: absolute; font-family: 'Helvetica Neue', 'Arial', sans-serif;
+            font-family: 'Helvetica Neue', 'Arial', sans-serif;
             font-weight: bold; color: white;
             text-transform: uppercase; letter-spacing: 2px;
             white-space: nowrap; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
-            z-index: 20;
-            cursor: move; /* --- ¡NUEVO! Indica que el texto es movible --- */
         }
         .logo-overlay { position: absolute; filter: drop-shadow(1px 1px 3px rgba(0, 0, 0, 0.6)); z-index: 10; }
         #logo-ic-preview { top: 345px; left: 420px; width: 50px; }
@@ -50,25 +58,27 @@
             opacity: 0.6; mix-blend-mode: screen;
             pointer-events: none; z-index: 15;
         }
-        
-        /* Coordenadas iniciales (ahora se pueden mover) */
-        #titulo-preview { top: 52px; left: 420px; font-size: 26px; }
-        #cargo1-preview { top: 102px; left: 420px; font-size: 26px; }
-        #cargo2-preview { top: 152px; left: 420px; font-size: 26px; }
-        #nombre-container { position: absolute; top: 242px; left: 420px; width: 410px; text-align: left; }
-        #nombre-preview { position: static; font-size: 28px; white-space: nowrap; display: inline-block; transform-origin: left; }
-        #dni-preview { top: 342px; left: 520px; font-size: 24px; }      
-        #matricula-preview { top: 387px; left: 520px; font-size: 24px; }
-        #vence-preview { top: 452px; left: 520px; font-size: 22px; }    
-        
+        /* Coordenadas iniciales */
+        #titulo-container { top: 52px; left: 420px; width: 410px; font-size: 26px; }
+        #cargo1-container { top: 102px; left: 420px; width: 410px; font-size: 26px; }
+        #cargo2-container { top: 152px; left: 420px; width: 410px; font-size: 26px; }
+        #nombre-container { top: 242px; left: 420px; width: 410px; font-size: 28px; }
+        #dni-container { top: 342px; left: 480px; width: 300px; font-size: 24px; }      
+        #matricula-container { top: 387px; left: 480px; width: 300px; font-size: 24px; }
+        #vence-container { top: 452px; left: 520px; width: 300px; font-size: 22px; }    
         #qr-code-preview {
             position: absolute; bottom: 30px; left: 45px;   
             width: 110px; height: 110px;
             background-color: white; padding: 5px; border-radius: 4px;
             z-index: 10;
         }
-        .template-option { cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
-        .template-option:hover, .template-option.selected { border-color: #4f46e5; }
+        .control-btn {
+            background-color: #e5e7eb; color: #374151;
+            font-weight: bold; width: 28px; height: 28px;
+            border-radius: 9999px; border: 1px solid #d1d5db;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .control-btn:hover { background-color: #d1d5db; }
     </style>
 </head>
 <body class="bg-gray-100 p-8">
@@ -78,21 +88,82 @@
         <div class="bg-white p-8 rounded-lg shadow-md">
             <h1 class="text-2xl font-bold mb-6">Generador de Carnets</h1>
             <form id="carnet-form" class="space-y-4">
+                <!-- Plantillas -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">1. Elige una Plantilla</label>
                     <div id="template-gallery" class="grid grid-cols-2 gap-2"></div>
                 </div>
+
+                <!-- Foto -->
                 <div>
                     <label for="photo-upload" class="block text-sm font-medium text-gray-700">2. Cargar Foto del Titular</label>
                     <input type="file" id="photo-upload" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                 </div>
-                <input type="text" id="titulo" name="titulo" placeholder="Título (ej: CARNET GRUPO COLBERT)" class="w-full p-2 border rounded" required>
-                <input type="text" id="cargo1" name="cargo1" placeholder="Línea 2 (ej: INSTRUCTOR OFICIAL)" class="w-full p-2 border rounded" required>
-                <input type="text" id="cargo2" name="cargo2" placeholder="Línea 3 (Curso o Especialidad)" class="w-full p-2 border rounded" required>
-                <input type="text" id="nombre" name="nombre" placeholder="Nombre y Apellido del Titular" class="w-full p-2 border rounded" required>
-                <input type="text" id="dni" name="dni" placeholder="DNI del Titular" class="w-full p-2 border rounded" required>
-                <input type="text" id="vence" name="vence" placeholder="Fecha de Vencimiento (ej: 31/12/2026)" class="w-full p-2 border rounded" required>
+
+                <!-- Campos de Texto con Controles -->
+                <div data-target="titulo">
+                    <input type="text" id="titulo" name="titulo" placeholder="Título" class="w-full p-2 border rounded" required>
+                    <div class="flex items-center space-x-2 mt-1">
+                        <button type="button" class="control-btn text-xs" onclick="changeFontSize('titulo-container', -1)">-</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeFontSize('titulo-container', 1)">+</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('titulo-container', 'left')">L</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('titulo-container', 'center')">C</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('titulo-container', 'right')">R</button>
+                    </div>
+                </div>
+                <div data-target="cargo1">
+                    <input type="text" id="cargo1" name="cargo1" placeholder="Línea 2" class="w-full p-2 border rounded" required>
+                     <div class="flex items-center space-x-2 mt-1">
+                        <button type="button" class="control-btn text-xs" onclick="changeFontSize('cargo1-container', -1)">-</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeFontSize('cargo1-container', 1)">+</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('cargo1-container', 'left')">L</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('cargo1-container', 'center')">C</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('cargo1-container', 'right')">R</button>
+                    </div>
+                </div>
+                <div data-target="cargo2">
+                    <input type="text" id="cargo2" name="cargo2" placeholder="Línea 3 (Curso)" class="w-full p-2 border rounded" required>
+                     <div class="flex items-center space-x-2 mt-1">
+                        <button type="button" class="control-btn text-xs" onclick="changeFontSize('cargo2-container', -1)">-</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeFontSize('cargo2-container', 1)">+</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('cargo2-container', 'left')">L</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('cargo2-container', 'center')">C</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('cargo2-container', 'right')">R</button>
+                    </div>
+                </div>
+                 <div data-target="nombre">
+                    <input type="text" id="nombre" name="nombre" placeholder="Nombre y Apellido" class="w-full p-2 border rounded" required>
+                     <div class="flex items-center space-x-2 mt-1">
+                        <button type="button" class="control-btn text-xs" onclick="changeFontSize('nombre-container', -1)">-</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeFontSize('nombre-container', 1)">+</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('nombre-container', 'left')">L</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('nombre-container', 'center')">C</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('nombre-container', 'right')">R</button>
+                    </div>
+                </div>
+                <div data-target="dni">
+                    <input type="text" id="dni" name="dni" placeholder="DNI" class="w-full p-2 border rounded" required>
+                     <div class="flex items-center space-x-2 mt-1">
+                        <button type="button" class="control-btn text-xs" onclick="changeFontSize('dni-container', -1)">-</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeFontSize('dni-container', 1)">+</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('dni-container', 'left')">L</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('dni-container', 'center')">C</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('dni-container', 'right')">R</button>
+                    </div>
+                </div>
+                 <div data-target="vence">
+                    <input type="text" id="vence" name="vence" placeholder="Vencimiento" class="w-full p-2 border rounded" required>
+                     <div class="flex items-center space-x-2 mt-1">
+                        <button type="button" class="control-btn text-xs" onclick="changeFontSize('vence-container', -1)">-</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeFontSize('vence-container', 1)">+</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('vence-container', 'left')">L</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('vence-container', 'center')">C</button>
+                        <button type="button" class="control-btn text-xs" onclick="changeTextAlign('vence-container', 'right')">R</button>
+                    </div>
+                </div>
+                
                 <div class="g-recaptcha" data-sitekey="6LfeJ70rAAAAAEn0dpl4oqfDbbexDvj4M-3AMzwD"></div>
+
                 <button type="submit" id="submit-btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
                     Generar y Guardar Carnet
                 </button>
@@ -103,26 +174,31 @@
             <div id="status" class="mt-4 text-center"></div>
         </div>
 
+        <!-- Columna de la Vista Previa -->
         <div class="flex flex-col items-center">
             <h2 class="text-xl font-bold mb-4">Vista Previa</h2>
+            
             <div id="download-area">
                 <div id="preview-container-anverso" class="carnet-preview">
                     <img id="template-bg" src="" alt="Fondo del carnet" crossorigin="anonymous">
                     <img id="logo-ic-preview" class="logo-overlay" src="" alt="Logo IC" crossorigin="anonymous">
                     <img id="logos-inferiores-preview" class="logo-overlay" src="" alt="Logos inferiores" crossorigin="anonymous">
                     <img id="photo-preview" src="https://placehold.co/322x450/cccccc/ffffff?text=Foto" alt="Foto del titular" crossorigin="anonymous">
-                    <div id="titulo-preview" class="text-overlay"></div>
-                    <div id="cargo1-preview" class="text-overlay"></div>
-                    <div id="cargo2-preview" class="text-overlay"></div>
-                    <div id="nombre-container"><span id="nombre-preview" class="text-overlay"></span></div>
-                    <div id="dni-preview" class="text-overlay"></div>
-                    <div id="matricula-preview" class="text-overlay"></div>
-                    <div id="vence-preview" class="text-overlay"></div>
+                    
+                    <div id="titulo-container" class="text-container"><span id="titulo-preview" class="text-overlay"></span></div>
+                    <div id="cargo1-container" class="text-container"><span id="cargo1-preview" class="text-overlay"></span></div>
+                    <div id="cargo2-container" class="text-container"><span id="cargo2-preview" class="text-overlay"></span></div>
+                    <div id="nombre-container" class="text-container"><span id="nombre-preview" class="text-overlay"></span></div>
+                    <div id="dni-container" class="text-container"><span id="dni-preview" class="text-overlay"></span></div>
+                    <div id="matricula-container" class="text-container"><span id="matricula-preview" class="text-overlay"></span></div>
+                    <div id="vence-container" class="text-container"><span id="vence-preview" class="text-overlay"></span></div>
+
                     <img id="qr-code-preview" src="" alt="Código QR">
                     <img id="hologram-preview" src="" alt="Holograma de seguridad" crossorigin="anonymous">
                 </div>
                 <img id="reverso-preview" class="carnet-preview" src="" alt="Reverso del carnet" crossorigin="anonymous">
             </div>
+
             <div class="mt-4 flex justify-center space-x-2">
                  <button id="download-png-btn" class="bg-blue-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-blue-700">Descargar (PNG)</button>
                  <button id="download-jpg-btn" class="bg-green-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-green-700">Descargar (JPG)</button>
@@ -138,6 +214,7 @@
         const URL_LOGOS_INFERIORES = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logos_inferiores.png';
         const URL_HOLOGRAMA = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/holograma_aai.png';
         const URL_REVERSO = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet%20vuelta.jpg';
+        
         const templates = [
             { name: 'Plantilla Profesional', url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/plantilla_base_profesional.png' },
             { name: 'Plantilla Original', url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet2.png' }
@@ -156,7 +233,19 @@
         const logosInferioresPreview = document.getElementById('logos-inferiores-preview');
         const hologramPreview = document.getElementById('hologram-preview');
         const reversoPreview = document.getElementById('reverso-preview');
-        const previewElements = {
+        const qrCodePreview = document.getElementById('qr-code-preview');
+        
+        const previewContainers = {
+            titulo: document.getElementById('titulo-container'),
+            cargo1: document.getElementById('cargo1-container'),
+            cargo2: document.getElementById('cargo2-container'),
+            nombre: document.getElementById('nombre-container'),
+            dni: document.getElementById('dni-container'),
+            matricula: document.getElementById('matricula-container'),
+            vence: document.getElementById('vence-container'),
+        };
+
+        const previewTextElements = {
             titulo: document.getElementById('titulo-preview'),
             cargo1: document.getElementById('cargo1-preview'),
             cargo2: document.getElementById('cargo2-preview'),
@@ -165,21 +254,17 @@
             matricula: document.getElementById('matricula-preview'),
             vence: document.getElementById('vence-preview'),
         };
-        const qrCodePreview = document.getElementById('qr-code-preview');
-        const nombreContainer = document.getElementById('nombre-container');
-        const nombrePreview = document.getElementById('nombre-preview');
+        
         const downloadPngBtn = document.getElementById('download-png-btn');
         const downloadJpgBtn = document.getElementById('download-jpg-btn');
 
         // --- INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Cargar assets
             logoIcPreview.src = URL_LOGO_IC;
             logosInferioresPreview.src = URL_LOGOS_INFERIORES;
             hologramPreview.src = URL_HOLOGRAMA;
             reversoPreview.src = URL_REVERSO;
 
-            // Cargar galería de plantillas
             templates.forEach((template, index) => {
                 const img = document.createElement('img');
                 img.src = template.url;
@@ -191,9 +276,8 @@
             });
             if (templates.length > 0) selectTemplate(0);
 
-            // Hacer todos los elementos de texto arrastrables
-            Object.values(previewElements).forEach(makeDraggable);
-            makeDraggable(nombreContainer); // Hacemos el contenedor del nombre arrastrable
+            // Hacer todos los contenedores de texto arrastrables
+            Object.values(previewContainers).forEach(makeDraggable);
         });
 
         function selectTemplate(index) {
@@ -205,8 +289,7 @@
         // --- LÓGICA DE VISTA PREVIA ---
         form.addEventListener('input', (e) => {
             const { id, value } = e.target;
-            const targetElement = (id === 'nombre') ? nombrePreview : previewElements[id];
-
+            const targetElement = previewTextElements[id];
             if (targetElement) {
                 if (id === 'dni') targetElement.textContent = `DNI: ${value}`;
                 else if (id === 'vence') targetElement.textContent = `VENCE: ${value}`;
@@ -218,8 +301,8 @@
         });
         
         function adjustFontSize() {
-            const el = nombrePreview;
-            const container = nombreContainer;
+            const el = previewTextElements.nombre;
+            const container = previewContainers.nombre;
             el.style.transform = 'scale(1)'; 
             const containerWidth = container.offsetWidth;
             const textWidth = el.offsetWidth;
@@ -229,6 +312,21 @@
                 el.style.transformOrigin = 'left';
             }
         }
+        
+        window.changeFontSize = (containerId, amount) => {
+            const container = document.getElementById(containerId);
+            if (container) {
+                let currentSize = parseFloat(window.getComputedStyle(container, null).getPropertyValue('font-size'));
+                container.style.fontSize = (currentSize + amount) + 'px';
+            }
+        };
+
+        window.changeTextAlign = (containerId, align) => {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.style.textAlign = align;
+            }
+        };
 
         photoUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -237,35 +335,26 @@
             }
         });
         
-        // --- ¡NUEVO! LÓGICA PARA ARRASTRAR Y SOLTAR ---
         function makeDraggable(element) {
             let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
             element.onmousedown = dragMouseDown;
-
             function dragMouseDown(e) {
                 e.preventDefault();
-                pos3 = e.clientX;
-                pos4 = e.clientY;
+                pos3 = e.clientX; pos4 = e.clientY;
                 document.onmouseup = closeDragElement;
                 document.onmousemove = elementDrag;
             }
-
             function elementDrag(e) {
                 e.preventDefault();
-                pos1 = pos3 - e.clientX;
-                pos2 = pos4 - e.clientY;
-                pos3 = e.clientX;
-                pos4 = e.clientY;
+                pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY;
+                pos3 = e.clientX; pos4 = e.clientY;
                 element.style.top = (element.offsetTop - pos2) + "px";
                 element.style.left = (element.offsetLeft - pos1) + "px";
             }
-
             function closeDragElement() {
-                document.onmouseup = null;
-                document.onmousemove = null;
+                document.onmouseup = null; document.onmousemove = null;
             }
         }
-
 
         // --- LÓGICA DE ENVÍO Y GENERACIÓN ---
         form.addEventListener('submit', async (e) => {
@@ -322,6 +411,7 @@
             new QRious({ element: qrCodePreview, value: verificationUrl, size: 100, level: 'H' });
         }
         
+        // --- LÓGICA DE DESCARGA ---
         downloadPngBtn.addEventListener('click', () => downloadCombinedImage('png'));
         downloadJpgBtn.addEventListener('click', () => downloadCombinedImage('jpeg'));
 
