@@ -3,33 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Carnets Profesionales v4.2</title>
+    <title>Generador de Carnets Profesionales v4.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         body { font-family: 'Poppins', sans-serif; }
+        
         #download-area {
             width: 856px;
             background-color: #f0f0f0;
             padding: 1.5rem;
             border-radius: 12px;
         }
-        .carnet-wrapper {
-             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-             border-radius: 12px;
-             overflow: hidden; /* Clave para que los bordes redondeados se apliquen a las imágenes */
-        }
+
         .carnet-preview {
-            width: 856px; height: 540px;
+            width: 856px;
+            height: 540px;
             position: relative;
+            overflow: hidden;
             background-color: #e9e9e9;
         }
+        
+        #preview-container-anverso {
+             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+             border-radius: 12px;
+        }
+        
         #reverso-preview {
             margin-top: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
-        .preview-asset { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+
+        #template-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         #photo-preview {
             position: absolute; top: 45px; left: 45px;
             width: 322px; height: 450px;
@@ -156,6 +164,7 @@
         ];
         const OFFICIAL_TEMPLATE_URL = templates[0].url;
 
+        // --- Resto del script ---
         const form = document.getElementById('carnet-form');
         const statusDiv = document.getElementById('status');
         const submitBtn = document.getElementById('submit-btn');
@@ -304,10 +313,9 @@
             const downloadArea = document.getElementById('download-area');
             const fileName = `Carnet_Completo_${form.nombre.value.replace(/\s+/g, '_') || 'sin_nombre'}`;
             
-            // Lógica de descarga robusta
             html2canvas(downloadArea, { 
                 useCORS: true, 
-                scale: 3, // Aumenta la escala para mayor calidad de imagen
+                scale: 2,
                 backgroundColor: '#f0f0f0'
             }).then(canvas => {
                 const image = canvas.toDataURL(`image/${format}`, 1.0);
