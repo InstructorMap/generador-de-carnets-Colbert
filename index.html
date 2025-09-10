@@ -55,17 +55,17 @@
             opacity: 0.6; mix-blend-mode: screen;
             pointer-events: none; z-index: 15;
         }
-        /* --- COORDENADAS DE TEXTO FINALES (POR ENCIMA DE LA LÍNEA) --- */
-        #titulo-preview { top: 52px; left: 420px; font-size: 26px; }
-        #cargo1-preview { top: 102px; left: 420px; font-size: 26px; }
-        #cargo2-preview { top: 152px; left: 420px; font-size: 26px; }
+        /* --- COORDENADAS DE TEXTO CORREGIDAS --- */
+        #titulo-preview { top: 40px; left: 420px; font-size: 26px; }
+        #cargo1-preview { top: 90px; left: 420px; font-size: 26px; }
+        #cargo2-preview { top: 140px; left: 420px; font-size: 26px; }
         #nombre-container { position: absolute; top: 242px; left: 420px; width: 410px; text-align: left; }
         #nombre-preview { font-size: 28px; white-space: nowrap; display: inline-block; transform-origin: left; }
         #dni-preview { top: 342px; left: 520px; font-size: 24px; }      
         #matricula-preview { top: 387px; left: 520px; font-size: 24px; }
-        #vence-preview { top: 452px; left: 520px; font-size: 22px; }    
+        #vence-preview { top: 452px; left: 520px; font-size: 22px; }   
         #qr-code-preview {
-            position: absolute; bottom: 30px; left: 45px;   
+            position: absolute; bottom: 30px; left: 45px;    
             width: 110px; height: 110px;
             background-color: white; padding: 5px; border-radius: 4px;
             z-index: 10;
@@ -141,7 +141,7 @@
         const URL_LOGO_IC = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logo_ic.png';
         const URL_LOGOS_INFERIORES = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logos_inferiores.png';
         const URL_HOLOGRAMA = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/holograma_aai.png';
-        const URL_REVERSO = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet%20vuelta.jpg';
+        const URL_REVERSO = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet%20vuelta.png';
         
         const templates = [
             { name: 'Plantilla Profesional', url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/plantilla_base_profesional.png' },
@@ -280,48 +280,4 @@
             statusDiv.className = 'mt-4 text-center ';
             switch(type) {
                 case 'loading': statusDiv.classList.add('text-blue-600'); submitBtn.disabled = true; submitBtn.textContent = 'Procesando...'; break;
-                case 'success': statusDiv.classList.add('text-green-600'); submitBtn.disabled = false; submitBtn.textContent = 'Generar y Guardar Carnet'; break;
-                case 'error': statusDiv.classList.add('text-red-600'); submitBtn.disabled = false; submitBtn.textContent = 'Generar y Guardar Carnet'; break;
-            }
-        }
-        
-        function generateQRCode(matricula) {
-            if (!matricula) return;
-            const verificationUrl = `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${matricula}`;
-            new QRious({ element: qrCodePreview, value: verificationUrl, size: 100, level: 'H' });
-        }
-        
-        downloadPngBtn.addEventListener('click', () => downloadCombinedImage('png'));
-        downloadJpgBtn.addEventListener('click', () => downloadCombinedImage('jpeg'));
-
-        function downloadCombinedImage(format) {
-            const downloadArea = document.getElementById('download-area');
-            const fileName = `Carnet_Completo_${form.nombre.value.replace(/\s+/g, '_') || 'sin_nombre'}`;
-            
-            // Lógica de descarga robusta que espera a que todas las imágenes se carguen
-            const images = Array.from(downloadArea.querySelectorAll('img'));
-            const promises = images.map(img => {
-                if (img.complete) return Promise.resolve();
-                return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
-            });
-
-            Promise.all(promises).then(() => {
-                 setTimeout(() => { // Pequeña espera para asegurar el renderizado final
-                    html2canvas(downloadArea, { 
-                        useCORS: true, 
-                        scale: 2,
-                        backgroundColor: '#f0f0f0'
-                    }).then(canvas => {
-                        const image = canvas.toDataURL(`image/${format}`, 1.0);
-                        const link = document.createElement('a');
-                        link.href = image;
-                        link.download = `${fileName}.${format === 'jpeg' ? 'jpg' : 'png'}`;
-                        link.click();
-                    });
-                 }, 500);
-            });
-        }
-    </script>
-</body>
-</html>
-
+                case 'success': statusDiv.classList.add
