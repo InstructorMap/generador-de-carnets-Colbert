@@ -1,630 +1,268 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Generador de Carnets — v4.3 (estable, corregido)</title>
-
-  <!-- Tailwind (dev CDN) + fonts -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador de Carnets Profesionales v4.3</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Oswald:wght@600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Oswald:wght@700&display=swap" rel="stylesheet">
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
   <style>
-    :root { --card-w:856px; --card-h:540px; }
-    body { font-family: 'Poppins', sans-serif; background:#f3f4f6; margin:0; padding:20px; }
-    .layout { max-width:1200px; margin:0 auto; display:grid; grid-template-columns: 1fr 560px; gap:20px; }
-    .panel { background:#fff; padding:16px; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.06); }
-    .small { font-size:.9rem; color:#374151; }
+    body { font-family: 'Poppins', sans-serif; }
 
-    /* PREVIEW */
-    #download-area { width:var(--card-w); padding:12px; }
-    .carnet-preview { width:var(--card-w); height:var(--card-h); position:relative; border-radius:12px; overflow:hidden; background:linear-gradient(180deg,#0056d6,#003f9b); }
-    .carnet-bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; border-radius:12px; }
+    #download-area {
+      width: 856px;
+      background-color: #f0f0f0;
+      padding: 1.5rem;
+      border-radius: 12px;
+    }
 
-    /* white oval behind photo */
-    #oval-bg { position:absolute; left:24px; top:28px; width:300px; height:492px; background:#fff; border-radius:50%/60%; z-index:2; }
+    .carnet-preview {
+      width: 856px;
+      height: 540px;
+      position: relative;
+      overflow: hidden;
+      background-color: #e9e9e9;
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
 
-    /* photo (we'll set crossOrigin appropriately before assigning src) */
-    #photo-preview { position:absolute; left:48px; top:64px; width:240px; height:320px; object-fit:cover; border-radius:120px/160px; z-index:3; box-shadow:0 8px 24px rgba(0,0,0,0.28); touch-action:none; }
+    .preview-asset { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+    #photo-preview {
+      position: absolute; top: 45px; left: 45px;
+      width: 322px; height: 450px;
+      border-radius: 161px;
+      object-fit: cover;
+      box-shadow: inset 0px 0px 15px rgba(0, 0, 0, 0.4);
+      z-index: 5;
+    }
+    .text-overlay {
+      position: absolute; font-family: 'Oswald', sans-serif;
+      font-weight: 700; color: white;
+      text-transform: uppercase; letter-spacing: 2px;
+      white-space: nowrap; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+      z-index: 20;
+    }
+    .logo-overlay { position: absolute; filter: drop-shadow(1px 1px 3px rgba(0,0,0,0.6)); z-index: 10; }
 
-    /* DIVIDERS */
-    .divider { position:absolute; left:330px; width:486px; height:2px; background:rgba(255,255,255,0.9); z-index:20; }
-    #divider-1{ top:72px } #divider-2{ top:172px } #divider-3{ top:236px; left:330px; width:420px; }
+    /* Coordenadas corregidas */
+    #titulo-preview { top: 60px; left: 420px; font-size: 26px; }
+    #cargo1-preview { top: 110px; left: 420px; font-size: 24px; }
+    #cargo2-preview { top: 160px; left: 420px; font-size: 24px; }
+    #nombre-container { position: absolute; top: 230px; left: 420px; width: 410px; text-align: left; }
+    #nombre-preview { font-size: 28px; white-space: nowrap; display: inline-block; transform-origin: left; }
+    #dni-preview { top: 320px; left: 420px; font-size: 22px; }
+    #matricula-preview { top: 360px; left: 420px; font-size: 22px; }
+    #vence-preview { top: 400px; left: 420px; font-size: 22px; }
 
-    /* TEXTS tuned to model */
-    .text-overlay { position:absolute; z-index:25; color:#fff; font-family:'Oswald',sans-serif; font-weight:700; text-transform:uppercase; text-shadow:1px 1px 4px rgba(0,0,0,0.45); white-space:nowrap; }
-    #titulo-preview{ top:40px; left:330px; font-size:34px; letter-spacing:4px; width:480px; }
-    #cargo1-preview{ top:96px; left:330px; font-size:30px; letter-spacing:4px; width:480px; }
-    #cargo2-preview{ top:140px; left:330px; font-size:38px; letter-spacing:8px; width:480px; }
-    #nombre-container{ position:absolute; top:200px; left:330px; width:480px; z-index:25; }
-    #nombre-preview{ display:inline-block; font-size:30px; letter-spacing:3px; max-width:100%; }
+    #qr-code-preview {
+      position: absolute; bottom: 30px; left: 45px;
+      width: 110px; height: 110px;
+      background-color: white; padding: 5px; border-radius: 4px;
+      z-index: 10;
+    }
 
-    #dni-preview{ top:270px; left:330px; font-size:24px; letter-spacing:2px; }
-    #matricula-preview{ top:310px; left:330px; font-size:24px; letter-spacing:2px; }
-    #vence-preview{ top:350px; left:330px; font-size:24px; letter-spacing:2px; }
+    #hologram-preview {
+      position: absolute; bottom: 25px; right: 25px;
+      width: 100px; height: 100px;
+      opacity: 0.6; mix-blend-mode: screen;
+      pointer-events: none; z-index: 15;
+    }
 
-    #logo-ic-preview{ position:absolute; left:320px; top:392px; width:84px; z-index:22; filter:drop-shadow(1px 1px 4px rgba(0,0,0,0.35)); }
-    #logos-inferiores-preview{ position:absolute; left:412px; top:392px; width:360px; z-index:22; filter:drop-shadow(1px 1px 4px rgba(0,0,0,0.35)); }
-    #hologram-preview{ position:absolute; right:28px; bottom:20px; width:100px; height:100px; opacity:.6; z-index:23; mix-blend-mode:screen; }
-
-    #qr-code-preview{ position:absolute; left:64px; bottom:110px; width:110px; height:110px; background:white; padding:6px; border-radius:8px; z-index:24; box-shadow:0 8px 18px rgba(0,0,0,0.25); }
-
-    #reverso-preview{ width:856px; height:220px; object-fit:cover; margin-top:14px; border-radius:10px; display:block; }
-
-    .template-option{ width:100%; height:78px; object-fit:cover; border-radius:8px; cursor:pointer; border:2px solid transparent; }
-    .template-option.selected{ border-color:#4f46e5; }
-
-    .btn{ padding:.5rem .8rem; border-radius:8px; border:none; color:#fff; cursor:pointer; font-weight:600; }
-    [role="status"]{ min-height:1.4rem; display:block; }
+    #reverso-preview {
+      width: 856px; height: 540px;
+      object-fit: cover;
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      display: block;
+    }
   </style>
 </head>
-<body>
-  <div class="layout">
+<body class="bg-gray-100 p-8">
 
-    <!-- LEFT: controls -->
-    <div class="panel" aria-labelledby="controls-heading">
-      <h2 id="controls-heading" class="text-lg font-semibold mb-2">Controles & Formulario</h2>
+  <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
 
-      <!-- Templates -->
-      <label class="small">Plantillas (frente)</label>
-      <div id="template-gallery" class="grid grid-cols-2 gap-2 mt-2 mb-3" aria-live="polite"></div>
-      <div class="mb-3">
-        <input id="add-template-input" type="file" accept="image/*" style="display:none" />
-        <button id="add-template-btn" class="btn" style="background:#4f46e5">Agregar plantilla (frente)</button>
+    <!-- Columna del Formulario -->
+    <div class="bg-white p-8 rounded-lg shadow-md">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Generador de Carnets</h1>
       </div>
-
-      <!-- Form -->
-      <form id="carnet-form" class="space-y-2" aria-describedby="form-instructions">
-        <div id="form-instructions" class="text-sm text-gray-500 mb-2">Completa los campos y verifica el reCAPTCHA antes de generar.</div>
-
-        <label class="small">Foto del titular</label>
-        <input id="photo-upload" type="file" accept="image/*" class="block w-full p-2 border rounded" />
-
-        <label class="small">Título</label>
-        <input id="titulo" name="titulo" class="w-full p-2 border rounded" placeholder="CARNET GRUPO COLBERT" />
-
-        <label class="small">Línea 2</label>
-        <input id="cargo1" name="cargo1" class="w-full p-2 border rounded" placeholder="INSTRUCTOR OFICIAL" />
-
-        <label class="small">Especialidad / línea 3</label>
-        <input id="cargo2" name="cargo2" class="w-full p-2 border rounded" placeholder="ESPECIALIDAD" />
-
-        <label class="small">Nombre y Apellido</label>
-        <input id="nombre" name="nombre" class="w-full p-2 border rounded" placeholder="Nombre Apellido" />
-
-        <label class="small">DNI</label>
-        <input id="dni" name="dni" inputmode="numeric" pattern="\d*" maxlength="12" class="w-full p-2 border rounded" placeholder="DNI (solo números)" />
-
-        <label class="small">Vence (ej: 31/12/2026)</label>
-        <input id="vence" name="vence" class="w-full p-2 border rounded" placeholder="31/12/2026" />
-
-        <!-- reCAPTCHA: kept sitekey from your v4.2 -->
-        <div class="mt-2">
-          <div id="recaptcha-area" class="g-recaptcha" data-sitekey="6LfeJ70rAAAAAEn0dpl4oqfDbbexDvj4M-3AMzwD"></div>
-        </div>
-
-        <div class="mt-2">
-          <button id="submit-btn" type="button" class="btn" style="background:#10b981; width:100%;">Generar y Guardar Carnet</button>
-        </div>
+      <form id="carnet-form" class="space-y-4">
+        <input type="text" id="titulo" name="titulo" placeholder="Título (ej: CARNET GRUPO COLBERT)" class="w-full p-2 border rounded" required>
+        <input type="text" id="cargo1" name="cargo1" placeholder="Línea 2 (ej: INSTRUCTOR OFICIAL)" class="w-full p-2 border rounded" required>
+        <input type="text" id="cargo2" name="cargo2" placeholder="Línea 3 (Curso o Especialidad)" class="w-full p-2 border rounded" required>
+        <input type="text" id="nombre" name="nombre" placeholder="Nombre y Apellido del Titular" class="w-full p-2 border rounded" required>
+        <input type="text" id="dni" name="dni" placeholder="DNI del Titular" class="w-full p-2 border rounded" required>
+        <input type="text" id="vence" name="vence" placeholder="Fecha de Vencimiento (ej: 31/12/2026)" class="w-full p-2 border rounded" required>
+        <div class="g-recaptcha" data-sitekey="6LfeJ70rAAAAAEn0dpl4oqfDbbexDvj4M-3AMzwD"></div>
+        <button type="submit" id="submit-btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+          Generar y Guardar Carnet
+        </button>
       </form>
-
-      <a href="admin.html" target="_blank" class="mt-3 block text-center p-2 bg-gray-700 text-white rounded">Administrador</a>
-
-      <div class="mt-4">
-        <button id="toggle-advanced" class="btn" style="background:#f59e0b; width:100%;">Mostrar/Ocultar Controles Avanzados</button>
-        <div id="advanced-panel" style="display:block; margin-top:8px;"> <!-- open by default -->
-          <div class="mt-2">
-            <label class="small">Foto — Ancho</label>
-            <input id="photo-width" type="range" min="120" max="380" value="240" class="w-full" />
-          </div>
-          <div class="mt-2">
-            <label class="small">Foto — Alto</label>
-            <input id="photo-height" type="range" min="160" max="480" value="320" class="w-full" />
-          </div>
-          <div class="mt-2">
-            <label class="small">Foto — X</label>
-            <input id="photo-x" type="range" min="0" max="220" value="48" class="w-full" />
-          </div>
-          <div class="mt-2">
-            <label class="small">Foto — Y</label>
-            <input id="photo-y" type="range" min="0" max="200" value="64" class="w-full" />
-          </div>
-          <hr class="my-2" />
-          <div>
-            <label class="small">Nombre — tamaño máximo</label>
-            <input id="name-fontsize" type="range" min="14" max="44" value="30" class="w-full" />
-          </div>
-          <div class="mt-2">
-            <label class="small">Nombre — tracking</label>
-            <input id="name-tracking" type="range" min="0" max="8" value="3" class="w-full" />
-          </div>
-        </div>
-      </div>
-
-      <div id="status" role="status" aria-live="polite" class="mt-3 small text-center"></div>
+      <a href="admin.html" target="_blank" class="mt-4 w-full block text-center bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors">
+        Administrador
+      </a>
+      <div id="status" class="mt-4 text-center"></div>
     </div>
 
-    <!-- RIGHT: preview -->
-    <div class="panel" aria-labelledby="preview-heading">
-      <h2 id="preview-heading" class="text-lg font-semibold mb-2">Vista Previa</h2>
-
+    <!-- Columna de la Vista Previa -->
+    <div class="flex flex-col items-center">
+      <h2 class="text-xl font-bold mb-4">Vista Previa</h2>
       <div id="download-area">
-        <div id="preview-container-anverso" class="carnet-preview" aria-hidden="false">
-          <img id="template-bg" class="carnet-bg" src="" crossorigin="anonymous" alt="Fondo del carnet (frente)" />
-          <div id="oval-bg" aria-hidden="true"></div>
-
-          <!-- photo -->
-          <img id="photo-preview" src="https://placehold.co/240x320/cccccc/ffffff?text=Foto" alt="Foto del titular" />
-
-          <!-- dividers -->
-          <div id="divider-1" class="divider"></div>
-          <div id="divider-2" class="divider"></div>
-          <div id="divider-3" class="divider"></div>
-
-          <!-- texts -->
+        <!-- Anverso -->
+        <div id="preview-container-anverso" class="carnet-preview">
+          <img id="template-bg" src="https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/anverso_carnet_colbert.jpeg" class="preview-asset">
+          <img id="photo-preview" src="https://placehold.co/322x450/cccccc/ffffff?text=Foto">
           <div id="titulo-preview" class="text-overlay"></div>
           <div id="cargo1-preview" class="text-overlay"></div>
           <div id="cargo2-preview" class="text-overlay"></div>
           <div id="nombre-container"><span id="nombre-preview" class="text-overlay"></span></div>
-
           <div id="dni-preview" class="text-overlay"></div>
           <div id="matricula-preview" class="text-overlay"></div>
           <div id="vence-preview" class="text-overlay"></div>
-
-          <!-- logos & hologram -->
-          <img id="logo-ic-preview" src="" alt="Logo IC" crossorigin="anonymous" />
-          <img id="logos-inferiores-preview" src="" alt="Logos inferiores" crossorigin="anonymous" />
-          <img id="hologram-preview" src="" alt="Holograma" crossorigin="anonymous" />
-
-          <!-- QR as canvas (reliable for html2canvas) -->
-          <canvas id="qr-code-preview" width="110" height="110" aria-label="Código QR"></canvas>
+          <img id="qr-code-preview" src="">
+          <img id="hologram-preview" src="https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/holograma_aai.png">
         </div>
 
-        <img id="reverso-preview" src="" alt="Reverso del carnet" crossorigin="anonymous" />
+        <!-- Reverso -->
+        <div id="preview-container-reverso" class="carnet-preview mt-6">
+          <img id="reverso-preview" src="https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo_carnet_vuelta.png">
+        </div>
       </div>
 
-      <div class="mt-3 flex gap-2">
-        <button id="download-png-btn" class="btn" style="background:#2563eb;">Descargar PNG</button>
-        <button id="download-jpg-btn" class="btn" style="background:#16a34a;">Descargar JPG</button>
+      <div class="mt-4 flex justify-center space-x-2">
+        <button id="download-png-btn" class="bg-blue-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-blue-700">Descargar (PNG)</button>
+        <button id="download-jpg-btn" class="bg-green-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-green-700">Descargar (JPG)</button>
       </div>
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
   <script>
-  /*************************************************************************
-   v4.3 - index.html final
-   - Implements the fixes discussed: safeFetchJson, CORS-safe image loading,
-     QR on canvas, auto-fit by font-size, client-side image downscale,
-     drag-to-move & sliders, front+back combined download, DNI normalization
-   - Uses reCAPTCHA sitekey from your v4.2 file (public key)
-  *************************************************************************/
+    const API_ENDPOINT = 'https://carnet-api-green.vercel.app/api/handler';
 
-  /* ------------------ CONFIG & ASSETS ------------------ */
-  const API_ENDPOINT = 'https://carnet-api-green.vercel.app/api/handler';
+    const form = document.getElementById('carnet-form');
+    const statusDiv = document.getElementById('status');
+    const submitBtn = document.getElementById('submit-btn');
+    const previewElements = {
+      titulo: document.getElementById('titulo-preview'),
+      cargo1: document.getElementById('cargo1-preview'),
+      cargo2: document.getElementById('cargo2-preview'),
+      nombre: document.getElementById('nombre-preview'),
+      dni: document.getElementById('dni-preview'),
+      matricula: document.getElementById('matricula-preview'),
+      vence: document.getElementById('vence-preview'),
+    };
+    const qrCodePreview = document.getElementById('qr-code-preview');
+    const nombreContainer = document.getElementById('nombre-container');
+    const nombrePreview = document.getElementById('nombre-preview');
+    const downloadPngBtn = document.getElementById('download-png-btn');
+    const downloadJpgBtn = document.getElementById('download-jpg-btn');
+    const photoUpload = document.getElementById('photo-upload');
+    const photoPreview = document.getElementById('photo-preview');
 
-  const URL_LOGO_IC = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logo_ic.png';
-  const URL_LOGOS_INFERIORES = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logos_inferiores.png';
-  const URL_HOLOGRAMA = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/holograma_aai.png';
-  const URL_REVERSO = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo_carnet_vuelta.png';
-
-  const templates = [
-    { name: 'Plantilla Profesional', url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/anverso_carnet_colbert.jpeg' },
-    { name: 'Plantilla Original', url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet2.png' }
-  ];
-
-  /* ------------------ DOM refs ------------------ */
-  const templateGallery = document.getElementById('template-gallery');
-  const addTemplateBtn = document.getElementById('add-template-btn');
-  const addTemplateInput = document.getElementById('add-template-input');
-
-  const templateBg = document.getElementById('template-bg');
-  const reversoPreview = document.getElementById('reverso-preview');
-  const logoIcPreview = document.getElementById('logo-ic-preview');
-  const logosInferioresPreview = document.getElementById('logos-inferiores-preview');
-  const hologramPreview = document.getElementById('hologram-preview');
-
-  const photoUpload = document.getElementById('photo-upload');
-  const photoPreview = document.getElementById('photo-preview');
-
-  const previewElements = {
-    titulo: document.getElementById('titulo-preview'),
-    cargo1: document.getElementById('cargo1-preview'),
-    cargo2: document.getElementById('cargo2-preview'),
-    nombre: document.getElementById('nombre-preview'),
-    dni: document.getElementById('dni-preview'),
-    matricula: document.getElementById('matricula-preview'),
-    vence: document.getElementById('vence-preview'),
-  };
-
-  const qrCanvas = document.getElementById('qr-code-preview');
-  const qr = new QRious({ element: qrCanvas, size: 110, value: '' });
-
-  const submitBtn = document.getElementById('submit-btn');
-  const statusDiv = document.getElementById('status');
-  const downloadPngBtn = document.getElementById('download-png-btn');
-  const downloadJpgBtn = document.getElementById('download-jpg-btn');
-
-  // Advanced controls
-  const toggleAdvancedBtn = document.getElementById('toggle-advanced');
-  const advancedPanel = document.getElementById('advanced-panel');
-  const photoWidth = document.getElementById('photo-width');
-  const photoHeight = document.getElementById('photo-height');
-  const photoX = document.getElementById('photo-x');
-  const photoY = document.getElementById('photo-y');
-  const nameFontsize = document.getElementById('name-fontsize');
-  const nameTracking = document.getElementById('name-tracking');
-
-  // form inputs
-  const inputIds = ['titulo','cargo1','cargo2','nombre','dni','vence'];
-  const formInputs = inputIds.map(id => document.getElementById(id));
-
-  /* ------------------ UTILITIES ------------------ */
-
-  // Safe fetch + parse JSON (gives clearer messages on non-JSON server responses)
-  async function safeFetchJson(url, options = {}) {
-    const res = await fetch(url, options);
-    const text = await res.text();
-    let data = {};
-    try {
-      data = text ? JSON.parse(text) : {};
-    } catch (err) {
-      throw new Error(`Servidor devolvió respuesta no JSON: ${text ? text.substring(0,300) : '<vacío>'}`);
-    }
-    if (!res.ok) throw new Error(data.message || `HTTP ${res.status} ${res.statusText}`);
-    return data;
-  }
-
-  // Set image src with CORS handling (must set crossOrigin BEFORE src for remote urls)
-  function setImageSrcWithCORS(imgEl, url) {
-    if (!imgEl) return;
-    try {
-      if (!url) { imgEl.removeAttribute('src'); return; }
-      // blob: and data: don't need crossorigin
-      if (url.startsWith('blob:') || url.startsWith('data:')) {
-        imgEl.removeAttribute('crossorigin');
-      } else {
-        imgEl.crossOrigin = 'anonymous';
+    function adjustFontSize() {
+      const el = nombrePreview;
+      const container = nombreContainer;
+      el.style.transform = 'scale(1)';
+      const containerWidth = container.offsetWidth;
+      const textWidth = el.offsetWidth;
+      if (textWidth > containerWidth) {
+        const scale = containerWidth / textWidth;
+        el.style.transform = `scaleX(${scale})`;
+        el.style.transformOrigin = 'left';
       }
-      imgEl.src = url;
-    } catch (e) {
-      console.warn('setImageSrcWithCORS error', e);
-      imgEl.src = url;
     }
-  }
 
-  // Normalize DNI (remove non-digits)
-  function normalizeDNI(raw) {
-    return String(raw || '').replace(/\D/g, '');
-  }
+    form.addEventListener('input', (e) => {
+      const { id, value } = e.target;
+      const targetElement = previewElements[id];
+      if (targetElement) {
+        if (id === 'dni') {
+          targetElement.textContent = `DNI: ${value}`;
+        } else if (id === 'vence') {
+          targetElement.textContent = `VENCE: ${value}`;
+        } else if (id === 'nombre') {
+          targetElement.textContent = value;
+          adjustFontSize();
+        } else {
+          targetElement.textContent = value;
+        }
+      }
+    });
 
-  // Auto-fit by reducing font-size (preferable over scaleX)
-  function autoFitByFontSize(el, containerWidth, maxFontSize = 30, minFontSize = 12) {
-    if(!el) return;
-    let size = maxFontSize;
-    el.style.fontSize = size + 'px';
-    // If el scrollWidth is 0 (hidden or not rendered), bail out gracefully
-    let attempts = 0;
-    while(size > minFontSize && el.scrollWidth > containerWidth && attempts < 120) {
-      size -= 1;
-      el.style.fontSize = size + 'px';
-      attempts++;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      setStatus('Guardando datos...', 'loading');
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+      const recaptchaResponse = grecaptcha.getResponse();
+      if (!recaptchaResponse) {
+        setStatus('Por favor, completa la verificación.', 'error');
+        return;
+      }
+      data['g-recaptcha-response'] = recaptchaResponse;
+      try {
+        const response = await fetch(API_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `Error del servidor`);
+        }
+        const result = await response.json();
+        if (result.success && result.matricula) {
+          previewElements.matricula.textContent = `MATRICULA: ${result.matricula}`;
+          generateQRCode(result.matricula);
+          setStatus(`Éxito! Matrícula: ${result.matricula}`, 'success');
+        } else {
+          throw new Error(result.message || 'Respuesta inesperada.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        setStatus(`Error: ${error.message}`, 'error');
+      } finally {
+        grecaptcha.reset();
+      }
+    });
+
+    function setStatus(message, type) {
+      statusDiv.textContent = message;
+      statusDiv.className = 'mt-4 text-center ';
+      switch(type) {
+        case 'loading': statusDiv.classList.add('text-blue-600'); submitBtn.disabled = true; submitBtn.textContent = 'Procesando...'; break;
+        case 'success': statusDiv.classList.add('text-green-600'); submitBtn.disabled = false; submitBtn.textContent = 'Generar y Guardar Carnet'; break;
+        case 'error': statusDiv.classList.add('text-red-600'); submitBtn.disabled = false; submitBtn.textContent = 'Generar y Guardar Carnet'; break;
+      }
     }
-    el.style.letterSpacing = (nameTracking.value || 0) + 'px';
-  }
 
-  // client-side downscale/compress uploaded image to avoid huge canvases
-  async function handlePhotoFile(file) {
-    const MAX_DIM = 1200; // max width/height for performance
-    try {
-      const imgBitmap = await createImageBitmap(file);
-      const scale = Math.min(1, MAX_DIM / Math.max(imgBitmap.width, imgBitmap.height));
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.round(imgBitmap.width * scale);
-      canvas.height = Math.round(imgBitmap.height * scale);
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(imgBitmap, 0, 0, canvas.width, canvas.height);
-      // create blob/jpeg compressed at 0.85 quality
-      const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
-      const url = URL.createObjectURL(blob);
-      // ensure no crossorigin for object URLs
-      photoPreview.removeAttribute('crossorigin');
-      photoPreview.src = url;
-      // store blob for potential server upload (not implemented here)
-      return blob;
-    } catch (err) {
-      console.error('handlePhotoFile error', err);
-      // fallback to simple object URL
-      const url = URL.createObjectURL(file);
-      photoPreview.removeAttribute('crossorigin');
-      photoPreview.src = url;
-      return file;
+    function generateQRCode(matricula) {
+      if (!matricula) return;
+      const verificationUrl = `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${matricula}`;
+      new QRious({ element: qrCodePreview, value: verificationUrl, size: 100, level: 'H' });
     }
-  }
 
-  // generate QR onto canvas (QRious)
-  function generateQRCode(matricula) {
-    if (!matricula) return;
-    const verificationUrl = `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${encodeURIComponent(matricula)}`;
-    qr.set({ value: verificationUrl, size: 110, level: 'H' });
-  }
+    function downloadCombinedImage(format) {
+      const downloadArea = document.getElementById('download-area');
+      const fileName = `Carnet_Completo_${form.nombre.value.replace(/\s+/g, '_') || 'sin_nombre'}`;
+      html2canvas(downloadArea, {
+        useCORS: true,
+        scale: 2,
+        backgroundColor: '#f0f0f0'
+      }).then(canvas => {
+        const image = canvas.toDataURL(`image/${format}`, 1.0);
+        const link = document.createElement('a');
+        link.href = image;
+        link.download = `${fileName}.${format === 'jpeg' ? 'jpg' : 'png'}`;
+        link.click();
+      });
+    }
 
-  function setStatus(msg='', type='info') {
-    statusDiv.textContent = msg;
-    statusDiv.style.color = type === 'error' ? '#dc2626' : type === 'success' ? '#16a34a' : '#111827';
-  }
-
-  /* ------------------ INIT ------------------ */
-  document.addEventListener('DOMContentLoaded', () => {
-    // load assets (use CORS-safe setter)
-    setImageSrcWithCORS(logoIcPreview, URL_LOGO_IC);
-    setImageSrcWithCORS(logosInferioresPreview, URL_LOGOS_INFERIORES);
-    setImageSrcWithCORS(hologramPreview, URL_HOLOGRAMA);
-    setImageSrcWithCORS(reversoPreview, URL_REVERSO);
-
-    // build template gallery (set crossOrigin before src)
-    templates.forEach((t,i) => {
-      const img = document.createElement('img');
-      img.className = 'template-option';
-      img.dataset.index = i;
-      img.alt = t.name;
-      img.addEventListener('click', () => selectTemplate(i));
-      // use CORS setter
-      setImageSrcWithCORS(img, t.url);
-      templateGallery.appendChild(img);
-    });
-    if (templates.length) selectTemplate(0);
-
-    // wire form inputs to preview
-    formInputs.forEach(el => {
-      if(!el) return;
-      el.addEventListener('input', e => updatePreview(e.target.id, e.target.value));
-    });
-
-    // wire photo upload
-    photoUpload.addEventListener('change', async (e) => {
-      const f = e.target.files && e.target.files[0];
-      if(!f) return;
-      await handlePhotoFile(f);
-      // apply current advanced values after new image
-      updatePhotoUI();
-    });
-
-    // advanced controls
-    toggleAdvancedBtn.addEventListener('click', () => {
-      advancedPanel.style.display = advancedPanel.style.display === 'none' ? 'block' : 'none';
-    });
-    [photoWidth, photoHeight, photoX, photoY].forEach(inp => inp && inp.addEventListener('input', updatePhotoUI));
-    [nameFontsize, nameTracking].forEach(inp => inp && inp.addEventListener('input', () => {
-      updateTextControls();
-      // re-autofit name if present
-      autoFitByFontSize(document.getElementById('nombre-preview'), document.getElementById('nombre-container').offsetWidth, parseInt(nameFontsize.value,10));
-    }));
-
-    // add-template
-    addTemplateBtn.addEventListener('click', () => addTemplateInput.click());
-    addTemplateInput.addEventListener('change', handleAddTemplate);
-
-    // submit & downloads
-    submitBtn.addEventListener('click', onSubmitHandler);
     downloadPngBtn.addEventListener('click', () => downloadCombinedImage('png'));
     downloadJpgBtn.addEventListener('click', () => downloadCombinedImage('jpeg'));
-
-    // make photo draggable (pointer events)
-    enablePhotoDrag();
-
-    // initial UI state
-    updatePhotoUI();
-    updateTextControls();
-    setStatus('', 'info');
-  });
-
-  /* ------------------ UI UPDATE FUNCTIONS ------------------ */
-
-  function selectTemplate(i) {
-    const t = templates[i];
-    if(!t) return;
-    setImageSrcWithCORS(templateBg, t.url);
-    // mark selected
-    document.querySelectorAll('.template-option').forEach(el => el.classList.remove('selected'));
-    const img = document.querySelector(`.template-option[data-index='${i}']`);
-    if (img) img.classList.add('selected');
-  }
-
-  function handleAddTemplate(e) {
-    const f = e.target.files && e.target.files[0];
-    if (!f) return;
-    const u = URL.createObjectURL(f);
-    templates.push({ name: f.name, url: u });
-    const i = templates.length - 1;
-    const img = document.createElement('img');
-    img.className = 'template-option';
-    img.dataset.index = i;
-    img.alt = f.name;
-    img.addEventListener('click', () => selectTemplate(i));
-    setImageSrcWithCORS(img, u);
-    templateGallery.appendChild(img);
-    selectTemplate(i);
-  }
-
-  function updatePreview(id, value) {
-    const el = previewElements[id];
-    if (!el) return;
-    if (id === 'dni') {
-      el.textContent = `DNI: ${value}`;
-    } else if (id === 'vence') {
-      el.textContent = `VENCE: ${value}`;
-    } else if (id === 'nombre') {
-      el.textContent = (value || '').toUpperCase();
-      autoFitByFontSize(document.getElementById('nombre-preview'), document.getElementById('nombre-container').offsetWidth, parseInt(nameFontsize.value || 30, 10));
-    } else {
-      el.textContent = (value || '').toUpperCase();
-      if (id === 'cargo2') autoFitByFontSize(el, 480, parseInt(nameFontsize.value||30,10)+8);
-    }
-  }
-
-  function updatePhotoUI() {
-    const w = photoWidth ? parseInt(photoWidth.value,10) : 240;
-    const h = photoHeight ? parseInt(photoHeight.value,10) : 320;
-    const x = photoX ? parseInt(photoX.value,10) : 48;
-    const y = photoY ? parseInt(photoY.value,10) : 64;
-    photoPreview.style.width = w + 'px';
-    photoPreview.style.height = h + 'px';
-    photoPreview.style.left = x + 'px';
-    photoPreview.style.top = y + 'px';
-    photoPreview.style.borderRadius = `${w/2}px / ${h/2}px`;
-  }
-
-  function updateTextControls() {
-    const max = parseInt(nameFontsize.value || 30, 10);
-    const el = document.getElementById('nombre-preview');
-    el.style.fontSize = max + 'px';
-    el.style.letterSpacing = (nameTracking.value || 0) + 'px';
-    autoFitByFontSize(el, document.getElementById('nombre-container').offsetWidth, max);
-  }
-
-  /* ------------------ Drag photo (pointer) ------------------ */
-  function enablePhotoDrag() {
-    let dragging = false;
-    let start = null;
-
-    photoPreview.addEventListener('pointerdown', (e) => {
-      dragging = true;
-      photoPreview.setPointerCapture(e.pointerId);
-      const rect = photoPreview.getBoundingClientRect();
-      start = { pointerId: e.pointerId, x: e.clientX, y: e.clientY, left: rect.left + window.scrollX, top: rect.top + window.scrollY };
-    });
-
-    window.addEventListener('pointermove', (e) => {
-      if (!dragging || !start) return;
-      if (e.pointerId !== start.pointerId) return;
-      const dx = e.clientX - start.x;
-      const dy = e.clientY - start.y;
-      const newLeft = Math.max(0, Math.round(start.left + dx - document.getElementById('preview-container-anverso').getBoundingClientRect().left));
-      const newTop = Math.max(0, Math.round(start.top + dy - document.getElementById('preview-container-anverso').getBoundingClientRect().top));
-      photoPreview.style.left = newLeft + 'px';
-      photoPreview.style.top = newTop + 'px';
-      // update sliders to reflect drag
-      if (photoX) photoX.value = Math.round(newLeft);
-      if (photoY) photoY.value = Math.round(newTop);
-    });
-
-    window.addEventListener('pointerup', (e) => {
-      dragging = false;
-      start = null;
-    });
-  }
-
-  /* ------------------ Download combined front+back ------------------ */
-  async function downloadCombinedImage(format = 'png') {
-    try {
-      setStatus('Generando imagen...', 'info');
-      const frontEl = document.getElementById('preview-container-anverso');
-      const backEl = document.getElementById('reverso-preview');
-
-      // Ensure templateBg & logos loaded with crossOrigin (previously set on load)
-      const frontCanvas = await html2canvas(frontEl, { useCORS: true, scale: 2, backgroundColor: null });
-      const backCanvas = await html2canvas(backEl, { useCORS: true, scale: 2, backgroundColor: null });
-
-      const combined = document.createElement('canvas');
-      combined.width = frontCanvas.width;
-      combined.height = frontCanvas.height + backCanvas.height;
-      const ctx = combined.getContext('2d');
-      ctx.drawImage(frontCanvas, 0, 0);
-      ctx.drawImage(backCanvas, 0, frontCanvas.height);
-
-      const link = document.createElement('a');
-      link.href = combined.toDataURL(`image/${format === 'jpeg' ? 'jpeg' : 'png'}`);
-      const safeName = (document.getElementById('nombre').value || 'sin_nombre').replace(/[^\w\-_.]/g,'_');
-      link.download = `Carnet_${safeName}.${format === 'jpeg' ? 'jpg' : 'png'}`;
-      link.click();
-      setStatus('Descarga lista.', 'success');
-    } catch (err) {
-      console.error('downloadCombinedImage error', err);
-      setStatus('Error al generar la imagen. Revisa la consola.', 'error');
-    }
-  }
-
-  /* ------------------ Submit handler (reCAPTCHA validated, safe fetch) ------------------ */
-  let submitting = false;
-  async function onSubmitHandler(force = false) {
-    // prevent double submit
-    if (submitting) return;
-    submitting = true;
-    submitBtn.disabled = true;
-
-    try {
-      const token = grecaptcha.getResponse();
-      if (!token) {
-        setStatus('Por favor completa la verificación reCAPTCHA.', 'error');
-        return;
-      }
-
-      const titulo = document.getElementById('titulo').value || '';
-      const cargo1 = document.getElementById('cargo1').value || '';
-      const cargo2 = document.getElementById('cargo2').value || '';
-      const nombre = document.getElementById('nombre').value || '';
-      const dniRaw = document.getElementById('dni').value || '';
-      const vence = document.getElementById('vence').value || '';
-
-      const dni = normalizeDNI(dniRaw);
-      if (!dni) {
-        setStatus('DNI inválido. Ingresá solo números.', 'error');
-        return;
-      }
-
-      setStatus('Guardando datos...', 'info');
-
-      const payload = {
-        titulo, cargo1, cargo2, nombre, dni, vence,
-        plantilla_url: templateBg.src || templates[0].url,
-        'g-recaptcha-response': token
-      };
-      if (force) payload.force = true;
-
-      // use safeFetchJson to parse and return JSON or throw with clear message
-      const data = await safeFetchJson(API_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (data && data.matricula) {
-        previewElements.matricula.textContent = `MATRICULA: ${data.matricula}`;
-        generateQRCode(data.matricula);
-        setStatus(`Guardado. Matrícula: ${data.matricula}`, 'success');
-      } else {
-        setStatus('El servidor no devolvió matrícula válida.', 'error');
-      }
-    } catch (err) {
-      console.error('submit error', err);
-      setStatus('Error al guardar: ' + (err.message || err), 'error');
-    } finally {
-      try { grecaptcha.reset(); } catch (e) {}
-      submitting = false;
-      submitBtn.disabled = false;
-    }
-  }
-
-  // optional force register (not shown UI here, can be wired to a button)
-  // document.getElementById('force-btn')?.addEventListener('click', () => onSubmitHandler(true));
-
-  /* ------------------ Small UX convenience: prefill initial text to match model ------------------ */
-  document.getElementById('titulo').value = 'CARNET GRUPO COLBERT';
-  document.getElementById('cargo1').value = 'INSTRUCTOR OFICIAL';
-  document.getElementById('cargo2').value = 'EMERGENTOLOGIA';
-  document.getElementById('nombre').value = 'MARTIN BENÍTEZ GÓMEZ';
-  // initialize preview with defaults
-  ['titulo','cargo1','cargo2','nombre'].forEach(id => updatePreview(id, document.getElementById(id).value));
-
-  /* ------------------ Expose debug helpers (optional) ------------------ */
-  window._carnet = {
-    templates, selectTemplate, updatePhotoUI, updateTextControls, downloadCombinedImage, onSubmitHandler
-  };
   </script>
 </body>
 </html>
