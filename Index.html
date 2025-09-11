@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Generador de Carnets — Final</title>
+
+  <!-- Tailwind + fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Oswald:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+  <style>
+    :root { --card-w:856px; --card-h:540px; --panel-bg:#fff; --accent:#003f9b; }
+    body { font-family: 'Poppins', sans-serif; background:#f3f4f6; margin:0; padding:20px; -webkit-font-smoothing:antialiased; }
+    .layout { max-width:1200px; margin:0 auto; display:grid; grid-template-columns: 1fr 560px; gap:20px; }
+    .panel { background:var(--panel-bg); padding:16px; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.06); }
+    .small { font-size:.9rem; color:#374151; }
+
+    /* PREVIEW / CARD */
+    #download-area { width:var(--card-w); padding:12px; }
+    .carnet-preview { width:var(--card-w); height:var(--card-h); position:relative; border-radius:12px; overflow:hidden; background:linear-gradient(180deg,#0056d6,#003f9b); }
+    .carnet-bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; border-radius:12px; }
+
+    /* white oval behind photo */
+    #oval-bg { position:absolute; left:24px; top:28px; width:300px; height:492px; background:#fff; border-radius:50%/60%; z-index:2; }
+
+    /* photo (oval) */
+    #photo-preview { position:absolute; left:48px; top:64px; width:240px; height:320px; object-fit:cover; border-radius:120px/160px; z-index:3; box-shadow:inset 0 0 20px rgba(0,0,0,0.35); touch-action:none; }
+
+    /* subtle dividers (kept minimal, can hide if undesired) */
+    .divider { position:absolute; left:330px; width:486px; height:2px; background:rgba(255,255,255,0.075); z-index:20; }
+    #divider-1{ top:72px } #divider-2{ top:172px } #divider-3{ top:236px; left:330px; width:420px; }
+
+    /* Text overlays tuned to model; widths expanded to use area */
+    .text-overlay { position:absolute; z-index:25; color:#fff; font-family:'Oswald',sans-serif; font-weight:700; text-transform:uppercase; text-shadow:1px 1px 4px rgba(0,0,0,0.45); white-space:nowrap; overflow:visible; }
+    #titulo-preview { top:40px; left:330px; font-size:34px; letter-spacing:3px; width:500px; }
+    #cargo1-preview { top:92px; left:330px; font-size:26px; letter-spacing:3px; width:500px; }
+    #cargo2-preview { top:136px; left:330px; font-size:30px; letter-spacing:4px; width:500px; }
+    #nombre-container { position:absolute; top:188px; left:330px; width:500px; z-index:25; }
+    #nombre-preview { display:inline-block; font-size:34px; letter-spacing:2px; max-width:100%; white-space:nowrap; }
+
+    #dni-preview { top:260px; left:330px; font-size:22px; letter-spacing:1px; width:500px; }
+    #matricula-preview { top:295px; left:330px; font-size:22px; letter-spacing:1px; width:500px; }
+    #vence-preview { top:330px; left:330px; font-size:20px; letter-spacing:1px; width:500px; }
+
+    /* logos moved down/right to avoid overlapping text area */
+    #logo-ic-preview { position:absolute; left:710px; top:420px; width:96px; z-index:22; filter:drop-shadow(1px 1px 6px rgba(0,0,0,0.45)); }
+    #logos-inferiores-preview { position:absolute; left:330px; top:420px; width:360px; z-index:22; filter:drop-shadow(1px 1px 6px rgba(0,0,0,0.45)); }
+
+    /* hologram bottom-right, above logos */
+    #hologram-preview { position:absolute; right:28px; bottom:20px; width:100px; height:100px; opacity:.6; z-index:23; mix-blend-mode:screen; pointer-events:none; }
+
+    /* QR fixed bottom-left (in white box) */
+    #qr-wrap { position:absolute; left:50px; bottom:38px; width:122px; height:122px; background:#fff; border-radius:8px; padding:6px; z-index:24; box-shadow:0 8px 18px rgba(0,0,0,0.25); display:flex; align-items:center; justify-content:center; }
+    #qr-code-preview { width:110px; height:110px; display:block; }
+
+    /* Reverso must be same size; we wrap in container with same class */
+    #preview-container-reverso .carnet-bg, #preview-container-reverso img { width:100%; height:100%; object-fit:cover; border-radius:12px; }
+
+    /* grid overlay (visual guide only) */
+    .grid-overlay {
+      position:absolute; inset:0; pointer-events:none; z-index:999;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.18) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.18) 1px, transparent 1px),
+        linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 50px 50px, 50px 50px, 10px 10px, 10px 10px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+    }
+    .hidden-vis { display:none !important; }
+
+    /* small helpers */
+    .template-option{ width:100%; height:78px; object-fit:cover; border-radius:8px; cursor:pointer; border:2px solid transparent; }
+    .template-option.selected{ border-color:#4f46e5; }
+    .btn{ padding:.5rem .8rem; border-radius:8px; border:none; color:#fff; cursor:pointer; font-weight:600; }
+    [role="status"]{ min-height:1.4rem; display:block; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+
+    <!-- LEFT: controls -->
+    <div class="panel" aria-labelledby="controls-heading">
+      <h2 id="controls-heading" class="text-lg font-semibold mb-2">Controles & Formulario</h2>
+
+      <label class="small">Plantillas (frente)</label>
+      <div id="template-gallery" class="grid grid-cols-2 gap-2 mt-2 mb-3" aria-live="polite"></div>
+      <div class="mb-3">
+        <input id="add-template-input" type="file" accept="image/*" style="display:none" />
+        <button id="add-template-btn" class="btn" style="background:#4f46e5">Agregar plantilla (frente)</button>
+      </div>
+
+      <form id="carnet-form" class="space-y-2" aria-describedby="form-instructions">
+        <div id="form-instructions" class="text-sm text-gray-500 mb-2">Completa los campos y verifica el reCAPTCHA antes de generar.</div>
+
+        <label class="small">Foto del titular</label>
+        <input id="photo-upload" type="file" accept="image/*" class="block w-full p-2 border rounded" />
+
+        <label class="small">Título</label>
+        <input id="titulo" name="titulo" class="w-full p-2 border rounded" placeholder="CARNET GRUPO COLBERT" />
+
+        <label class="small">Línea 2</label>
+        <input id="cargo1" name="cargo1" class="w-full p-2 border rounded" placeholder="INSTRUCTOR OFICIAL" />
+
+        <label class="small">Línea 3 / Especialidad</label>
+        <input id="cargo2" name="cargo2" class="w-full p-2 border rounded" placeholder="ESPECIALIDAD" />
+
+        <label class="small">Nombre y Apellido</label>
+        <input id="nombre" name="nombre" class="w-full p-2 border rounded" placeholder="Nombre Apellido" />
+
+        <label class="small">DNI</label>
+        <input id="dni" name="dni" inputmode="numeric" pattern="\d*" maxlength="12" class="w-full p-2 border rounded" placeholder="DNI (solo números)" />
+
+        <label class="small">Vence (ej: 31/12/2026)</label>
+        <input id="vence" name="vence" class="w-full p-2 border rounded" placeholder="31/12/2026" />
+
+        <div class="mt-2">
+          <!-- reCAPTCHA (sitekey public) -->
+          <div id="recaptcha-area" class="g-recaptcha" data-sitekey="6LfeJ70rAAAAAEn0dpl4oqfDbbexDvj4M-3AMzwD"></div>
+        </div>
+
+        <div class="mt-2">
+          <button id="submit-btn" type="button" class="btn" style="background:#10b981; width:100%;">Generar y Guardar Carnet</button>
+        </div>
+      </form>
+
+      <a href="admin.html" target="_blank" class="mt-3 block text-center p-2 bg-gray-700 text-white rounded">Administrador</a>
+
+      <div class="mt-4">
+        <div class="flex gap-2">
+          <button id="toggle-advanced" class="btn" style="background:#f59e0b; flex:1;">Mostrar/Ocultar Controles Avanzados</button>
+          <button id="toggle-grid-btn" class="btn" style="background:#111827; flex:1;">Ocultar/Mostrar Cuadrícula</button>
+        </div>
+
+        <div id="advanced-panel" style="display:block; margin-top:8px;">
+          <div class="mt-2">
+            <label class="small">Foto — Ancho</label>
+            <input id="photo-width" type="range" min="120" max="380" value="240" class="w-full" />
+          </div>
+          <div class="mt-2">
+            <label class="small">Foto — Alto</label>
+            <input id="photo-height" type="range" min="160" max="480" value="320" class="w-full" />
+          </div>
+          <div class="mt-2">
+            <label class="small">Foto — X</label>
+            <input id="photo-x" type="range" min="0" max="220" value="48" class="w-full" />
+          </div>
+          <div class="mt-2">
+            <label class="small">Foto — Y</label>
+            <input id="photo-y" type="range" min="0" max="200" value="64" class="w-full" />
+          </div>
+          <hr class="my-2" />
+          <div>
+            <label class="small">Nombre — tamaño máximo</label>
+            <input id="name-fontsize" type="range" min="14" max="44" value="34" class="w-full" />
+          </div>
+          <div class="mt-2">
+            <label class="small">Nombre — tracking</label>
+            <input id="name-tracking" type="range" min="0" max="8" value="2" class="w-full" />
+          </div>
+        </div>
+      </div>
+
+      <div id="status" role="status" aria-live="polite" class="mt-3 small text-center"></div>
+    </div>
+
+    <!-- RIGHT: preview -->
+    <div class="panel" aria-labelledby="preview-heading">
+      <h2 id="preview-heading" class="text-lg font-semibold mb-2">Vista Previa</h2>
+
+      <div id="download-area">
+        <!-- ANVERSO -->
+        <div id="preview-container-anverso" class="carnet-preview" role="region" aria-label="Anverso del carnet">
+          <img id="template-bg" class="carnet-bg" src="" crossorigin="anonymous" alt="Fondo del carnet (frente)" />
+          <div id="oval-bg" aria-hidden="true"></div>
+
+          <img id="photo-preview" src="https://placehold.co/240x320/cccccc/ffffff?text=Foto" alt="Foto del titular" />
+
+          <!-- minimal subtle dividers (can be hidden via CSS if undesired) -->
+          <div id="divider-1" class="divider"></div>
+          <div id="divider-2" class="divider"></div>
+          <div id="divider-3" class="divider"></div>
+
+          <div id="titulo-preview" class="text-overlay"></div>
+          <div id="cargo1-preview" class="text-overlay"></div>
+          <div id="cargo2-preview" class="text-overlay"></div>
+          <div id="nombre-container"><span id="nombre-preview" class="text-overlay"></span></div>
+
+          <div id="dni-preview" class="text-overlay"></div>
+          <div id="matricula-preview" class="text-overlay"></div>
+          <div id="vence-preview" class="text-overlay"></div>
+
+          <img id="logos-inferiores-preview" src="" alt="Logos inferiores" crossorigin="anonymous" />
+          <img id="logo-ic-preview" src="" alt="Logo IC" crossorigin="anonymous" />
+          <img id="hologram-preview" src="" alt="Holograma" crossorigin="anonymous" />
+
+          <div id="qr-wrap"><canvas id="qr-code-preview" width="110" height="110" aria-label="Código QR"></canvas></div>
+
+          <!-- grid overlay (visual guide only) -->
+          <div class="grid-overlay" id="grid-front"></div>
+        </div>
+
+        <!-- REVERSO (same exact size & style) -->
+        <div id="preview-container-reverso" class="carnet-preview mt-6" role="region" aria-label="Reverso del carnet">
+          <img id="reverso-preview" class="carnet-bg" src="" crossorigin="anonymous" alt="Reverso del carnet" />
+          <div class="grid-overlay" id="grid-back"></div>
+        </div>
+      </div>
+
+      <div class="mt-3 flex gap-2">
+        <button id="download-png-btn" class="btn" style="background:#2563eb;">Descargar PNG</button>
+        <button id="download-jpg-btn" class="btn" style="background:#16a34a;">Descargar JPG</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  /*************************************************************************
+   index final — implementación completa
+   - Mantiene todas las funcionalidades
+   - Ajustes visuales precisos: textos fuera de logos, reverso igual al frente,
+     QR en recuadro, auto-fit por font-size, grid overlay (toggle + excluded from export),
+     client-side image downscale, safe fetch JSON
+  *************************************************************************/
+
+  /* ------------------ CONFIG & ASSETS ------------------ */
+  const API_ENDPOINT = 'https://carnet-api-green.vercel.app/api/handler';
+
+  const URL_LOGOS_INFERIORES = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logos_inferiores.png';
+  const URL_LOGO_IC = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/logo_ic.png';
+  const URL_HOLOGRAMA = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/holograma_aai.png';
+  const URL_REVERSO = 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo_carnet_vuelta.png';
+
+  const templates = [
+    { name: 'Oficial (Colbert)', url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/anverso_carnet_colbert.jpeg' },
+    { name: 'Original', url: 'https://raw.githubusercontent.com/instructormap/generador-de-carnets-Colbert/main/fondo%20carnet2.png' }
+  ];
+
+  /* ------------------ DOM refs ------------------ */
+  const templateGallery = document.getElementById('template-gallery');
+  const addTemplateBtn = document.getElementById('add-template-btn');
+  const addTemplateInput = document.getElementById('add-template-input');
+
+  const templateBg = document.getElementById('template-bg');
+  const reversoPreview = document.getElementById('reverso-preview');
+  const logosInferioresPreview = document.getElementById('logos-inferiores-preview');
+  const logoIcPreview = document.getElementById('logo-ic-preview');
+  const hologramPreview = document.getElementById('hologram-preview');
+
+  const photoUpload = document.getElementById('photo-upload');
+  const photoPreview = document.getElementById('photo-preview');
+
+  const previewElements = {
+    titulo: document.getElementById('titulo-preview'),
+    cargo1: document.getElementById('cargo1-preview'),
+    cargo2: document.getElementById('cargo2-preview'),
+    nombre: document.getElementById('nombre-preview'),
+    dni: document.getElementById('dni-preview'),
+    matricula: document.getElementById('matricula-preview'),
+    vence: document.getElementById('vence-preview'),
+  };
+
+  const qrCanvas = document.getElementById('qr-code-preview');
+  const qr = new QRious({ element: qrCanvas, size: 110, value: '' });
+
+  const submitBtn = document.getElementById('submit-btn');
+  const statusDiv = document.getElementById('status');
+
+  const downloadPngBtn = document.getElementById('download-png-btn');
+  const downloadJpgBtn = document.getElementById('download-jpg-btn');
+
+  // Advanced controls
+  const toggleAdvancedBtn = document.getElementById('toggle-advanced');
+  const advancedPanel = document.getElementById('advanced-panel');
+  const photoWidth = document.getElementById('photo-width');
+  const photoHeight = document.getElementById('photo-height');
+  const photoX = document.getElementById('photo-x');
+  const photoY = document.getElementById('photo-y');
+  const nameFontsize = document.getElementById('name-fontsize');
+  const nameTracking = document.getElementById('name-tracking');
+
+  const toggleGridBtn = document.getElementById('toggle-grid-btn');
+  const gridFront = document.getElementById('grid-front');
+  const gridBack = document.getElementById('grid-back');
+  let gridVisible = true;
+
+  const inputIds = ['titulo','cargo1','cargo2','nombre','dni','vence'];
+  const formInputs = inputIds.map(id => document.getElementById(id));
+
+  /* ------------------ UTILITIES ------------------ */
+  async function safeFetchJson(url, options = {}) {
+    const res = await fetch(url, options);
+    const text = await res.text();
+    let data = {};
+    try { data = text ? JSON.parse(text) : {}; }
+    catch (err) { throw new Error(`Servidor devolvió respuesta no JSON: ${text ? text.substring(0,300) : '<vacío>'}`); }
+    if (!res.ok) throw new Error(data.message || `HTTP ${res.status} ${res.statusText}`);
+    return data;
+  }
+
+  function setImageSrcWithCORS(imgEl, url) {
+    if (!imgEl) return;
+    try {
+      if (!url) { imgEl.removeAttribute('src'); return; }
+      if (url.startsWith('blob:') || url.startsWith('data:')) imgEl.removeAttribute('crossorigin');
+      else imgEl.crossOrigin = 'anonymous';
+      imgEl.src = url;
+    } catch (e) {
+      console.warn('setImageSrcWithCORS error', e);
+      imgEl.src = url;
+    }
+  }
+
+  function normalizeDNI(raw) { return String(raw || '').replace(/\D/g, ''); }
+
+  function autoFitByFontSize(el, containerWidth, maxFontSize = 34, minFontSize = 12) {
+    if (!el) return;
+    let size = maxFontSize;
+    el.style.fontSize = size + 'px';
+    let attempts = 0;
+    // reduce font size until fits or reach min
+    while (size > minFontSize && el.scrollWidth > containerWidth && attempts < 120) {
+      size -= 1;
+      el.style.fontSize = size + 'px';
+      attempts++;
+    }
+    el.style.letterSpacing = (nameTracking.value || 0) + 'px';
+  }
+
+  async function handlePhotoFile(file) {
+    const MAX_DIM = 1200;
+    try {
+      const imgBitmap = await createImageBitmap(file);
+      const scale = Math.min(1, MAX_DIM / Math.max(imgBitmap.width, imgBitmap.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(imgBitmap.width * scale);
+      canvas.height = Math.round(imgBitmap.height * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(imgBitmap, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
+      const url = URL.createObjectURL(blob);
+      photoPreview.removeAttribute('crossorigin');
+      photoPreview.src = url;
+      return blob;
+    } catch (err) {
+      console.error('handlePhotoFile error', err);
+      const url = URL.createObjectURL(file);
+      photoPreview.removeAttribute('crossorigin');
+      photoPreview.src = url;
+      return file;
+    }
+  }
+
+  function generateQRCode(matricula) {
+    if (!matricula) return;
+    const verificationUrl = `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${encodeURIComponent(matricula)}`;
+    qr.set({ value: verificationUrl, size: 110, level: 'H' });
+  }
+
+  function setStatus(msg='', type='info') {
+    statusDiv.textContent = msg;
+    statusDiv.style.color = type === 'error' ? '#dc2626' : type === 'success' ? '#16a34a' : '#111827';
+  }
+
+  /* ------------------ INIT ------------------ */
+  document.addEventListener('DOMContentLoaded', () => {
+    // load logos & reverso with CORS-safe setter
+    setImageSrcWithCORS(logosInferioresPreview, URL_LOGOS_INFERIORES);
+    setImageSrcWithCORS(logoIcPreview, URL_LOGO_IC);
+    setImageSrcWithCORS(hologramPreview, URL_HOLOGRAMA);
+    setImageSrcWithCORS(reversoPreview, URL_REVERSO);
+
+    // template gallery
+    templates.forEach((t,i) => {
+      const img = document.createElement('img');
+      img.className = 'template-option';
+      img.dataset.index = i;
+      img.alt = t.name;
+      img.addEventListener('click', () => selectTemplate(i));
+      setImageSrcWithCORS(img, t.url);
+      templateGallery.appendChild(img);
+    });
+    if (templates.length) selectTemplate(0);
+
+    // bind inputs to preview
+    formInputs.forEach(el => { if (el) el.addEventListener('input', e => updatePreview(e.target.id, e.target.value)); });
+
+    // photo upload
+ 
