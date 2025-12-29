@@ -3,229 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador Profesional v16.0 - Registro por DNI</title>
+    <title>Registro de Acreditación - ASARIN</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #1e3a8a;
-            --accent-color: #2563eb;
-        }
-        body { font-family: 'Roboto', sans-serif; background: #f3f4f6; }
-        
-        #download-area { width: 856px; padding: 20px; background: #e5e7eb; border-radius: 20px; }
-        
-        .carnet-preview { 
-            width: 856px; height: 540px; 
-            position: relative; overflow: hidden; 
-            background-color: #ffffff; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-        }
-
-        .security-bg {
-            position: absolute; inset: 0;
-            background: 
-                repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(30, 58, 138, 0.03) 35px, rgba(30, 58, 138, 0.03) 36px),
-                repeating-linear-gradient(-45deg, transparent, transparent 35px, rgba(30, 58, 138, 0.03) 35px, rgba(30, 58, 138, 0.03) 36px);
-            z-index: 1;
-        }
-
-        .bar-style {
-            position: absolute; left: 0; width: 100%; height: 60px;
-            background: linear-gradient(90deg, var(--primary-color) 0%, var(--accent-color) 100%);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 35px; z-index: 100;
-        }
-        .header-bar { top: 0; border-bottom: 3px solid rgba(255,255,255,0.2); }
-        .footer-bar { bottom: 0; border-top: 3px solid rgba(255,255,255,0.2); }
-
-        #photo-preview {
-            position: absolute; top: 60px; left: 0;
-            width: 320px; height: 420px;
-            object-fit: cover; z-index: 10;
-            border-bottom-right-radius: 30px;
-        }
-
-        #watermark-preview {
-            position: absolute; top: 50%; right: 40px;
-            transform: translateY(-50%);
-            width: 300px; height: 300px; 
-            object-fit: contain;
-            opacity: 0.08; z-index: 5;
-        }
-
-        .qr-box {
-            position: absolute; bottom: 75px; left: 20px;
-            width: 120px; height: 120px; background: white;
-            padding: 8px; z-index: 110; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-
-        #logos-header {
-            position: absolute; top: 75px; left: 345px;
-            display: flex; gap: 20px; z-index: 20;
-        }
-        
-        #roles-container {
-            position: absolute; top: 165px; left: 355px;
-            width: 470px; font-size: 22px; color: var(--accent-color);
-            line-height: 1.4; font-weight: 900; z-index: 20;
-        }
-
-        #nombre-preview { 
-            position: absolute; bottom: 135px; left: 355px; 
-            font-size: 38px; font-weight: 900; color: var(--primary-color); 
-            text-transform: uppercase; z-index: 30;
-        }
-        #dni-display-preview { position: absolute; bottom: 110px; left: 355px; font-size: 18px; font-weight: 700; color: #4b5563; z-index: 30; }
-        #codigo-preview { position: absolute; bottom: 80px; left: 355px; font-size: 26px; font-weight: 700; color: #111827; z-index: 30; }
-        #emision-preview { position: absolute; bottom: 65px; left: 355px; font-size: 13px; color: #666; font-weight: 900; z-index: 30; }
+        body { font-family: 'Roboto', sans-serif; }
+        .preview-box { width: 100%; max-width: 400px; aspect-ratio: 856/540; position: relative; overflow: hidden; border-radius: 12px; border: 2px solid #ddd; }
+        /* Reutilizamos los estilos del carnet reducidos para móvil */
+        .preview-header { height: 12%; background: #1e3a8a; display: flex; align-items: center; padding: 0 5%; font-size: 8px; color: white; }
     </style>
 </head>
-<body class="p-4 lg:p-8">
+<body class="bg-slate-50 min-h-screen flex flex-col items-center p-6">
 
-    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
-        <div class="bg-white p-8 rounded-3xl shadow-2xl">
-            <h2 class="text-3xl font-black text-blue-900 mb-6 uppercase italic">Generador v16.0</h2>
-            
-            <form id="carnet-form" class="space-y-4">
-                <input type="text" id="institucion" placeholder="NOMBRE INSTITUCIÓN" class="w-full p-4 bg-gray-50 rounded-2xl font-black ring-1 ring-gray-200 uppercase">
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="color" id="color-picker" value="#1e3a8a" class="w-full h-12 p-1 bg-white border rounded-xl shadow-sm">
-                    <div class="p-3 border-2 border-dashed rounded-xl">
-                        <label class="text-[10px] font-bold text-gray-400 block uppercase">Marca de Agua</label>
-                        <input type="file" id="watermark-upload" accept="image/*" class="text-xs">
-                    </div>
-                </div>
+    <div class="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl border-t-8 border-blue-900">
+        <h1 class="text-2xl font-black text-blue-900 text-center uppercase mb-2">Completar Acreditación</h1>
+        <p class="text-gray-500 text-center text-sm mb-8 italic">Bienvenido al sistema de registro de la SAS / ASARIN</p>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="p-3 border-2 border-dashed rounded-xl">
-                        <label class="text-[10px] font-bold text-gray-400 block uppercase">Foto Titular</label>
-                        <input type="file" id="photo-upload" accept="image/*" class="text-xs">
-                    </div>
-                    <div class="p-3 border-2 border-dashed rounded-xl">
-                        <label class="text-[10px] font-bold text-gray-400 block uppercase">Logos Emisores</label>
-                        <input type="file" id="logo-upload" accept="image/*" multiple class="text-xs">
-                    </div>
-                </div>
+        <form id="student-form" class="space-y-6">
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Verificar DNI</label>
+                <input type="text" id="dni-val" placeholder="Ingresa tu DNI" class="w-full p-4 bg-gray-50 rounded-2xl font-bold ring-1 ring-gray-200">
+            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" id="nombre" placeholder="NOMBRE COMPLETO" class="w-full p-4 bg-gray-50 rounded-2xl font-black text-blue-900 uppercase">
-                    <input type="text" id="dni" placeholder="DNI (SÓLO NÚMEROS)" class="w-full p-4 bg-gray-50 rounded-2xl font-black text-gray-700 uppercase" required>
-                </div>
-
-                <textarea id="roles" placeholder="Especialidades..." class="w-full p-4 bg-gray-50 rounded-2xl h-24 font-bold"></textarea>
-
-                <div class="flex justify-center py-2"><div class="g-recaptcha" data-sitekey="6LfeJ70rAAAAAEn0dpl4oqfDbbexDvj4M-3AMzwD"></div></div>
-
-                <button type="submit" class="w-full bg-blue-900 text-white py-5 rounded-2xl font-black text-xl hover:bg-black transition-all shadow-xl">
-                    GENERAR ACREDITACIÓN PROFESIONAL
-                </button>
-            </form>
-        </div>
-
-        <div class="flex flex-col items-center sticky top-8">
-            <div id="download-area">
-                <div id="preview-container" class="carnet-preview">
-                    <div class="security-bg"></div>
-                    
-                    <div class="bar-style header-bar">
-                        <span id="institucion-preview" class="text-white font-black text-2xl uppercase tracking-tighter">NOMBRE DE LA INSTITUCIÓN</span>
-                        <span class="text-white text-[10px] font-black opacity-70">PROFESSIONAL ID</span>
-                    </div>
-
-                    <div class="bar-style footer-bar">
-                        <span class="text-white text-[10px] font-black opacity-70 italic">SISTEMA NACIONAL DE ACREDITACIÓN</span>
-                        <span class="text-white text-[10px] font-black uppercase">Válido en Argentina</span>
-                    </div>
-
-                    <img id="photo-preview" src="https://placehold.co/320x420/e2e8f0/64748b?text=FOTO" alt="Foto">
-                    <img id="watermark-preview" src="" alt="">
-
-                    <div id="logos-header"></div>
-                    <div id="roles-container"></div>
-
-                    <div id="nombre-preview">Nombre del Profesional</div>
-                    <div id="dni-display-preview">DNI: 00.000.000</div>
-                    <div id="codigo-preview">MATRÍCULA: ARG-00000000</div>
-                    <div id="emision-preview">EMISIÓN: 29/12/2025</div>
-                    
-                    <div class="qr-box">
-                        <canvas id="qr-code-preview"></canvas>
-                    </div>
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Sube tu Foto (Fondo Blanco)</label>
+                <div class="flex items-center justify-center w-full">
+                    <label class="flex flex-col w-full h-32 border-4 border-dashed border-gray-200 hover:bg-gray-100 hover:border-blue-300 transition-all rounded-2xl cursor-pointer">
+                        <div class="flex flex-col items-center justify-center pt-7">
+                            <p class="text-sm tracking-tighter text-gray-400 font-bold uppercase">Toca para subir</p>
+                        </div>
+                        <input type="file" id="photo-student" accept="image/*" class="opacity-0" />
+                    </label>
                 </div>
             </div>
-            
-            <div class="mt-8 flex gap-4">
-                <button onclick="download('png')" class="bg-gray-800 text-white px-10 py-4 rounded-2xl font-black shadow-lg">PNG (300 DPI)</button>
-                <button onclick="download('jpeg')" class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black shadow-lg">JPG (Alta Calidad)</button>
+
+            <div id="preview-section" class="hidden space-y-4">
+                <p class="text-xs font-bold text-center text-blue-600 uppercase">Vista Previa de tu Credencial</p>
+                <div class="preview-box mx-auto bg-white shadow-lg overflow-hidden">
+                    <div class="preview-header">ASOCIACIÓN ARGENTINA DE INSTRUCTORES</div>
+                    <img id="temp-photo" class="absolute top-[12%] left-0 w-[40%] h-[88%] object-cover" src="">
+                    <div id="temp-name" class="absolute bottom-[20%] left-[45%] text-[14px] font-black text-blue-900 uppercase"></div>
+                </div>
             </div>
-        </div>
+
+            <button type="submit" class="w-full bg-blue-900 text-white py-5 rounded-2xl font-black text-lg shadow-xl uppercase tracking-widest hover:scale-105 transition-transform">
+                Confirmar y Recibir Carnet
+            </button>
+        </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('carnet-form');
-            const colorPicker = document.getElementById('color-picker');
+        const photoInput = document.getElementById('photo-student');
+        const previewSection = document.getElementById('preview-section');
 
-            colorPicker.oninput = (e) => {
-                document.documentElement.style.setProperty('--primary-color', e.target.value);
-                document.documentElement.style.setProperty('--accent-color', e.target.value + 'cc');
-            };
+        photoInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('temp-photo').src = ev.target.result;
+                    previewSection.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        };
 
-            document.getElementById('watermark-upload').onchange = (e) => {
-                const r = new FileReader(); r.onload = (ev) => document.getElementById('watermark-preview').src = ev.target.result;
-                r.readAsDataURL(e.target.files[0]);
-            };
-
-            document.getElementById('photo-upload').onchange = (e) => {
-                const r = new FileReader(); r.onload = (ev) => document.getElementById('photo-preview').src = ev.target.result;
-                r.readAsDataURL(e.target.files[0]);
-            };
-
-            document.getElementById('logo-upload').onchange = (e) => {
-                const h = document.getElementById('logos-header'); h.innerHTML = '';
-                Array.from(e.target.files).slice(0,3).forEach(f => {
-                    const r = new FileReader(); r.onload = (ev) => {
-                        const i = document.createElement('img'); i.src = ev.target.result; i.className='h-[55px] w-auto object-contain'; h.appendChild(i);
-                    }; r.readAsDataURL(f);
-                });
-            };
-
-            form.oninput = (e) => {
-                const id = e.target.id; const val = e.target.value;
-                if(id === 'roles') document.getElementById('roles-container').innerHTML = val.split('\n').map(l => `<div>• ${l}</div>`).join('');
-                else if(id === 'dni') document.getElementById('dni-display-preview').textContent = `DNI: ${val}`;
-                else if(document.getElementById(id+'-preview')) document.getElementById(id+'-preview').textContent = val;
-            };
-
-            form.onsubmit = (e) => {
-                e.preventDefault();
-                const dni = document.getElementById('dni').value;
-                // Generamos una matrícula persistente basada en el DNI (simulación de base de datos)
-                const matricula = `ARG-${dni}`; 
-                document.getElementById('codigo-preview').textContent = `MATRÍCULA: ${matricula}`;
-                
-                // QR direccionando al validador oficial con el ID de matrícula
-                new QRious({ 
-                    element: document.getElementById('qr-code-preview'), 
-                    value: `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${matricula}`, 
-                    size: 105, 
-                    level: 'H' 
-                });
-                alert("Acreditación generada. Matrícula vinculada al DNI: " + matricula);
-            };
-        });
-
-        function download(f) {
-            html2canvas(document.getElementById('preview-container'), { scale: 3, useCORS: true }).then(c => {
-                const l = document.createElement('a'); l.download = `CREDENTIAL_ARG_${Date.now()}.${f==='jpeg'?'jpg':'png'}`;
-                l.href = c.toDataURL(`image/${f}`, 1.0); l.click();
-            });
-        }
+        document.getElementById('student-form').onsubmit = (e) => {
+            e.preventDefault();
+            alert("¡Datos enviados! En breve recibirás tu carnet por WhatsApp/Email.");
+            // Aquí se enviaría el JSON con el DNI y la Imagen Base64 al servidor
+        };
     </script>
 </body>
 </html>
