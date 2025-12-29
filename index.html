@@ -1,134 +1,151 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador de Carnets Profesionales v4.3</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Oswald:wght@700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador Colegio Oficial de Paramédicos v5.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+        body { font-family: 'Roboto', sans-serif; }
+        #download-area { width: 856px; background-color: #f0f0f0; padding: 1rem; border-radius: 12px; }
+        .carnet-preview { width: 856px; height: 540px; position: relative; overflow: hidden; background-color: #ffffff; }
+        
+        /* Foto Rectangular (Estilo Paramédico) */
+        #photo-preview {
+            position: absolute; top: 0; left: 0;
+            width: 320px; height: 420px;
+            object-fit: cover; z-index: 5;
+            border-bottom-right-radius: 20px;
+        }
 
-    #download-area {
-      width: 856px;
-      padding: 1.5rem;
-      border-radius: 12px;
-      background-color: #f0f0f0;
-    }
+        .text-overlay {
+            position: absolute; font-weight: bold; color: #003366;
+            text-transform: uppercase; z-index: 20;
+        }
 
-    .carnet-preview {
-      width: 856px;
-      height: 540px;
-      position: relative;
-      overflow: hidden;
-      border-radius: 12px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    }
+        /* Títulos y Roles (Bloque derecho) */
+        #roles-container {
+            position: absolute; top: 120px; left: 350px;
+            width: 480px; font-size: 18px; color: #004a99;
+            line-height: 1.4; z-index: 20;
+        }
 
-    .preview-asset {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: 1;
-    }
+        /* Datos Inferiores */
+        #nombre-preview { bottom: 80px; left: 350px; font-size: 28px; color: #d32f2f; }
+        #codigo-preview { bottom: 50px; left: 350px; font-size: 20px; }
+        #emision-preview { bottom: 25px; left: 350px; font-size: 16px; color: #666; }
+        #nivel-preview { top: 20px; right: 30px; font-size: 40px; color: #003366; font-weight: 900; }
 
-    #photo-preview {
-      position: absolute;
-      top: 45px;
-      left: 45px;
-      width: 322px;
-      height: 450px;
-      border-radius: 161px;
-      object-fit: cover;
-      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.4);
-      z-index: 5;
-    }
+        /* Logos */
+        #logo-principal {
+            position: absolute; top: 50%; left: 60%;
+            transform: translate(-50%, -50%);
+            width: 350px; opacity: 0.15; z-index: 10;
+        }
 
-    .text-overlay {
-      position: absolute;
-      font-family: 'Oswald', sans-serif;
-      font-weight: 700;
-      color: white;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
-      z-index: 20;
-      white-space: nowrap;
-    }
+        #qr-code-preview {
+            position: absolute; bottom: 20px; left: 20px;
+            width: 100px; height: 100px; background: white; padding: 5px; z-index: 20;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
 
-    #titulo-preview {
-      top: 52px;
-      left: 420px;
-      font-size: 26px;
-    }
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-white p-8 rounded-lg shadow-md">
+            <h1 class="text-2xl font-bold mb-6 text-blue-900">Acreditación Paramédicos</h1>
+            <form id="carnet-form" class="space-y-4">
+                <input type="file" id="photo-upload" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:rounded-full file:bg-blue-50 file:text-blue-700">
+                
+                <input type="text" id="nombre" placeholder="LIZZET ROSARIO TRIO ANDRADE" class="w-full p-2 border rounded" required>
+                <input type="text" id="codigo" placeholder="CÓDIGO: PERU01000043" class="w-full p-2 border rounded" required>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="nivel" placeholder="NIVEL: P-4" class="p-2 border rounded">
+                    <input type="text" id="emision" placeholder="EMISIÓN: 13/08/2025" class="p-2 border rounded">
+                </div>
+                
+                <textarea id="roles" placeholder="Roles (uno por línea):&#10;Paramédico Instructor&#10;Educador en Emergencias" class="w-full p-2 border rounded h-32"></textarea>
 
-    #cargo1-preview {
-      top: 102px;
-      left: 420px;
-      font-size: 26px;
-    }
+                <div class="g-recaptcha" data-sitekey="TU_SITE_KEY"></div>
+                <button type="submit" id="submit-btn" class="w-full bg-blue-800 text-white py-3 rounded-lg font-bold hover:bg-blue-900">
+                    Generar Acreditación
+                </button>
+            </form>
+        </div>
 
-    #cargo2-preview {
-      top: 152px;
-      left: 420px;
-      font-size: 26px;
-    }
+        <div class="flex flex-col items-center">
+            <div id="download-area">
+                <div id="preview-container" class="carnet-preview">
+                    <div class="absolute top-0 w-full h-16 bg-blue-900 flex items-center justify-end px-6">
+                        <span class="text-white font-bold text-xl">CARNET DE ACREDITACIÓN PROFESIONAL</span>
+                    </div>
 
-    #nombre-container {
-      position: absolute;
-      top: 242px;
-      left: 420px;
-      width: 410px;
-    }
+                    <img id="photo-preview" src="https://placehold.co/320x420?text=FOTO" alt="Foto">
+                    
+                    <img id="logo-principal" src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Star_of_life.svg" alt="Logo">
 
-    #nombre-preview {
-      font-size: 28px;
-      display: inline-block;
-      transform-origin: left;
-    }
+                    <div id="nivel-preview" class="absolute">P-4</div>
+                    
+                    <div id="roles-container">
+                        </div>
 
-    #dni-preview {
-      top: 342px;
-      left: 520px;
-      font-size: 24px;
-    }
+                    <div id="nombre-preview" class="text-overlay">LIZZET ROSARIO TRIO ANDRADE</div>
+                    <div id="codigo-preview" class="text-overlay">PERU01000043</div>
+                    <div id="emision-preview" class="text-overlay">EMISIÓN: 13/08/2025</div>
+                    
+                    <canvas id="qr-code-preview"></canvas>
+                </div>
+            </div>
+            <button id="download-btn" class="mt-6 bg-green-600 text-white py-2 px-10 rounded-full font-bold">Descargar Imagen</button>
+        </div>
+    </div>
 
-    #matricula-preview {
-      top: 387px;
-      left: 520px;
-      font-size: 24px;
-    }
+    <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('carnet-form');
+            const rolesContainer = document.getElementById('roles-container');
+            
+            // Actualización en tiempo real
+            form.addEventListener('input', (e) => {
+                const id = e.target.id;
+                const value = e.target.value;
+                const preview = document.getElementById(`${id}-preview`);
+                
+                if (id === 'roles') {
+                    rolesContainer.innerHTML = value.split('\n').map(line => `<div>• ${line}</div>`).join('');
+                } else if (preview) {
+                    preview.textContent = value;
+                }
+            });
 
-    #vence-preview {
-      top: 452px;
-      left: 520px;
-      font-size: 22px;
-    }
+            // Carga de Foto
+            document.getElementById('photo-upload').addEventListener('change', (e) => {
+                const reader = new FileReader();
+                reader.onload = (event) => document.getElementById('photo-preview').src = event.target.result;
+                reader.readAsDataURL(e.target.files[0]);
+            });
 
-    #logo-ic-preview {
-      top: 345px;
-      left: 420px;
-      width: 50px;
-      position: absolute;
-      z-index: 10;
-    }
+            // Generar QR Inicial
+            const qr = new QRious({
+                element: document.getElementById('qr-code-preview'),
+                value: 'PERU01000043',
+                size: 100
+            });
 
-    #logos-inferiores-preview {
-      top: 455px;
-      left: 420px;
-      width: 90px;
-      position: absolute;
-      z-index: 10;
-    }
-
-    #hologram-preview {
-      position: absolute;
-      bottom: 25px;
-      right: 25px;
-      width: 100px;
-      height:
+            // Descarga
+            document.getElementById('download-btn').addEventListener('click', () => {
+                html2canvas(document.getElementById('preview-container'), { scale: 2 }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'Acreditacion_Paramedico.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
