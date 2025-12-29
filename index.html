@@ -3,75 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador Colegio Oficial de Paramédicos v5.0</title>
+    <title>Generador de Acreditación Profesional v6.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         body { font-family: 'Roboto', sans-serif; }
-        #download-area { width: 856px; background-color: #f0f0f0; padding: 1rem; border-radius: 12px; }
-        .carnet-preview { width: 856px; height: 540px; position: relative; overflow: hidden; background-color: #ffffff; }
+        #download-area { width: 856px; background-color: #f5f5f5; padding: 1.5rem; border-radius: 12px; }
+        .carnet-preview { width: 856px; height: 540px; position: relative; overflow: hidden; background-color: #ffffff; border: 1px solid #ddd; }
         
-        /* Foto Rectangular (Estilo Paramédico) */
+        /* Foto del Titular */
         #photo-preview {
             position: absolute; top: 0; left: 0;
             width: 320px; height: 420px;
             object-fit: cover; z-index: 5;
-            border-bottom-right-radius: 20px;
+            border-bottom-right-radius: 40px;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
         }
 
-        .text-overlay {
-            position: absolute; font-weight: bold; color: #003366;
-            text-transform: uppercase; z-index: 20;
+        /* Logos Personalizables */
+        .logo-slot { height: 50px; width: auto; max-width: 100px; object-fit: contain; }
+        #logos-header {
+            position: absolute; top: 75px; left: 350px;
+            display: flex; gap: 20px; align-items: center; z-index: 20;
         }
 
-        /* Títulos y Roles (Bloque derecho) */
+        /* Texto y Datos */
+        .text-overlay { position: absolute; font-weight: bold; z-index: 20; }
+        #nombre-preview { 
+            bottom: 90px; left: 350px; font-size: 28px; 
+            color: #004a99; /* Azul solicitado */
+            text-transform: uppercase; 
+        }
+        #codigo-preview { bottom: 60px; left: 350px; font-size: 22px; color: #333; }
+        #emision-preview { bottom: 35px; left: 350px; font-size: 14px; color: #777; }
+        #nivel-preview { top: 75px; right: 40px; font-size: 45px; color: #003366; font-weight: 900; }
+
         #roles-container {
-            position: absolute; top: 120px; left: 350px;
-            width: 480px; font-size: 18px; color: #004a99;
-            line-height: 1.4; z-index: 20;
-        }
-
-        /* Datos Inferiores */
-        #nombre-preview { bottom: 80px; left: 350px; font-size: 28px; color: #d32f2f; }
-        #codigo-preview { bottom: 50px; left: 350px; font-size: 20px; }
-        #emision-preview { bottom: 25px; left: 350px; font-size: 16px; color: #666; }
-        #nivel-preview { top: 20px; right: 30px; font-size: 40px; color: #003366; font-weight: 900; }
-
-        /* Logos */
-        #logo-principal {
-            position: absolute; top: 50%; left: 60%;
-            transform: translate(-50%, -50%);
-            width: 350px; opacity: 0.15; z-index: 10;
+            position: absolute; top: 145px; left: 350px;
+            width: 480px; font-size: 17px; color: #0056b3;
+            line-height: 1.3; z-index: 20;
         }
 
         #qr-code-preview {
-            position: absolute; bottom: 20px; left: 20px;
-            width: 100px; height: 100px; background: white; padding: 5px; z-index: 20;
+            position: absolute; bottom: 25px; left: 25px;
+            width: 110px; height: 110px; background: white; padding: 5px; z-index: 20;
+            border: 1px solid #eee;
+        }
+
+        /* Marca de agua fondo */
+        #watermark {
+            position: absolute; top: 50%; left: 60%;
+            transform: translate(-50%, -50%);
+            width: 380px; opacity: 0.08; z-index: 1;
         }
     </style>
 </head>
-<body class="bg-gray-100 p-8">
+<body class="bg-gray-100 p-6">
 
-    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div class="bg-white p-8 rounded-lg shadow-md">
-            <h1 class="text-2xl font-bold mb-6 text-blue-900">Acreditación Paramédicos</h1>
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-blue-900">
+            <h1 class="text-2xl font-black mb-6 text-blue-900 uppercase tracking-tight">Panel de Acreditación</h1>
+            
             <form id="carnet-form" class="space-y-4">
-                <input type="file" id="photo-upload" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:rounded-full file:bg-blue-50 file:text-blue-700">
-                
-                <input type="text" id="nombre" placeholder="LIZZET ROSARIO TRIO ANDRADE" class="w-full p-2 border rounded" required>
-                <input type="text" id="codigo" placeholder="CÓDIGO: PERU01000043" class="w-full p-2 border rounded" required>
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="text" id="nivel" placeholder="NIVEL: P-4" class="p-2 border rounded">
-                    <input type="text" id="emision" placeholder="EMISIÓN: 13/08/2025" class="p-2 border rounded">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase">Foto Titular</label>
+                        <input type="file" id="photo-upload" accept="image/*" class="mt-1 block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase">Logos (Hasta 3)</label>
+                        <input type="file" id="logo-upload" accept="image/*" multiple class="mt-1 block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-green-50 file:text-green-700">
+                    </div>
                 </div>
-                
-                <textarea id="roles" placeholder="Roles (uno por línea):&#10;Paramédico Instructor&#10;Educador en Emergencias" class="w-full p-2 border rounded h-32"></textarea>
 
-                <div class="g-recaptcha" data-sitekey="TU_SITE_KEY"></div>
-                <button type="submit" id="submit-btn" class="w-full bg-blue-800 text-white py-3 rounded-lg font-bold hover:bg-blue-900">
-                    Generar Acreditación
+                <input type="text" id="nombre" placeholder="Nombre Completo (ej: LIZZET ROSARIO TRIO ANDRADE)" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="nivel" placeholder="NIVEL (ej: P-4)" class="p-3 border rounded-lg">
+                    <input type="text" id="emision" placeholder="FECHA EMISIÓN" class="p-3 border rounded-lg">
+                </div>
+
+                <textarea id="roles" placeholder="Escriba los roles (uno por línea)..." class="w-full p-3 border rounded-lg h-32 focus:ring-2 focus:ring-blue-500"></textarea>
+
+                <div class="bg-gray-50 p-4 rounded-lg border border-dashed border-gray-300">
+                    <p class="text-xs text-gray-500 mb-2 font-bold uppercase">Seguridad</p>
+                    <div class="g-recaptcha" data-sitekey="6LfeJ70rAAAAAEn0dpl4oqfDbbexDvj4M-3AMzwD"></div>
+                </div>
+
+                <button type="submit" id="submit-btn" class="w-full bg-blue-900 text-white py-4 rounded-xl font-black text-lg hover:bg-blue-800 transition-all shadow-lg">
+                    GENERAR MATRÍCULA ARG
                 </button>
             </form>
         </div>
@@ -79,27 +101,34 @@
         <div class="flex flex-col items-center">
             <div id="download-area">
                 <div id="preview-container" class="carnet-preview">
-                    <div class="absolute top-0 w-full h-16 bg-blue-900 flex items-center justify-end px-6">
-                        <span class="text-white font-bold text-xl">CARNET DE ACREDITACIÓN PROFESIONAL</span>
+                    <div class="absolute top-0 w-full h-16 bg-blue-900 flex items-center justify-between px-8">
+                        <span class="text-white font-black text-xl tracking-widest uppercase">Colegio Oficial de Paramédicos</span>
+                        <span class="text-blue-200 text-xs font-bold tracking-tighter">ACREDITACIÓN PROFESIONAL INTERNACIONAL</span>
                     </div>
 
-                    <img id="photo-preview" src="https://placehold.co/320x420?text=FOTO" alt="Foto">
-                    
-                    <img id="logo-principal" src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Star_of_life.svg" alt="Logo">
+                    <div id="logos-header"></div>
 
-                    <div id="nivel-preview" class="absolute">P-4</div>
+                    <img id="photo-preview" src="https://placehold.co/320x420/e2e8f0/64748b?text=FOTO+PERFIL" alt="Foto">
+                    
+                    <img id="watermark" src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Star_of_life.svg" alt="Watermark">
+
+                    <div id="nivel-preview" class="text-overlay">P-4</div>
                     
                     <div id="roles-container">
                         </div>
 
                     <div id="nombre-preview" class="text-overlay">LIZZET ROSARIO TRIO ANDRADE</div>
-                    <div id="codigo-preview" class="text-overlay">PERU01000043</div>
-                    <div id="emision-preview" class="text-overlay">EMISIÓN: 13/08/2025</div>
+                    <div id="codigo-preview" class="text-overlay tracking-widest">CÓDIGO: ARG-00000000</div>
+                    <div id="emision-preview" class="text-overlay uppercase">EMISIÓN: --/--/----</div>
                     
                     <canvas id="qr-code-preview"></canvas>
                 </div>
             </div>
-            <button id="download-btn" class="mt-6 bg-green-600 text-white py-2 px-10 rounded-full font-bold">Descargar Imagen</button>
+
+            <div class="mt-8 flex gap-4">
+                <button id="download-png" class="bg-gray-800 text-white py-3 px-8 rounded-xl font-bold hover:bg-black transition-all shadow-md">Descargar PNG</button>
+                <button id="download-jpg" class="bg-blue-600 text-white py-3 px-8 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md">Descargar JPG</button>
+            </div>
         </div>
     </div>
 
@@ -108,43 +137,79 @@
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('carnet-form');
             const rolesContainer = document.getElementById('roles-container');
-            
-            // Actualización en tiempo real
+            const logosHeader = document.getElementById('logos-header');
+            const codigoPreview = document.getElementById('codigo-preview');
+            const qrCanvas = document.getElementById('qr-code-preview');
+
+            // --- Lógica de Logos ---
+            document.getElementById('logo-upload').addEventListener('change', (e) => {
+                logosHeader.innerHTML = '';
+                const files = Array.from(e.target.files).slice(0, 3);
+                files.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.className = 'logo-slot';
+                        logosHeader.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            // --- Actualización de Texto ---
             form.addEventListener('input', (e) => {
                 const id = e.target.id;
                 const value = e.target.value;
                 const preview = document.getElementById(`${id}-preview`);
                 
                 if (id === 'roles') {
-                    rolesContainer.innerHTML = value.split('\n').map(line => `<div>• ${line}</div>`).join('');
+                    rolesContainer.innerHTML = value.split('\n')
+                        .filter(line => line.trim() !== '')
+                        .map(line => `<div class="font-bold">• ${line}</div>`).join('');
                 } else if (preview) {
-                    preview.textContent = value;
+                    preview.textContent = id === 'emision' ? `EMISIÓN: ${value}` : value;
                 }
             });
 
-            // Carga de Foto
+            // --- Carga de Foto Titular ---
             document.getElementById('photo-upload').addEventListener('change', (e) => {
                 const reader = new FileReader();
                 reader.onload = (event) => document.getElementById('photo-preview').src = event.target.result;
                 reader.readAsDataURL(e.target.files[0]);
             });
 
-            // Generar QR Inicial
-            const qr = new QRious({
-                element: document.getElementById('qr-code-preview'),
-                value: 'PERU01000043',
-                size: 100
+            // --- Generación Automática de Matrícula ARG ---
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const randomNum = Math.floor(10000000 + Math.random() * 90000000);
+                const nuevaMatricula = `ARG-${randomNum}`;
+                
+                codigoPreview.textContent = `CÓDIGO: ${nuevaMatricula}`;
+                
+                // Generar QR basado en la nueva matrícula
+                new QRious({
+                    element: qrCanvas,
+                    value: `https://verificacion.paramedicos.org.ar/validar?id=${nuevaMatricula}`,
+                    size: 110,
+                    level: 'H'
+                });
+
+                alert("Matrícula ARG generada con éxito.");
             });
 
-            // Descarga
-            document.getElementById('download-btn').addEventListener('click', () => {
-                html2canvas(document.getElementById('preview-container'), { scale: 2 }).then(canvas => {
+            // --- Descargas ---
+            function download(format) {
+                html2canvas(document.getElementById('preview-container'), { scale: 3, useCORS: true }).then(canvas => {
                     const link = document.createElement('a');
-                    link.download = 'Acreditacion_Paramedico.png';
-                    link.href = canvas.toDataURL();
+                    link.download = `Acreditacion_${format.toUpperCase()}.` + (format === 'jpeg' ? 'jpg' : 'png');
+                    link.href = canvas.toDataURL(`image/${format}`, 1.0);
                     link.click();
                 });
-            });
+            }
+
+            document.getElementById('download-png').onclick = () => download('png');
+            document.getElementById('download-jpg').onclick = () => download('jpeg');
         });
     </script>
 </body>
