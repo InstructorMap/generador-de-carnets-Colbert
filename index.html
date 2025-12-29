@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador Profesional v14.0 - Seguridad Simétrica</title>
+    <title>Generador Profesional v15.0 - Personalización Total</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
@@ -24,7 +24,7 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
         }
 
-        /* --- TRAMA DE SEGURIDAD (DIAGONALES) --- */
+        /* --- TRAMA DE SEGURIDAD --- */
         .security-bg {
             position: absolute; inset: 0;
             background: 
@@ -51,15 +51,22 @@
             border-bottom-right-radius: 30px;
         }
 
-        /* --- ESTRELLA DE LA VIDA (NUEVO FORMATO) --- */
-        .star-shield {
+        /* --- MARCA DE AGUA PERSONALIZADA --- */
+        #watermark-preview {
             position: absolute; top: 50%; right: 40px;
             transform: translateY(-50%);
-            width: 280px; height: 280px; color: var(--primary-color);
-            opacity: 0.06; z-index: 5;
+            width: 300px; height: 300px; 
+            object-fit: contain;
+            opacity: 0.08; z-index: 5;
         }
 
-        /* --- CONTENEDORES --- */
+        /* --- POSICIÓN DEL QR CORREGIDA --- */
+        .qr-box {
+            position: absolute; bottom: 75px; left: 20px; /* Subido para no tapar la línea azul */
+            width: 120px; height: 120px; background: white;
+            padding: 8px; z-index: 110; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
         #logos-header {
             position: absolute; top: 75px; left: 345px;
             display: flex; gap: 20px; z-index: 20;
@@ -69,63 +76,52 @@
             position: absolute; top: 165px; left: 355px;
             width: 470px; font-size: 22px; color: var(--accent-color);
             line-height: 1.4; font-weight: 900; z-index: 20;
-            text-shadow: 1px 1px 0px white;
         }
 
-        /* --- TEXTOS --- */
         #nombre-preview { 
             position: absolute; bottom: 125px; left: 355px; 
             font-size: 38px; font-weight: 900; color: var(--primary-color); 
             text-transform: uppercase; z-index: 30;
         }
-        #codigo-preview { 
-            position: absolute; bottom: 90px; left: 355px; 
-            font-size: 26px; font-weight: 700; color: #333; z-index: 30;
-        }
-        #emision-preview { 
-            position: absolute; bottom: 65px; left: 355px; 
-            font-size: 15px; color: #666; font-weight: 900; z-index: 30;
-        }
-
-        .qr-box {
-            position: absolute; bottom: 15px; left: 20px;
-            width: 120px; height: 120px; background: white;
-            padding: 8px; z-index: 110; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
+        #codigo-preview { position: absolute; bottom: 90px; left: 355px; font-size: 26px; font-weight: 700; z-index: 30; }
+        #emision-preview { position: absolute; bottom: 65px; left: 355px; font-size: 15px; color: #666; font-weight: 900; z-index: 30; }
     </style>
 </head>
 <body class="p-4 lg:p-8">
 
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
         <div class="bg-white p-8 rounded-3xl shadow-2xl">
-            <h2 class="text-3xl font-black text-blue-900 mb-6 italic tracking-tighter border-b pb-2">GENERADOR v14.0</h2>
+            <h2 class="text-3xl font-black text-blue-900 mb-6 uppercase tracking-tighter italic">Credencial v15.0</h2>
             
             <form id="carnet-form" class="space-y-4">
-                <input type="text" id="institucion" placeholder="NOMBRE INSTITUCIÓN" class="w-full p-4 bg-gray-50 rounded-2xl font-black ring-1 ring-gray-200">
+                <input type="text" id="institucion" placeholder="NOMBRE DE LA INSTITUCIÓN" class="w-full p-4 bg-gray-50 rounded-2xl font-black ring-1 ring-gray-200 uppercase">
                 
                 <div class="grid grid-cols-2 gap-4">
                     <input type="color" id="color-picker" value="#1e3a8a" class="w-full h-12 p-1 bg-white border rounded-xl">
-                    <div class="flex items-center text-xs font-bold text-gray-400">AJUSTAR COLOR BASE</div>
+                    <div class="p-3 border-2 border-dashed rounded-xl">
+                        <label class="text-[10px] font-bold text-gray-400 block uppercase">Marca de Agua</label>
+                        <input type="file" id="watermark-upload" accept="image/*" class="text-xs">
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="p-3 border-2 border-dashed rounded-xl">
-                        <label class="text-[10px] font-bold text-gray-400 block uppercase">Foto Perfil</label>
+                        <label class="text-[10px] font-bold text-gray-400 block uppercase">Foto Titular</label>
                         <input type="file" id="photo-upload" accept="image/*" class="text-xs">
                     </div>
                     <div class="p-3 border-2 border-dashed rounded-xl">
-                        <label class="text-[10px] font-bold text-gray-400 block uppercase">Cargar Logos</label>
+                        <label class="text-[10px] font-bold text-gray-400 block uppercase">Logos Emisores</label>
                         <input type="file" id="logo-upload" accept="image/*" multiple class="text-xs">
                     </div>
                 </div>
 
-                <input type="text" id="nombre" placeholder="NOMBRE COMPLETO" class="w-full p-4 bg-gray-50 rounded-2xl font-black text-blue-900 uppercase">
-                <textarea id="roles" placeholder="Especialidades..." class="w-full p-4 bg-gray-50 rounded-2xl h-24 font-bold"></textarea>
+                <input type="text" id="nombre" placeholder="NOMBRE DEL TITULAR" class="w-full p-4 bg-gray-50 rounded-2xl font-black text-blue-900 uppercase">
+                <textarea id="roles" placeholder="Especialidades y Cargos..." class="w-full p-4 bg-gray-50 rounded-2xl h-24 font-bold"></textarea>
 
-                <div class="flex justify-center"><div class="g-recaptcha" data-sitekey="6LfeJ70rAAAAAEn0dpl4oqfDbbexDvj4M-3AMzwD"></div></div>
+                <div class="flex justify-center py-2"><div class="g-recaptcha" data-sitekey="6LfeJ70rAAAAAEn0dpl4oqfDbbexDvj4M-3AMzwD"></div></div>
 
                 <button type="submit" class="w-full bg-blue-900 text-white py-5 rounded-2xl font-black text-xl hover:bg-black transition-all shadow-xl">
-                    EMITIR CREDENCIAL ARG
+                    GENERAR MATRÍCULA ARG
                 </button>
             </form>
         </div>
@@ -136,26 +132,23 @@
                     <div class="security-bg"></div>
                     
                     <div class="bar-style header-bar">
-                        <span id="institucion-preview" class="text-white font-black text-2xl uppercase tracking-tighter">COLEGIO DE PARAMÉDICOS</span>
+                        <span id="institucion-preview" class="text-white font-black text-2xl uppercase tracking-tighter">NOMBRE DE LA INSTITUCIÓN</span>
                         <span class="text-white text-[10px] font-black opacity-70">PROFESSIONAL ID</span>
                     </div>
 
                     <div class="bar-style footer-bar">
-                        <span class="text-white text-[10px] font-black opacity-70 italic">SISTEMA DE ACREDITACIÓN ARGENTINA</span>
-                        <span class="text-white text-[10px] font-black">VALIDACIÓN QR</span>
+                        <span class="text-white text-[10px] font-black opacity-70 italic">SISTEMA NACIONAL DE ACREDITACIÓN</span>
+                        <span class="text-white text-[10px] font-black uppercase">Válido en Argentina</span>
                     </div>
 
                     <img id="photo-preview" src="https://placehold.co/320x420/e2e8f0/64748b?text=FOTO" alt="Foto">
                     
-                    <svg class="star-shield" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="15">
-                        <path d="M256 30l180 80v150c0 110-75 210-180 252-105-42-180-142-180-252V110l180-80z"/>
-                        <path d="M256 120v240M136 240h240M170 154l172 172M342 154L170 326" stroke-linecap="round"/>
-                    </svg>
+                    <img id="watermark-preview" src="" alt="">
 
                     <div id="logos-header"></div>
                     <div id="roles-container"></div>
 
-                    <div id="nombre-preview">Marcelo Alejandro Patri</div>
+                    <div id="nombre-preview">Nombre y Apellido</div>
                     <div id="codigo-preview">CÓDIGO: ARG-00000000</div>
                     <div id="emision-preview">EMISIÓN: --/--/----</div>
                     
@@ -183,6 +176,12 @@
                 document.documentElement.style.setProperty('--accent-color', e.target.value + 'cc');
             };
 
+            // Carga de Marca de Agua
+            document.getElementById('watermark-upload').onchange = (e) => {
+                const r = new FileReader(); r.onload = (ev) => document.getElementById('watermark-preview').src = ev.target.result;
+                r.readAsDataURL(e.target.files[0]);
+            };
+
             document.getElementById('photo-upload').onchange = (e) => {
                 const r = new FileReader(); r.onload = (ev) => document.getElementById('photo-preview').src = ev.target.result;
                 r.readAsDataURL(e.target.files[0]);
@@ -192,7 +191,7 @@
                 const h = document.getElementById('logos-header'); h.innerHTML = '';
                 Array.from(e.target.files).slice(0,3).forEach(f => {
                     const r = new FileReader(); r.onload = (ev) => {
-                        const i = document.createElement('img'); i.src = ev.target.result; i.className='h-[55px] w-auto object-contain'; h.appendChild(i);
+                        const i = document.createElement('img'); i.src = ev.target.result; i.className='h-[55px] w-auto object-contain drop-shadow-sm'; h.appendChild(i);
                     }; r.readAsDataURL(f);
                 });
             };
@@ -213,7 +212,7 @@
 
         function download(f) {
             html2canvas(document.getElementById('preview-container'), { scale: 3, useCORS: true }).then(c => {
-                const l = document.createElement('a'); l.download = `ACREDITACION_ARG_${Date.now()}.${f==='jpeg'?'jpg':'png'}`;
+                const l = document.createElement('a'); l.download = `CREDENTIAL_V15_${Date.now()}.${f==='jpeg'?'jpg':'png'}`;
                 l.href = c.toDataURL(`image/${f}`, 1.0); l.click();
             });
         }
