@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Acreditación Profesional v6.0</title>
+    <title>Generador Colegio Oficial de Paramédicos v6.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
@@ -13,7 +13,6 @@
         #download-area { width: 856px; background-color: #f5f5f5; padding: 1.5rem; border-radius: 12px; }
         .carnet-preview { width: 856px; height: 540px; position: relative; overflow: hidden; background-color: #ffffff; border: 1px solid #ddd; }
         
-        /* Foto del Titular */
         #photo-preview {
             position: absolute; top: 0; left: 0;
             width: 320px; height: 420px;
@@ -22,20 +21,22 @@
             box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
         }
 
-        /* Logos Personalizables */
-        .logo-slot { height: 50px; width: auto; max-width: 100px; object-fit: contain; }
+        /* Logos en el encabezado */
         #logos-header {
             position: absolute; top: 75px; left: 350px;
-            display: flex; gap: 20px; align-items: center; z-index: 20;
+            display: flex; gap: 15px; align-items: center; z-index: 20;
         }
+        .logo-slot { height: 45px; width: auto; max-width: 90px; object-fit: contain; }
 
-        /* Texto y Datos */
         .text-overlay { position: absolute; font-weight: bold; z-index: 20; }
+        
+        /* Nombre en AZUL solicitado */
         #nombre-preview { 
             bottom: 90px; left: 350px; font-size: 28px; 
-            color: #004a99; /* Azul solicitado */
+            color: #004a99; 
             text-transform: uppercase; 
         }
+        
         #codigo-preview { bottom: 60px; left: 350px; font-size: 22px; color: #333; }
         #emision-preview { bottom: 35px; left: 350px; font-size: 14px; color: #777; }
         #nivel-preview { top: 75px; right: 40px; font-size: 45px; color: #003366; font-weight: 900; }
@@ -52,7 +53,6 @@
             border: 1px solid #eee;
         }
 
-        /* Marca de agua fondo */
         #watermark {
             position: absolute; top: 50%; left: 60%;
             transform: translate(-50%, -50%);
@@ -64,36 +64,36 @@
 
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-blue-900">
-            <h1 class="text-2xl font-black mb-6 text-blue-900 uppercase tracking-tight">Panel de Acreditación</h1>
+            <h1 class="text-2xl font-black mb-6 text-blue-900 uppercase">Panel de Acreditación ARG</h1>
             
             <form id="carnet-form" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase">Foto Titular</label>
-                        <input type="file" id="photo-upload" accept="image/*" class="mt-1 block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-700">
+                        <input type="file" id="photo-upload" accept="image/*" class="mt-1 block w-full text-sm">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase">Logos (Hasta 3)</label>
-                        <input type="file" id="logo-upload" accept="image/*" multiple class="mt-1 block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-green-50 file:text-green-700">
+                        <label class="block text-xs font-bold text-gray-500 uppercase">Logos (Máx 3)</label>
+                        <input type="file" id="logo-upload" accept="image/*" multiple class="mt-1 block w-full text-sm">
                     </div>
                 </div>
 
-                <input type="text" id="nombre" placeholder="Nombre Completo (ej: LIZZET ROSARIO TRIO ANDRADE)" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                <input type="text" id="nombre" placeholder="NOMBRE COMPLETO" class="w-full p-3 border rounded-lg" required>
                 
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="text" id="nivel" placeholder="NIVEL (ej: P-4)" class="p-3 border rounded-lg">
+                    <input type="text" id="nivel" placeholder="NIVEL (P-4)" class="p-3 border rounded-lg">
                     <input type="text" id="emision" placeholder="FECHA EMISIÓN" class="p-3 border rounded-lg">
                 </div>
 
-                <textarea id="roles" placeholder="Escriba los roles (uno por línea)..." class="w-full p-3 border rounded-lg h-32 focus:ring-2 focus:ring-blue-500"></textarea>
+                <textarea id="roles" placeholder="Roles (ej: Paramédico Instructor)..." class="w-full p-3 border rounded-lg h-32"></textarea>
 
-                <div class="bg-gray-50 p-4 rounded-lg border border-dashed border-gray-300">
-                    <p class="text-xs text-gray-500 mb-2 font-bold uppercase">Seguridad</p>
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <p class="text-xs text-blue-700 mb-2 font-bold uppercase">Verificación de Seguridad</p>
                     <div class="g-recaptcha" data-sitekey="6LfeJ70rAAAAAEn0dpl4oqfDbbexDvj4M-3AMzwD"></div>
                 </div>
 
-                <button type="submit" id="submit-btn" class="w-full bg-blue-900 text-white py-4 rounded-xl font-black text-lg hover:bg-blue-800 transition-all shadow-lg">
-                    GENERAR MATRÍCULA ARG
+                <button type="submit" id="submit-btn" class="w-full bg-blue-900 text-white py-4 rounded-xl font-black text-lg hover:bg-blue-800 transition-all">
+                    GENERAR ACREDITACIÓN Y MATRÍCULA
                 </button>
             </form>
         </div>
@@ -103,20 +103,15 @@
                 <div id="preview-container" class="carnet-preview">
                     <div class="absolute top-0 w-full h-16 bg-blue-900 flex items-center justify-between px-8">
                         <span class="text-white font-black text-xl tracking-widest uppercase">Colegio Oficial de Paramédicos</span>
-                        <span class="text-blue-200 text-xs font-bold tracking-tighter">ACREDITACIÓN PROFESIONAL INTERNACIONAL</span>
+                        <span class="text-blue-200 text-xs font-bold">ACREDITACIÓN PROFESIONAL</span>
                     </div>
 
                     <div id="logos-header"></div>
-
-                    <img id="photo-preview" src="https://placehold.co/320x420/e2e8f0/64748b?text=FOTO+PERFIL" alt="Foto">
-                    
-                    <img id="watermark" src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Star_of_life.svg" alt="Watermark">
+                    <img id="photo-preview" src="https://placehold.co/320x420/e2e8f0/64748b?text=FOTO" alt="Foto">
+                    <img id="watermark" src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Star_of_life.svg" alt="Fondo">
 
                     <div id="nivel-preview" class="text-overlay">P-4</div>
-                    
-                    <div id="roles-container">
-                        </div>
-
+                    <div id="roles-container"></div>
                     <div id="nombre-preview" class="text-overlay">LIZZET ROSARIO TRIO ANDRADE</div>
                     <div id="codigo-preview" class="text-overlay tracking-widest">CÓDIGO: ARG-00000000</div>
                     <div id="emision-preview" class="text-overlay uppercase">EMISIÓN: --/--/----</div>
@@ -126,8 +121,8 @@
             </div>
 
             <div class="mt-8 flex gap-4">
-                <button id="download-png" class="bg-gray-800 text-white py-3 px-8 rounded-xl font-bold hover:bg-black transition-all shadow-md">Descargar PNG</button>
-                <button id="download-jpg" class="bg-blue-600 text-white py-3 px-8 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md">Descargar JPG</button>
+                <button id="download-png" class="bg-gray-800 text-white py-3 px-8 rounded-xl font-bold hover:bg-black transition-all">Descargar PNG</button>
+                <button id="download-jpg" class="bg-blue-600 text-white py-3 px-8 rounded-xl font-bold hover:bg-blue-700 transition-all">Descargar JPG</button>
             </div>
         </div>
     </div>
@@ -140,16 +135,16 @@
             const logosHeader = document.getElementById('logos-header');
             const codigoPreview = document.getElementById('codigo-preview');
             const qrCanvas = document.getElementById('qr-code-preview');
+            const photoPreview = document.getElementById('photo-preview');
 
-            // --- Lógica de Logos ---
+            // --- Logos ---
             document.getElementById('logo-upload').addEventListener('change', (e) => {
                 logosHeader.innerHTML = '';
-                const files = Array.from(e.target.files).slice(0, 3);
-                files.forEach(file => {
+                Array.from(e.target.files).slice(0, 3).forEach(file => {
                     const reader = new FileReader();
-                    reader.onload = (event) => {
+                    reader.onload = (ev) => {
                         const img = document.createElement('img');
-                        img.src = event.target.result;
+                        img.src = ev.target.result;
                         img.className = 'logo-slot';
                         logosHeader.appendChild(img);
                     };
@@ -157,7 +152,7 @@
                 });
             });
 
-            // --- Actualización de Texto ---
+            // --- Texto en vivo ---
             form.addEventListener('input', (e) => {
                 const id = e.target.id;
                 const value = e.target.value;
@@ -165,44 +160,47 @@
                 
                 if (id === 'roles') {
                     rolesContainer.innerHTML = value.split('\n')
-                        .filter(line => line.trim() !== '')
-                        .map(line => `<div class="font-bold">• ${line}</div>`).join('');
+                        .filter(l => l.trim() !== '')
+                        .map(l => `<div class="font-bold">• ${l}</div>`).join('');
                 } else if (preview) {
                     preview.textContent = id === 'emision' ? `EMISIÓN: ${value}` : value;
                 }
             });
 
-            // --- Carga de Foto Titular ---
+            // --- Foto ---
             document.getElementById('photo-upload').addEventListener('change', (e) => {
                 const reader = new FileReader();
-                reader.onload = (event) => document.getElementById('photo-preview').src = event.target.result;
+                reader.onload = (ev) => photoPreview.src = ev.target.result;
                 reader.readAsDataURL(e.target.files[0]);
             });
 
-            // --- Generación Automática de Matrícula ARG ---
+            // --- Matrícula y QR ---
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const randomNum = Math.floor(10000000 + Math.random() * 90000000);
-                const nuevaMatricula = `ARG-${randomNum}`;
                 
-                codigoPreview.textContent = `CÓDIGO: ${nuevaMatricula}`;
+                // Si el reCAPTCHA no está listo, avisamos pero permitimos generar para pruebas
+                const response = typeof grecaptcha !== "undefined" ? grecaptcha.getResponse() : "";
+                if (!response && window.location.protocol !== 'file:') {
+                    console.warn("reCAPTCHA no verificado. Asegúrate de configurar tu Site Key.");
+                }
+
+                const num = Math.floor(10000000 + Math.random() * 90000000);
+                const matricula = `ARG-${num}`;
+                codigoPreview.textContent = `CÓDIGO: ${matricula}`;
                 
-                // Generar QR basado en la nueva matrícula
                 new QRious({
                     element: qrCanvas,
-                    value: `https://verificacion.paramedicos.org.ar/validar?id=${nuevaMatricula}`,
+                    value: `https://verificar.paramedicos.org.ar/id/${matricula}`,
                     size: 110,
                     level: 'H'
                 });
-
-                alert("Matrícula ARG generada con éxito.");
             });
 
-            // --- Descargas ---
+            // --- Descarga ---
             function download(format) {
                 html2canvas(document.getElementById('preview-container'), { scale: 3, useCORS: true }).then(canvas => {
                     const link = document.createElement('a');
-                    link.download = `Acreditacion_${format.toUpperCase()}.` + (format === 'jpeg' ? 'jpg' : 'png');
+                    link.download = `Acreditacion_ARG.${format === 'jpeg' ? 'jpg' : 'png'}`;
                     link.href = canvas.toDataURL(`image/${format}`, 1.0);
                     link.click();
                 });
