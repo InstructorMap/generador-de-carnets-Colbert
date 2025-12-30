@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validación Oficial - SAS Córdoba</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Roboto', sans-serif; background-color: #f3f4f6; }
+        .verification-card {
+            background: white;
+            max-width: 600px;
+            margin: 20px auto;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            overflow: hidden;
+            animation: fadeIn 0.8s ease-out;
+        }
+        .header-status {
+            background: #1e3a8a; /* Azul Institucional */
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: #22c55e; /* Verde Éxito */
+            border-radius: 50px;
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .status-badge.error { background: #ef4444; } /* Rojo Error */
+        
+        .student-photo {
+            width: 160px; height: 160px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 6px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: -80px auto 20px;
+            display: block;
+            background: #eee;
+            position: relative; z-index: 10;
+        }
+
+        .data-row {
+            display: flex; justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .data-label { font-size: 12px; font-weight: 700; color: #9ca3af; text-transform: uppercase; }
+        .data-value { font-size: 16px; font-weight: 900; color: #1f2937; text-align: right; }
+
+        .avales-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-top: 4px solid #1e3a8a;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #1e3a8a; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 50px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="min-h-screen pb-10">
+
+    <div class="verification-card">
+        <div class="header-status">
+            <h1 class="text-xl font-black italic uppercase tracking-tighter mb-2">Sistema SAS Córdoba</h1>
+            <div id="status-badge" class="status-badge">Verificando...</div>
+        </div>
+
+        <div id="loading" class="loader"></div>
+
+        <div id="content" class="hidden">
+            <img id="student-photo" src="" class="student-photo" alt="Foto Alumno">
+
+            <div class="p-8 pt-2">
+                <div class="text-center mb-8">
+                    <h2 id="student-name" class="text-2xl font-black text-gray-800 uppercase leading-tight"></h2>
+                    <p id="student-dni" class="text-sm font-bold text-gray-400 mt-1"></p>
+                </div>
+
+                <div class="space-y-2 mb-8">
+                    <div class="data-row">
+                        <span class="data-label">Matrícula Oficial</span>
+                        <span id="student-matricula" class="data-value text-blue-800"></span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Estado</span>
+                        <span class="data-value text-green-600">ACTIVO / VIGENTE</span>
+                    </div>
+                </div>
+
+                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 border-b pb-2">Certificaciones Aprobadas</h3>
+                <ul id="courses-list" class="space-y-3 mb-8">
+                    </ul>
+
+                <div class="text-center">
+                    <p class="text-[10px] text-gray-400 font-bold mb-4">Escaneado el: <span id="scan-date"></span></p>
+                </div>
+            </div>
+
+            <img src="" id="avales-display" class="avales-img" alt="Avales Institucionales">
+        </div>
+
+        <div id="error-screen" class="hidden p-10 text-center">
+            <div class="text-6xl mb-4">🚫</div>
+            <h2 class="text-2xl font-black text-red-600 uppercase mb-2">Matrícula No Encontrada</h2>
+            <p class="text-sm text-gray-500">El código escaneado no existe en la base de datos oficial de la SAS/ASARIN.</p>
+        </div>
+    </div>
+
+    <p class="text-center text-[10px] text-gray-400 font-bold uppercase mt-4">Tecnología provista por SAS Córdoba © 2025</p>
+
+    <script>
+        // --- CREDENCIALES SUPABASE ---
+        const SB_URL = 'https://fuxnsebrhxxbalqfmtzs.supabase.co';
+        const SB_KEY = 'sb_publishable_brWrs7Bn3vGFS7H2mEHkKQ_hcK1a8WV';
+        const sb = supabase.createClient(SB_URL, SB_KEY);
+
+        // --- URL DE LA IMAGEN DE AVALES (ACTUALIZADA) ---
+        const IMAGEN_AVALES_URL = 'https://fuxnsebrhxxbalqfmtzs.supabase.co/storage/v1/object/public/fotos_carnet/fondo_carnet_vuelta.png'; 
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('scan-date').textContent = new Date().toLocaleString();
+            document.getElementById('avales-display').src = IMAGEN_AVALES_URL;
+
+            // 1. Obtener ID de la URL (ej: verificador.html?id=ARG-12345)
+            const params = new URLSearchParams(window.location.search);
+            const matriculaId = params.get('id');
+
+            if (!matriculaId) {
+                showError();
+                return;
+            }
+
+            try {
+                // 2. Buscar Alumno
+                const { data: alumno, error } = await sb
+                    .from('alumnos')
+                    .select('*')
+                    .eq('matricula_arg', matriculaId)
+                    .single();
+
+                if (error || !alumno) throw new Error('Alumno no encontrado');
+
+                // 3. Buscar Certificaciones
+                const { data: certs } = await sb
+                    .from('certificaciones')
+                    .select('*, cursos(nombre_curso)')
+                    .eq('alumno_dni', alumno.dni);
+
+                // 4. Renderizar Datos
+                renderData(alumno, certs);
+
+            } catch (err) {
+                console.error(err);
+                showError();
+            }
+        });
+
+        function renderData(alumno, certs) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('content').classList.remove('hidden');
+            
+            // Badge
+            const badge = document.getElementById('status-badge');
+            badge.textContent = 'DOCUMENTO OFICIAL VALIDADO';
+
+            // Datos Personales
+            document.getElementById('student-photo').src = alumno.foto_url || 'https://placehold.co/150';
+            document.getElementById('student-name').textContent = alumno.nombre_completo;
+            document.getElementById('student-dni').textContent = `DNI: ${alumno.dni}`;
+            document.getElementById('student-matricula').textContent = alumno.matricula_arg;
+
+            // Cursos
+            const list = document.getElementById('courses-list');
+            if (certs && certs.length > 0) {
+                list.innerHTML = certs.map(c => `
+                    <li class="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                        <span class="text-green-500 text-lg">✓</span>
+                        <div>
+                            <p class="text-sm font-black text-gray-800 uppercase">${c.cursos.nombre_curso}</p>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase">Vence: ${formatDate(c.fecha_vencimiento)}</p>
+                        </div>
+                    </li>
+                `).join('');
+            } else {
+                list.innerHTML = '<li class="text-center text-sm text-gray-400 italic">Sin certificaciones activas</li>';
+            }
+        }
+
+        function showError() {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('status-badge').classList.add('error');
+            document.getElementById('status-badge').textContent = 'NO VÁLIDO';
+            document.getElementById('error-screen').classList.remove('hidden');
+        }
+
+        function formatDate(dateString) {
+            if(!dateString) return 'Permanente';
+            const [year, month, day] = dateString.split('-');
+            return `${day}/${month}/${year}`;
+        }
+    </script>
+</body>
+</html>
