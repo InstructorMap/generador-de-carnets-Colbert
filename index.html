@@ -3,76 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS Córdoba v21.0 - Gestión de Certificaciones</title>
+    <title>SAS Córdoba - Sistema Integral v24.1</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
     <style>
         :root { --primary-color: #1e3a8a; --accent-color: #2563eb; }
-        body { font-family: 'Roboto', sans-serif; background: #f8fafc; }
-        #download-area { width: 856px; padding: 20px; background: #e2e8f0; border-radius: 20px; }
-        .carnet-preview { width: 856px; height: 540px; position: relative; overflow: hidden; background: white; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
-        .bar-style { position: absolute; left: 0; width: 100%; height: 65px; background: linear-gradient(90deg, var(--primary-color), var(--accent-color)); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 100; color: white; }
-        #photo-preview { position: absolute; top: 65px; left: 0; width: 320px; height: 475px; object-fit: cover; z-index: 10; border-bottom-right-radius: 40px; }
-        #nombre-preview { position: absolute; bottom: 140px; left: 355px; font-size: 38px; font-weight: 900; color: var(--primary-color); text-transform: uppercase; z-index: 30; }
+        body { font-family: 'Roboto', sans-serif; background: #f0f2f5; }
+
+        #download-area { width: 856px; padding: 20px; background: #e2e8f0; border-radius: 20px; margin: 0 auto; }
+        .carnet-preview { 
+            width: 856px; height: 540px; 
+            position: relative; overflow: hidden; 
+            background: #fff; 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15); 
+        }
+        
+        .security-bg {
+            position: absolute; inset: 0;
+            background: 
+                repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(30, 58, 138, 0.03) 35px, rgba(30, 58, 138, 0.03) 36px),
+                repeating-linear-gradient(-45deg, transparent, transparent 35px, rgba(30, 58, 138, 0.03) 35px, rgba(30, 58, 138, 0.03) 36px);
+            z-index: 1; pointer-events: none;
+        }
+
+        .bar-style {
+            position: absolute; left: 0; width: 100%; height: 65px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            display: flex; align-items: center; justify-content: space-between; 
+            padding: 0 35px; z-index: 100; color: white;
+        }
+        .header-bar { top: 0; border-bottom: 3px solid rgba(255,255,255,0.3); }
+        .footer-bar { bottom: 0; border-top: 3px solid rgba(255,255,255,0.3); }
+
+        #photo-preview {
+            position: absolute; top: 65px; left: 0;
+            width: 320px; height: 410px;
+            object-fit: cover; z-index: 10;
+            border-bottom-right-radius: 40px;
+            background-color: #f1f5f9;
+        }
+        #watermark-preview {
+            position: absolute; top: 50%; right: 40px; transform: translateY(-50%);
+            width: 300px; height: 300px; object-fit: contain; opacity: 0.08; z-index: 5;
+        }
+        .qr-box {
+            position: absolute; bottom: 80px; left: 25px;
+            width: 115px; height: 115px; background: white;
+            padding: 5px; z-index: 110; border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        #nombre-preview { position: absolute; bottom: 140px; left: 355px; font-size: 38px; font-weight: 900; color: var(--primary-color); text-transform: uppercase; z-index: 30; line-height: 1.1; }
         #dni-display-preview { position: absolute; bottom: 115px; left: 355px; font-size: 18px; font-weight: 700; color: #64748b; z-index: 30; }
         #codigo-preview { position: absolute; bottom: 85px; left: 355px; font-size: 26px; font-weight: 700; color: #0f172a; z-index: 30; }
         #vence-display-preview { position: absolute; bottom: 65px; left: 355px; font-size: 14px; color: #dc2626; font-weight: 900; z-index: 30; }
-        .qr-box { position: absolute; bottom: 80px; left: 25px; width: 115px; height: 115px; background: white; padding: 5px; z-index: 110; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .tab-active { border-bottom: 4px solid var(--primary-color); color: var(--primary-color); font-weight: 900; }
+        #curso-display-preview { 
+            position: absolute; top: 175px; left: 355px; width: 470px; 
+            font-size: 22px; color: var(--accent-color); font-weight: 900; z-index: 20; 
+            text-transform: uppercase; text-shadow: 1px 1px 0px white;
+        }
+
+        .tab-btn { text-align: center; padding-bottom: 0.5rem; text-transform: uppercase; font-weight: 700; font-size: 0.875rem; color: #94a3b8; transition: color 0.2s; cursor: pointer; border: none; background: none; }
+        .tab-btn:hover { color: #1e40af; }
+        .tab-active { border-bottom: 4px solid var(--primary-color); color: var(--primary-color); }
+        
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .notification {
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            padding: 16px 24px; border-radius: 12px; font-weight: 700;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease-out;
+        }
+        .notification.success { background: #10b981; color: white; }
+        .notification.error { background: #ef4444; color: white; }
+        .notification.info { background: #3b82f6; color: white; }
+        @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
 </head>
-<body class="p-4 lg:p-8">
+<body class="p-4 lg:p-8 min-h-screen">
 
-    <div class="max-w-7xl mx-auto">
-        <header class="bg-white p-6 rounded-3xl shadow-md mb-8 flex justify-between items-center">
-            <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase italic">SAS Córdoba - Gestión Cloud</h1>
-            <nav class="flex gap-6">
-                <button onclick="switchTab('manual')" id="tab-manual" class="text-sm uppercase font-bold tab-active">Generador</button>
-                <button onclick="switchTab('admin')" id="tab-admin" class="text-sm uppercase font-bold text-slate-400">Admin Cursos/Base</button>
+    <div id="admin-panel" class="max-w-7xl mx-auto hidden">
+        <header class="bg-white p-6 rounded-3xl shadow-lg mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-blue-900 rounded-2xl flex items-center justify-center text-white font-black text-xl italic">SAS</div>
+                <div>
+                    <h1 class="text-xl font-black text-slate-800 uppercase italic tracking-tighter">Panel de Gestión v24.1</h1>
+                    <p class="text-xs text-slate-500 font-bold">Administrador: Conectado a Supabase</p>
+                </div>
+            </div>
+            <nav class="flex gap-6 overflow-x-auto">
+                <button onclick="switchTab('manual')" id="tab-manual" class="tab-btn tab-active">Generador</button>
+                <button onclick="switchTab('autogestion')" id="tab-autogestion" class="tab-btn">Links Alumnos</button>
+                <button onclick="switchTab('database')" id="tab-database" class="tab-btn">Base de Datos</button>
             </nav>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            <section id="form-container" class="bg-white p-8 rounded-3xl shadow-xl">
+            <section class="bg-white p-8 rounded-3xl shadow-xl h-fit">
                 
                 <div id="content-manual">
                     <form id="carnet-form" class="space-y-4">
-                        <input type="text" id="institucion" placeholder="INSTITUCIÓN" class="w-full p-4 bg-slate-50 rounded-2xl font-black ring-1 ring-slate-200 uppercase">
+                        <input type="text" id="institucion" placeholder="NOMBRE DE LA INSTITUCIÓN" class="w-full p-4 bg-slate-50 rounded-2xl font-black ring-1 ring-slate-200 uppercase">
                         
                         <div class="grid grid-cols-2 gap-4">
-                            <input type="text" id="nombre" placeholder="NOMBRE COMPLETO" class="p-4 bg-slate-50 rounded-2xl font-bold uppercase">
-                            <input type="text" id="dni" placeholder="DNI" class="p-4 bg-slate-50 rounded-2xl font-bold">
+                            <div class="relative">
+                                <input type="text" id="dni" placeholder="DNI (Sin puntos)" maxlength="8" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-blue-900" onblur="checkExistingStudent()">
+                                <span class="absolute right-3 top-4 text-[10px] text-gray-400 font-bold">DETECTAR</span>
+                            </div>
+                            <input type="text" id="nombre" placeholder="NOMBRE COMPLETO" class="w-full p-4 bg-slate-50 rounded-2xl font-bold uppercase">
                         </div>
 
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Seleccionar Curso / Certificación</label>
-                            <select id="curso-select" class="w-full p-4 bg-blue-50 border-none rounded-2xl font-black text-blue-900 focus:ring-2 focus:ring-blue-500">
-                                <option value="">Cargando cursos...</option>
-                            </select>
+                        <select id="curso-select" class="w-full p-4 bg-blue-50 rounded-2xl font-black text-blue-900 border-none">
+                            <option value="">-- CARGANDO CURSOS --</option>
+                        </select>
+
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="p-2 border rounded-xl bg-slate-50">
+                                <label class="text-[9px] font-bold block uppercase text-slate-400 mb-1">Foto Alumno</label>
+                                <input type="file" id="photo-upload" accept="image/*" class="text-[10px] w-full">
+                            </div>
+                            <div class="p-2 border rounded-xl bg-slate-50">
+                                <label class="text-[9px] font-bold block uppercase text-slate-400 mb-1">Marca Agua</label>
+                                <input type="file" id="watermark-upload" accept="image/*" class="text-[10px] w-full">
+                            </div>
+                            <div class="p-2 border rounded-xl bg-slate-50">
+                                <label class="text-[9px] font-bold block uppercase text-slate-400 mb-1">Logos (1-3)</label>
+                                <input type="file" id="logo-upload" accept="image/*" multiple class="text-[10px] w-full">
+                            </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
-                            <input type="file" id="photo-upload" class="text-xs p-3 border-2 border-dashed rounded-2xl w-full" required>
-                            <input type="color" id="color-picker" value="#1e3a8a" class="w-full h-14 p-1 rounded-2xl border cursor-pointer">
+                        <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl">
+                            <span class="text-xs font-bold text-slate-500 uppercase">Color Institucional</span>
+                            <input type="color" id="color-picker" value="#1e3a8a" class="w-12 h-8 rounded cursor-pointer border-none">
                         </div>
 
-                        <button type="submit" id="submit-btn" class="w-full bg-blue-900 text-white py-5 rounded-2xl font-black text-xl hover:bg-black transition-all shadow-xl">EMITIR Y VINCULAR CERTIFICACIÓN</button>
+                        <button type="submit" id="submit-btn" class="w-full bg-blue-900 text-white py-5 rounded-2xl font-black text-lg hover:bg-black transition-all shadow-xl uppercase tracking-widest">
+                            Emitir & Guardar
+                        </button>
                     </form>
                 </div>
 
-                <div id="content-admin" class="hidden space-y-6">
-                    <div>
-                        <h3 class="font-black text-blue-900 uppercase mb-4">Añadir Nuevo Curso</h3>
+                <div id="content-autogestion" class="hidden space-y-6">
+                    <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                        <h3 class="font-black text-blue-900 uppercase mb-2">Crear Invitación para Alumno</h3>
+                        <p class="text-xs text-blue-600 mb-4">Genera un enlace para que el alumno suba su propia foto.</p>
                         <div class="flex gap-2">
-                            <input type="text" id="new-course-name" placeholder="Nombre del curso" class="flex-1 p-4 bg-slate-50 rounded-2xl ring-1 ring-slate-200">
-                            <button onclick="addNewCourse()" class="bg-blue-600 text-white px-6 rounded-2xl font-black hover:bg-blue-700">Añadir</button>
+                            <input type="text" id="invite-dni" placeholder="DNI del Alumno" maxlength="8" class="flex-1 p-3 rounded-xl border-none ring-1 ring-blue-200 font-bold">
+                            <button onclick="generateLink()" class="bg-blue-600 text-white px-6 rounded-xl font-black hover:bg-blue-700">Crear</button>
                         </div>
                     </div>
-                    <div class="border-t pt-6">
-                        <h3 class="font-black text-slate-800 uppercase mb-4">Exportación Administrativa</h3>
-                        <button onclick="exportCloudData()" class="w-full bg-green-600 text-white py-4 rounded-xl font-black shadow-md hover:bg-green-700">Descargar Excel de Alumnos</button>
+                    <div id="link-output" class="hidden bg-slate-100 p-4 rounded-xl break-all">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Enlace generado:</p>
+                        <a id="generated-url" href="#" target="_blank" class="text-xs text-blue-600 font-mono font-bold hover:underline"></a>
+                        <button onclick="copyLink()" class="block mt-3 text-[10px] bg-slate-200 px-3 py-1 rounded font-bold uppercase hover:bg-slate-300">Copiar Link</button>
+                    </div>
+                </div>
+
+                <div id="content-database" class="hidden space-y-6">
+                    <div>
+                        <h3 class="font-black text-slate-800 uppercase mb-2">Catálogo de Cursos</h3>
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" id="new-course-name" placeholder="Nombre nuevo curso" class="flex-1 p-3 bg-slate-50 rounded-xl text-sm font-bold">
+                            <button onclick="addCourse()" class="bg-green-600 text-white px-4 rounded-xl font-bold text-xs uppercase">Añadir</button>
+                        </div>
+                        <div id="course-list-display" class="h-32 overflow-y-auto border rounded-xl p-2 bg-slate-50 text-xs font-mono space-y-1"></div>
+                    </div>
+                    <div class="border-t pt-4">
+                        <button onclick="exportCSV()" class="w-full bg-slate-800 text-white py-4 rounded-xl font-black uppercase text-sm hover:bg-black">
+                            Descargar Base Completa (CSV)
+                        </button>
                     </div>
                 </div>
             </section>
@@ -80,133 +187,637 @@
             <section class="flex flex-col items-center sticky top-8">
                 <div id="download-area">
                     <div id="preview-container" class="carnet-preview">
-                        <div class="bar-style"><span id="institucion-preview" class="font-bold text-xl uppercase italic">NOMBRE INSTITUCIÓN</span><span class="text-[10px] font-black opacity-70">VALID ID</span></div>
-                        <img id="photo-preview" src="https://placehold.co/320x475/f1f5f9/94a3b8?text=FOTO" alt="Titular">
-                        <div id="curso-preview" class="absolute top-[175px] left-[355px] font-black text-blue-600 text-2xl uppercase tracking-tighter leading-none w-[470px]"></div>
-                        <div id="nombre-preview">Nombre del Alumno</div>
-                        <div id="dni-display-preview">DNI: 00.000.000</div>
-                        <div id="codigo-preview">MATRÍCULA: ARG-00000000</div>
-                        <div id="vence-display-preview">VENCE: --/--/----</div>
-                        <div class="qr-box"><canvas id="qr-code-preview"></canvas></div>
+                        <div class="security-bg"></div>
+                        
+                        <div class="bar-style header-bar">
+                            <span id="institucion-preview" class="font-black text-xl uppercase italic tracking-tighter">INSTITUCIÓN</span>
+                            <span class="text-[10px] font-black opacity-80 uppercase tracking-widest">Acreditación Oficial</span>
+                        </div>
+                        
+                        <div class="bar-style footer-bar">
+                            <span class="text-[10px] font-black opacity-70 italic uppercase">Sistema SAS Córdoba</span>
+                            <span class="text-[10px] font-black uppercase">Válido en Argentina</span>
+                        </div>
+
+                        <img id="photo-preview" src="https://placehold.co/320x410/f1f5f9/cbd5e1?text=FOTO" alt="Foto">
+                        <img id="watermark-preview" src="" alt="">
+                        
+                        <div id="logos-header" class="absolute top-[75px] left-[345px] flex gap-3 h-[50px] items-center"></div>
+
+                        <div id="curso-display-preview"></div>
+                        <div id="nombre-preview">NOMBRE DEL ALUMNO</div>
+                        <div id="dni-display-preview">DNI: -</div>
+                        <div id="codigo-preview">MATRÍCULA: -</div>
+                        <div id="vence-display-preview">VENCE: -</div>
+                        
+                        <div class="qr-box">
+                            <canvas id="qr-code-preview"></canvas>
+                        </div>
                     </div>
                 </div>
+                
                 <div class="mt-8 flex gap-4">
-                    <button onclick="download('png')" class="bg-slate-800 text-white px-10 py-4 rounded-2xl font-black shadow-lg">PNG</button>
-                    <button onclick="download('jpeg')" class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black shadow-lg">JPG</button>
+                    <button onclick="downloadImage('png')" class="bg-slate-800 text-white px-10 py-3 rounded-2xl font-black shadow-lg hover:scale-105 transition-transform">PNG</button>
+                    <button onclick="downloadImage('jpeg')" class="bg-blue-600 text-white px-10 py-3 rounded-2xl font-black shadow-lg hover:scale-105 transition-transform">JPG</button>
                 </div>
             </section>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
-    <script>
-        const SUPABASE_URL = 'https://fuxnsebrhxxbalqfmtzs.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_brWrs7Bn3vGFS7H2mEHkKQ_hcK1a8WV';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <div id="student-panel" class="max-w-md mx-auto min-h-screen flex items-center justify-center hidden">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full border-t-8 border-blue-900">
+            <h1 class="text-2xl font-black text-blue-900 text-center uppercase mb-2">Alta de Alumno</h1>
+            <p class="text-center text-xs text-gray-400 font-bold mb-6">Complete sus datos para la acreditación</p>
+            
+            <form id="student-form" class="space-y-6">
+                <div class="bg-blue-50 p-4 rounded-xl text-center">
+                    <p class="text-[10px] font-bold text-blue-400 uppercase">Documento Validado</p>
+                    <p id="student-dni-display" class="text-2xl font-black text-blue-900">Loading...</p>
+                </div>
 
-        function switchTab(tab) {
-            document.getElementById('content-manual').classList.toggle('hidden', tab !== 'manual');
-            document.getElementById('content-admin').classList.toggle('hidden', tab !== 'admin');
-            document.getElementById('tab-manual').className = `text-sm uppercase font-bold ${tab === 'manual' ? 'tab-active' : 'text-slate-400'}`;
-            document.getElementById('tab-admin').className = `text-sm uppercase font-bold ${tab === 'admin' ? 'tab-active' : 'text-slate-400'}`;
+                <input type="text" id="student-name" placeholder="Su Nombre Completo" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none ring-1 ring-slate-200" required>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-gray-400 uppercase ml-2">Subir Foto (Fondo liso)</label>
+                    <input type="file" id="student-photo" accept="image/*" class="w-full text-xs p-3 border-2 border-dashed rounded-2xl" required>
+                </div>
+
+                <div id="student-preview-mini" class="hidden">
+                    <p class="text-[10px] text-center font-bold text-gray-300 uppercase mb-2">Vista Previa</p>
+                    <img id="mini-img" class="w-32 h-40 object-cover mx-auto rounded-lg shadow-md border-2 border-white">
+                </div>
+
+                <button type="submit" id="student-submit" class="w-full bg-blue-900 text-white py-5 rounded-2xl font-black text-lg shadow-xl uppercase">
+                    Guardar Datos
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURACIÓN - YA CONFIGURADO CON TUS CREDENCIALES
+        // ============================================
+        const CONFIG = {
+            supabaseUrl: 'https://fuxnsebrhxxbalqfmtzs.supabase.co',
+            supabaseKey: 'sb_publishable_brWrs7Bn3vGFS7H2mEHkKQ_hcK1a8WV',
+            maxImageSize: 800
+        };
+
+        const sb = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
+
+        // ============================================
+        // UTILIDADES
+        // ============================================
+        
+        function showNotification(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `notification ${type}`;
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => {
+                div.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => div.remove(), 300);
+            }, 3000);
         }
 
-        async function fetchCursos() {
-            const select = document.getElementById('curso-select');
-            const { data, error } = await supabaseClient.from('cursos').select('*').order('nombre_curso');
-            if(data) {
-                select.innerHTML = '<option value="">-- SELECCIONAR CURSO --</option>' + 
-                    data.map(c => `<option value="${c.id}">${c.nombre_curso.toUpperCase()}</option>`).join('');
+        function validateDNI(dni) {
+            const cleaned = String(dni).replace(/\D/g, '');
+            if (cleaned.length < 7 || cleaned.length > 8) {
+                throw new Error('DNI debe tener 7 u 8 dígitos');
+            }
+            if (!/^\d+$/.test(cleaned)) {
+                throw new Error('DNI solo debe contener números');
+            }
+            return cleaned;
+        }
+
+        function validateName(name) {
+            const cleaned = name.trim().toUpperCase();
+            if (cleaned.length < 3) {
+                throw new Error('El nombre debe tener al menos 3 caracteres');
+            }
+            if (!/^[A-ZÁÉÍÓÚÑ\s]+$/.test(cleaned)) {
+                throw new Error('El nombre solo debe contener letras');
+            }
+            return cleaned;
+        }
+
+        async function compressImage(file, maxWidth = CONFIG.maxImageSize) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('Error al leer el archivo'));
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onerror = () => reject(new Error('Error al cargar la imagen'));
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        if (width > maxWidth) {
+                            height = Math.round(height * maxWidth / width);
+                            width = maxWidth;
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        canvas.toBlob((blob) => {
+                            if (blob) resolve(blob);
+                            else reject(new Error('Error al comprimir'));
+                        }, 'image/jpeg', 0.85);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function uploadPhoto(dni, file) {
+            try {
+                const compressed = await compressImage(file);
+                const fileName = `foto_${dni}_${crypto.randomUUID()}.jpg`;
+                
+                const { error: uploadError } = await sb.storage
+                    .from('fotos_carnet')
+                    .upload(fileName, compressed);
+                
+                if (uploadError) throw uploadError;
+                
+                const { data } = sb.storage
+                    .from('fotos_carnet')
+                    .getPublicUrl(fileName);
+                
+                return data.publicUrl;
+            } catch (err) {
+                throw new Error(`Error al subir foto: ${err.message}`);
             }
         }
 
-        async function addNewCourse() {
-            const name = document.getElementById('new-course-name').value;
-            if(!name) return alert("Ingresa un nombre de curso.");
-            const { error } = await supabaseClient.from('cursos').insert([{ nombre_curso: name }]);
-            if(error) alert("Error: " + error.message);
-            else { alert("Curso añadido."); document.getElementById('new-course-name').value = ''; fetchCursos(); }
+        let coursesCache = null;
+        let lastCourseFetch = 0;
+        const CACHE_DURATION = 60000;
+
+        let currentMode = 'admin';
+        let studentDniToken = null;
+
+        document.addEventListener('DOMContentLoaded', init);
+
+        function init() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('mode') && params.get('mode') === 'student' && params.has('token')) {
+                currentMode = 'student';
+                studentDniToken = decodeURIComponent(params.get('token'));
+                setupStudentMode();
+            } else {
+                setupAdminMode();
+            }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchCursos();
-            const form = document.getElementById('carnet-form');
+        // ============================================
+        // MODO ALUMNO
+        // ============================================
+        
+        function setupStudentMode() {
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('student-panel').classList.remove('hidden');
             
-            // Preview de foto
-            document.getElementById('photo-upload').onchange = (e) => {
-                const r = new FileReader(); r.onload = (ev) => document.getElementById('photo-preview').src = ev.target.result;
-                r.readAsDataURL(e.target.files[0]);
+            try {
+                const validatedDNI = validateDNI(studentDniToken);
+                document.getElementById('student-dni-display').textContent = validatedDNI;
+            } catch (err) {
+                showNotification('Token inválido', 'error');
+                document.getElementById('student-dni-display').textContent = 'ERROR';
+            }
+
+            document.getElementById('student-photo').onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                if (file.size > 10 * 1024 * 1024) {
+                    showNotification('La imagen es muy grande (máx 10MB)', 'error');
+                    e.target.value = '';
+                    return;
+                }
+
+                const r = new FileReader();
+                r.onload = (ev) => {
+                    document.getElementById('mini-img').src = ev.target.result;
+                    document.getElementById('student-preview-mini').classList.remove('hidden');
+                };
+                r.readAsDataURL(file);
             };
 
-            // Cambio de curso en preview
-            document.getElementById('curso-select').onchange = (e) => {
-                const text = e.target.options[e.target.selectedIndex].text;
-                document.getElementById('curso-preview').textContent = text === '-- SELECCIONAR CURSO --' ? '' : text;
-            };
-
-            form.oninput = (e) => {
-                const id = e.target.id; const val = e.target.value;
-                if(id === 'dni') document.getElementById('dni-display-preview').textContent = `DNI: ${val}`;
-                else if(document.getElementById(id+'-preview')) document.getElementById(id+'-preview').textContent = val;
-            };
-
-            form.onsubmit = async (e) => {
+            document.getElementById('student-form').onsubmit = async (e) => {
                 e.preventDefault();
-                const btn = document.getElementById('submit-btn');
-                const dni = document.getElementById('dni').value;
-                const cursoId = document.getElementById('curso-select').value;
-                if(!cursoId) return alert("Debes seleccionar un curso.");
+                const btn = document.getElementById('student-submit');
+                const nameInput = document.getElementById('student-name');
+                const file = document.getElementById('student-photo').files[0];
 
-                btn.textContent = "CONECTANDO A SUPABASE...";
+                if (!file) {
+                    showNotification('Debe subir una foto', 'error');
+                    return;
+                }
+
                 btn.disabled = true;
+                btn.innerHTML = '<span class="loader"></span> SUBIENDO...';
 
                 try {
-                    // 1. Subir Foto
-                    const fotoFile = document.getElementById('photo-upload').files[0];
-                    const fileName = `foto_${dni}_${Date.now()}.jpg`;
-                    await supabaseClient.storage.from('fotos_carnet').upload(fileName, fotoFile);
-                    const { data: { publicUrl } } = supabaseClient.storage.from('fotos_carnet').getPublicUrl(fileName);
-
-                    // 2. Gestionar Matrícula ARG
-                    let { data: alumno } = await supabaseClient.from('alumnos').select('matricula_arg').eq('dni', dni).single();
-                    let matricula = alumno ? alumno.matricula_arg : `ARG-${Math.floor(10000000 + Math.random() * 90000000)}`;
-
-                    // 3. Upsert Alumno
-                    await supabaseClient.from('alumnos').upsert({
-                        dni: dni, nombre_completo: document.getElementById('nombre').value, 
-                        matricula_arg: matricula, foto_url: publicUrl
-                    });
-
-                    // 4. Crear Certificación (Hoja de Vida)
-                    const vence = new Date(); vence.setFullYear(vence.getFullYear() + 1);
-                    const venceStr = vence.toLocaleDateString('es-AR');
-                    await supabaseClient.from('certificaciones').upsert({
-                        alumno_dni: dni, curso_id: cursoId, fecha_vencimiento: vence.toISOString().split('T')[0]
-                    });
-
-                    document.getElementById('codigo-preview').textContent = `MATRÍCULA: ${matricula}`;
-                    document.getElementById('vence-display-preview').textContent = `VENCE: ${venceStr}`;
+                    const dni = validateDNI(studentDniToken);
+                    const name = validateName(nameInput.value);
                     
-                    new QRious({ 
-                        element: document.getElementById('qr-code-preview'), 
-                        value: `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${matricula}`, 
-                        size: 115, level: 'H' 
+                    const photoUrl = await uploadPhoto(dni, file);
+
+                    let { data: existing } = await sb.from('alumnos')
+                        .select('matricula_arg')
+                        .eq('dni', dni)
+                        .single();
+                    
+                    const matricula = existing?.matricula_arg || 
+                        `ARG-${Math.floor(10000000 + Math.random() * 90000000)}`;
+
+                    const { error } = await sb.from('alumnos').upsert({
+                        dni: dni,
+                        nombre_completo: name,
+                        matricula_arg: matricula,
+                        foto_url: photoUrl
                     });
 
-                    alert(`¡Certificación exitosa! Alumno: ${matricula}`);
+                    if (error) throw error;
+
+                    showNotification('¡Datos guardados con éxito!', 'success');
+                    setTimeout(() => {
+                        document.body.innerHTML = '<div class="h-screen flex items-center justify-center bg-blue-900 text-white font-black text-2xl uppercase">Registro Completado ✓</div>';
+                    }, 1500);
+
                 } catch (err) {
-                    alert("Error crítico: " + err.message);
-                } finally {
-                    btn.textContent = "EMITIR Y VINCULAR CERTIFICACIÓN";
+                    showNotification(err.message, 'error');
+                    console.error('Error:', err);
                     btn.disabled = false;
+                    btn.textContent = 'INTENTAR DE NUEVO';
                 }
             };
-        });
+        }
 
-        function download(f) {
-            html2canvas(document.getElementById('preview-container'), { scale: 3, useCORS: true }).then(c => {
-                const l = document.createElement('a'); l.download = `SAS_CREDENTIAL_${Date.now()}.${f==='jpeg'?'jpg':'png'}`;
-                l.href = c.toDataURL(`image/${f}`, 1.0); l.click();
+        // ============================================
+        // MODO ADMIN
+        // ============================================
+        
+        function setupAdminMode() {
+            document.getElementById('admin-panel').classList.remove('hidden');
+            loadCourses();
+        }
+
+        window.switchTab = function(tab) {
+            ['manual', 'autogestion', 'database'].forEach(t => {
+                document.getElementById('content-'+t).classList.toggle('hidden', t !== tab);
+                document.getElementById('tab-'+t).classList.toggle('tab-active', t === tab);
+            });
+            if(tab === 'database') loadAdminCourseList();
+        }
+
+        async function loadCourses(forceRefresh = false) {
+            const now = Date.now();
+            if (!forceRefresh && coursesCache && now - lastCourseFetch < CACHE_DURATION) {
+                displayCourses(coursesCache);
+                return;
+            }
+
+            try {
+                const { data, error } = await sb.from('cursos').select('*').order('nombre_curso');
+                if (error) throw error;
+                
+                coursesCache = data;
+                lastCourseFetch = now;
+                displayCourses(data);
+            } catch (err) {
+                showNotification('Error al cargar cursos: ' + err.message, 'error');
+            }
+        }
+
+        function displayCourses(data) {
+            const select = document.getElementById('curso-select');
+            if (data && data.length > 0) {
+                select.innerHTML = '<option value="">-- SELECCIONAR CURSO OFICIAL --</option>' +
+                    data.map(c => `<option value="${c.id}">${c.nombre_curso.toUpperCase()}</option>`).join('');
+            } else {
+                select.innerHTML = '<option value="">-- NO HAY CURSOS --</option>';
+            }
+        }
+
+        window.checkExistingStudent = async function() {
+            const dniInput = document.getElementById('dni');
+            const rawDni = dniInput.value;
+            
+            if (!rawDni) return;
+
+            try {
+                const dni = validateDNI(rawDni);
+                dniInput.value = dni;
+                
+                const { data, error } = await sb.from('alumnos').select('*').eq('dni', dni).single();
+                
+                if (error && error.code !== 'PGRST116') throw error;
+                
+                if (data) {
+                    if(confirm(`¡Alumno encontrado: ${data.nombre_completo}!\n¿Cargar sus datos?`)) {
+                        document.getElementById('nombre').value = data.nombre_completo;
+                        if (data.foto_url) {
+                            document.getElementById('photo-preview').src = data.foto_url;
+                        }
+                        updatePreview();
+                        showNotification('Datos cargados', 'success');
+                    }
+                }
+            } catch (err) {
+                if (err.message.includes('DNI')) {
+                    showNotification(err.message, 'error');
+                } else {
+                    console.error('Error al buscar alumno:', err);
+                }
+            }
+        }
+
+        window.generateLink = function() {
+            const rawDni = document.getElementById('invite-dni').value;
+            
+            try {
+                const dni = validateDNI(rawDni);
+                const baseUrl = window.location.href.split('?')[0];
+                const url = `${baseUrl}?mode=student&token=${encodeURIComponent(dni)}`;
+                
+                document.getElementById('generated-url').href = url;
+                document.getElementById('generated-url').textContent = url;
+                document.getElementById('link-output').classList.remove('hidden');
+                showNotification('Link generado correctamente', 'success');
+            } catch (err) {
+                showNotification(err.message, 'error');
+            }
+        }
+
+        window.copyLink = function() {
+            const url = document.getElementById('generated-url').textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                showNotification('Enlace copiado al portapapeles', 'success');
+            }).catch(() => {
+                showNotification('Error al copiar', 'error');
+            });
+        }
+
+        window.addCourse = async function() {
+            const nameInput = document.getElementById('new-course-name');
+            const name = nameInput.value.trim();
+            
+            if(!name) {
+                showNotification('Ingresa un nombre de curso', 'error');
+                return;
+            }
+
+            try {
+                const { error } = await sb.from('cursos').insert([{ nombre_curso: name }]);
+                if(error) throw error;
+                
+                showNotification('Curso añadido correctamente', 'success');
+                nameInput.value = '';
+                loadCourses(true);
+                loadAdminCourseList();
+            } catch (err) {
+                showNotification('Error: ' + err.message, 'error');
+            }
+        }
+
+        async function loadAdminCourseList() {
+            const display = document.getElementById('course-list-display');
+            display.innerHTML = '<div class="text-center p-4 text-gray-400">Cargando...</div>';
+            
+            try {
+                const { data, error } = await sb.from('cursos').select('*').order('nombre_curso');
+                if (error) throw error;
+                
+                if(data && data.length > 0) {
+                    display.innerHTML = data.map(c => `
+                        <div class="flex justify-between border-b pb-1 hover:bg-slate-100 px-2 rounded">
+                            <span>${c.nombre_curso}</span>
+                            <span class="text-gray-400">ID: ${c.id}</span>
+                        </div>`
+                    ).join('');
+                } else {
+                    display.innerHTML = '<div class="text-center p-4 text-gray-400">No hay cursos</div>';
+                }
+            } catch (err) {
+                display.innerHTML = '<div class="text-center p-4 text-red-500">Error al cargar</div>';
+                showNotification('Error al cargar cursos: ' + err.message, 'error');
+            }
+        }
+
+        window.exportCSV = async function() {
+            try {
+                const { data: alumnos, error } = await sb.from('alumnos').select('*');
+                if(error) throw error;
+                if(!alumnos || alumnos.length === 0) {
+                    showNotification('No hay datos para exportar', 'info');
+                    return;
+                }
+                
+                let csv = "DNI,Nombre,Matricula,URL_Foto\n";
+                alumnos.forEach(row => {
+                    csv += `${row.dni},"${row.nombre_completo}",${row.matricula_arg},${row.foto_url || ''}\n`;
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `BASE_SAS_${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                showNotification('Base de datos exportada', 'success');
+            } catch (err) {
+                showNotification('Error al exportar: ' + err.message, 'error');
+            }
+        }
+
+        // ============================================
+        // PREVIEW Y FORMULARIO
+        // ============================================
+        
+        const form = document.getElementById('carnet-form');
+
+        document.getElementById('photo-upload').onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 10 * 1024 * 1024) {
+                    showNotification('Imagen muy grande (máx 10MB)', 'error');
+                    e.target.value = '';
+                    return;
+                }
+                readFile(file, 'photo-preview');
+            }
+        };
+
+        document.getElementById('watermark-upload').onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) readFile(file, 'watermark-preview');
+        };
+        
+        document.getElementById('logo-upload').onchange = (e) => {
+            const container = document.getElementById('logos-header');
+            container.innerHTML = '';
+            const files = Array.from(e.target.files).slice(0,3);
+            
+            if (files.length === 0) return;
+            
+            files.forEach(f => {
+                const r = new FileReader();
+                r.onload = (ev) => {
+                    const img = document.createElement('img');
+                    img.src = ev.target.result;
+                    img.className = 'h-full w-auto object-contain';
+                    container.appendChild(img);
+                };
+                r.readAsDataURL(f);
+            });
+        };
+
+        document.getElementById('color-picker').oninput = (e) => {
+            const color = e.target.value;
+            document.documentElement.style.setProperty('--primary-color', color);
+            document.documentElement.style.setProperty('--accent-color', color + 'cc');
+        };
+
+        function readFile(file, targetId) {
+            if(!file) return;
+            const r = new FileReader();
+            r.onload = (ev) => {
+                document.getElementById(targetId).src = ev.target.result;
+            };
+            r.readAsDataURL(file);
+        }
+
+        form.oninput = updatePreview;
+        document.getElementById('curso-select').onchange = updatePreview;
+
+        function updatePreview() {
+            const dni = document.getElementById('dni').value;
+            const nombre = document.getElementById('nombre').value;
+            const inst = document.getElementById('institucion').value;
+            const cursoSelect = document.getElementById('curso-select');
+            const cursoText = cursoSelect.options[cursoSelect.selectedIndex]?.text || '';
+
+            if(dni) document.getElementById('dni-display-preview').textContent = `DNI: ${dni}`;
+            if(nombre) document.getElementById('nombre-preview').textContent = nombre.toUpperCase();
+            if(inst) document.getElementById('institucion-preview').textContent = inst.toUpperCase();
+            if(cursoText && !cursoText.includes('--')) {
+                document.getElementById('curso-display-preview').textContent = cursoText;
+            }
+        }
+
+        // ============================================
+        // GENERAR CREDENCIAL
+        // ============================================
+        
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const dniInput = document.getElementById('dni');
+            const nombreInput = document.getElementById('nombre');
+            const cursoId = document.getElementById('curso-select').value;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loader"></span> PROCESANDO...';
+
+            try {
+                const dni = validateDNI(dniInput.value);
+                const nombre = validateName(nombreInput.value);
+                
+                if(!cursoId) throw new Error('Debe seleccionar un curso');
+
+                const photoInput = document.getElementById('photo-upload');
+                let publicUrl = document.getElementById('photo-preview').src;
+
+                if(photoInput.files.length > 0) {
+                    publicUrl = await uploadPhoto(dni, photoInput.files[0]);
+                } else if (!publicUrl || publicUrl.includes('placehold')) {
+                    throw new Error('Debe subir una foto del alumno');
+                }
+
+                let { data: alumno, error: searchError } = await sb
+                    .from('alumnos')
+                    .select('matricula_arg')
+                    .eq('dni', dni)
+                    .single();
+                
+                if (searchError && searchError.code !== 'PGRST116') throw searchError;
+                
+                const matricula = alumno?.matricula_arg || 
+                    `ARG-${Math.floor(10000000 + Math.random() * 90000000)}`;
+
+                const { error: upsertError } = await sb.from('alumnos').upsert({
+                    dni: dni,
+                    nombre_completo: nombre,
+                    matricula_arg: matricula,
+                    foto_url: publicUrl
+                });
+
+                if (upsertError) throw upsertError;
+
+                const vence = new Date();
+                vence.setFullYear(vence.getFullYear() + 1);
+                const venceISO = vence.toISOString().split('T')[0];
+                const venceStr = vence.toLocaleDateString('es-AR');
+
+                const { error: certError } = await sb.from('certificaciones').upsert({
+                    alumno_dni: dni,
+                    curso_id: parseInt(cursoId),
+                    fecha_vencimiento: venceISO
+                });
+
+                if (certError) throw certError;
+
+                document.getElementById('codigo-preview').textContent = `MATRÍCULA: ${matricula}`;
+                document.getElementById('vence-display-preview').textContent = `VENCE: ${venceStr}`;
+                
+                new QRious({ 
+                    element: document.getElementById('qr-code-preview'), 
+                    value: `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${matricula}`, 
+                    size: 110, 
+                    level: 'H' 
+                });
+
+                showNotification('¡Acreditación Exitosa! Datos guardados en la nube', 'success');
+
+            } catch (err) {
+                showNotification(err.message, 'error');
+                console.error('Error completo:', err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'EMITIR & GUARDAR';
+            }
+        };
+
+        // ============================================
+        // DESCARGAR IMAGEN
+        // ============================================
+        
+        window.downloadImage = function(fmt) {
+            html2canvas(document.getElementById('preview-container'), { 
+                scale: 3, 
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const a = document.createElement('a');
+                const timestamp = new Date().toISOString().split('T')[0];
+                a.download = `CREDENTIAL_SAS_${timestamp}.${fmt === 'jpeg' ? 'jpg' : 'png'}`;
+                a.href = canvas.toDataURL(`image/${fmt}`, 1.0);
+                a.click();
+                showNotification('Credencial descargada', 'success');
+            }).catch(err => {
+                showNotification('Error al descargar: ' + err.message, 'error');
             });
         }
     </script>
