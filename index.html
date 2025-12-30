@@ -3,89 +3,393 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS Córdoba - Sistema Integral v24.1</title>
+    <title>RENAM - Registro Nacional de Matriculaciones</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     
     <style>
-        :root { --primary-color: #1e3a8a; --accent-color: #2563eb; }
+        :root { 
+            --primary-color: #1e3a8a; 
+            --accent-color: #2563eb;
+            --gold-light: #f4e4c1;
+            --gold-dark: #d4af37;
+        }
         body { font-family: 'Roboto', sans-serif; background: #f0f2f5; }
 
         #download-area { width: 856px; padding: 20px; background: #e2e8f0; border-radius: 20px; margin: 0 auto; }
         .carnet-preview { 
-            width: 856px; height: 540px; 
-            position: relative; overflow: hidden; 
-            background: #fff; 
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15); 
+            width: 856px; 
+            height: 540px; 
+            position: relative; 
+            overflow: hidden; 
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); 
+            box-shadow: 0 25px 70px rgba(0,0,0,0.3); 
+            border-radius: 20px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        
+        .carnet-preview::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 20px;
+            padding: 2px;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold-light), var(--gold-dark));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            z-index: 1;
+            pointer-events: none;
         }
         
         .security-bg {
-            position: absolute; inset: 0;
+            position: absolute; 
+            inset: 0;
             background: 
-                repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(30, 58, 138, 0.03) 35px, rgba(30, 58, 138, 0.03) 36px),
-                repeating-linear-gradient(-45deg, transparent, transparent 35px, rgba(30, 58, 138, 0.03) 35px, rgba(30, 58, 138, 0.03) 36px);
-            z-index: 1; pointer-events: none;
+                repeating-linear-gradient(45deg, transparent, transparent 25px, rgba(30, 58, 138, 0.015) 25px, rgba(30, 58, 138, 0.015) 26px),
+                repeating-linear-gradient(-45deg, transparent, transparent 25px, rgba(30, 58, 138, 0.015) 25px, rgba(30, 58, 138, 0.015) 26px),
+                repeating-linear-gradient(0deg, transparent, transparent 12px, rgba(212, 175, 55, 0.02) 12px, rgba(212, 175, 55, 0.02) 13px);
+            z-index: 2; 
+            pointer-events: none;
         }
 
-        .bar-style {
-            position: absolute; left: 0; width: 100%; height: 65px;
-            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 0 35px; z-index: 100; color: white;
+        /* BANDAS LATERALES VERTICALES */
+        .banda-lateral {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 35px;
+            background: linear-gradient(180deg, var(--primary-color), #1e40af);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
         }
-        .header-bar { top: 0; border-bottom: 3px solid rgba(255,255,255,0.3); }
-        .footer-bar { bottom: 0; border-top: 3px solid rgba(255,255,255,0.3); }
+        
+        .banda-izquierda {
+            left: 0;
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px;
+        }
+        
+        .banda-derecha {
+            right: 0;
+            border-top-right-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+        
+        .texto-vertical {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            color: white;
+            font-weight: 900;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-align: center;
+            padding: 20px 0;
+        }
 
+        /* BARRA SUPERIOR */
+        .header-bar {
+            position: absolute;
+            top: 0;
+            left: 35px;
+            right: 35px;
+            height: 70px;
+            background: linear-gradient(90deg, var(--primary-color), #1e40af);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            z-index: 99;
+            color: white;
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        /* FOOTER */
+        .footer-bar {
+            position: absolute;
+            bottom: 0;
+            left: 35px;
+            right: 35px;
+            height: 50px;
+            background: linear-gradient(90deg, #0f172a, #1e293b);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            z-index: 99;
+            color: white;
+            border-bottom-left-radius: 18px;
+            border-bottom-right-radius: 18px;
+        }
+
+        /* FOTO */
         #photo-preview {
-            position: absolute; top: 65px; left: 0;
-            width: 320px; height: 410px;
-            object-fit: cover; z-index: 10;
-            border-bottom-right-radius: 40px;
-            background-color: #f1f5f9;
+            position: absolute;
+            top: 70px;
+            left: 35px;
+            width: 260px;
+            height: 340px;
+            object-fit: cover;
+            z-index: 10;
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            border: 3px solid var(--gold-dark);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
         }
-        #watermark-preview {
-            position: absolute; top: 50%; right: 40px; transform: translateY(-50%);
-            width: 300px; height: 300px; object-fit: contain; opacity: 0.08; z-index: 5;
+
+        /* LOGO RENAM CIRCULAR MEJORADO */
+        .renam-logo-container {
+            position: absolute;
+            top: 85px;
+            left: 315px;
+            z-index: 30;
         }
+
+        .renam-logo-circle {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle at 30% 30%, #ffffff, #e2e8f0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                0 8px 20px rgba(0,0,0,0.15),
+                inset 0 2px 10px rgba(255,255,255,0.5),
+                inset 0 -2px 10px rgba(0,0,0,0.1);
+            border: 4px solid var(--gold-dark);
+            position: relative;
+        }
+
+        .renam-logo-circle::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+            opacity: 0.3;
+        }
+
+        .renam-logo-text {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .renam-main {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--primary-color);
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .renam-sub {
+            font-size: 7px;
+            font-weight: 700;
+            color: var(--gold-dark);
+            letter-spacing: 1.5px;
+            margin-top: -5px;
+        }
+
+        /* MARCA DE AGUA ASARI */
+        #watermark-asari {
+            position: absolute;
+            top: 50%;
+            right: 80px;
+            transform: translateY(-50%);
+            width: 200px;
+            height: 200px;
+            opacity: 0.04;
+            z-index: 3;
+        }
+
+        /* QR CODE */
         .qr-box {
-            position: absolute; bottom: 80px; left: 25px;
-            width: 115px; height: 115px; background: white;
-            padding: 5px; z-index: 110; border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            position: absolute;
+            bottom: 60px;
+            left: 50px;
+            width: 100px;
+            height: 100px;
+            background: white;
+            padding: 5px;
+            z-index: 110;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            border: 2px solid var(--gold-dark);
         }
 
-        #nombre-preview { position: absolute; bottom: 140px; left: 355px; font-size: 38px; font-weight: 900; color: var(--primary-color); text-transform: uppercase; z-index: 30; line-height: 1.1; }
-        #dni-display-preview { position: absolute; bottom: 115px; left: 355px; font-size: 18px; font-weight: 700; color: #64748b; z-index: 30; }
-        #codigo-preview { position: absolute; bottom: 85px; left: 355px; font-size: 26px; font-weight: 700; color: #0f172a; z-index: 30; }
-        #vence-display-preview { position: absolute; bottom: 65px; left: 355px; font-size: 14px; color: #dc2626; font-weight: 900; z-index: 30; }
-        #curso-display-preview { 
-            position: absolute; top: 175px; left: 355px; width: 470px; 
-            font-size: 22px; color: var(--accent-color); font-weight: 900; z-index: 20; 
-            text-transform: uppercase; text-shadow: 1px 1px 0px white;
+        /* LOGOS DE AVALES */
+        #avales-container {
+            position: absolute;
+            top: 215px;
+            left: 315px;
+            right: 50px;
+            height: 50px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: flex-start;
+            z-index: 25;
+            flex-wrap: wrap;
         }
 
-        .tab-btn { text-align: center; padding-bottom: 0.5rem; text-transform: uppercase; font-weight: 700; font-size: 0.875rem; color: #94a3b8; transition: color 0.2s; cursor: pointer; border: none; background: none; }
+        .aval-logo {
+            max-height: 45px;
+            max-width: 80px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.15));
+        }
+
+        /* SECCIÓN DE CURSOS */
+        #cursos-section {
+            position: absolute;
+            top: 280px;
+            left: 315px;
+            right: 50px;
+            max-height: 90px;
+            overflow: hidden;
+            z-index: 20;
+        }
+
+        .curso-item {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            line-height: 1.4;
+            margin-bottom: 4px;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .curso-item::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--gold-dark);
+            font-size: 16px;
+        }
+
+        /* DATOS DEL ALUMNO */
+        #nombre-preview {
+            position: absolute;
+            bottom: 125px;
+            left: 315px;
+            right: 50px;
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            z-index: 30;
+            line-height: 1.2;
+            letter-spacing: 0.5px;
+        }
+
+        #dni-display-preview {
+            position: absolute;
+            bottom: 100px;
+            left: 315px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #64748b;
+            z-index: 30;
+        }
+
+        #codigo-preview {
+            position: absolute;
+            bottom: 77px;
+            left: 315px;
+            font-size: 18px;
+            font-weight: 900;
+            color: #0f172a;
+            z-index: 30;
+            letter-spacing: 1.5px;
+            background: linear-gradient(90deg, rgba(212, 175, 55, 0.1), transparent);
+            padding: 3px 10px;
+            border-radius: 5px;
+        }
+
+        #vence-display-preview {
+            position: absolute;
+            bottom: 55px;
+            left: 315px;
+            font-size: 12px;
+            color: #dc2626;
+            font-weight: 900;
+            z-index: 30;
+            background: rgba(220, 38, 38, 0.1);
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 2px solid #dc2626;
+        }
+
+        .tab-btn {
+            text-align: center;
+            padding-bottom: 0.5rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: #94a3b8;
+            transition: color 0.2s;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
         .tab-btn:hover { color: #1e40af; }
         .tab-active { border-bottom: 4px solid var(--primary-color); color: var(--primary-color); }
-        
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
         .notification {
-            position: fixed; top: 20px; right: 20px; z-index: 9999;
-            padding: 16px 24px; border-radius: 12px; font-weight: 700;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-weight: 700;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             animation: slideIn 0.3s ease-out;
         }
         .notification.success { background: #10b981; color: white; }
         .notification.error { background: #ef4444; color: white; }
         .notification.info { background: #3b82f6; color: white; }
-        @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .auto-fit-text {
+            display: block;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="p-4 lg:p-8 min-h-screen">
@@ -93,10 +397,16 @@
     <div id="admin-panel" class="max-w-7xl mx-auto hidden">
         <header class="bg-white p-6 rounded-3xl shadow-lg mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-blue-900 rounded-2xl flex items-center justify-center text-white font-black text-xl italic">SAS</div>
+                <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-900 rounded-full flex items-center justify-center text-white shadow-xl border-4 border-yellow-600">
+                    <div class="text-center">
+                        <div class="text-xl font-black tracking-tight">RENAM</div>
+                        <div class="text-[6px] tracking-widest opacity-80">ARGENTINA</div>
+                    </div>
+                </div>
                 <div>
-                    <h1 class="text-xl font-black text-slate-800 uppercase italic tracking-tighter">Panel de Gestión v24.1</h1>
-                    <p class="text-xs text-slate-500 font-bold">Administrador: Conectado a Supabase</p>
+                    <h1 class="text-2xl font-black text-slate-800 uppercase tracking-tight">RENAM</h1>
+                    <p class="text-xs text-blue-600 font-bold">Registro Nacional de Matriculaciones</p>
+                    <p class="text-xs text-slate-500 font-semibold">ASARI.SAS | v3.0 Premium</p>
                 </div>
             </div>
             <nav class="flex gap-6 overflow-x-auto">
@@ -121,32 +431,32 @@
                             <input type="text" id="nombre" placeholder="NOMBRE COMPLETO" class="w-full p-4 bg-slate-50 rounded-2xl font-bold uppercase">
                         </div>
 
-                        <select id="curso-select" class="w-full p-4 bg-blue-50 rounded-2xl font-black text-blue-900 border-none">
-                            <option value="">-- CARGANDO CURSOS --</option>
-                        </select>
+                        <div class="bg-blue-50 p-4 rounded-2xl">
+                            <label class="text-xs font-bold text-blue-900 uppercase mb-2 block">Cursos/Certificaciones (Selecciona múltiples con Ctrl/Cmd)</label>
+                            <select id="curso-select" multiple size="4" class="w-full p-3 bg-white rounded-xl font-bold text-blue-900 border-2 border-blue-200">
+                                <option value="">-- CARGANDO CURSOS --</option>
+                            </select>
+                            <p class="text-xs text-blue-600 mt-2">💡 Mantén presionado Ctrl (Windows) o Cmd (Mac) para seleccionar varios</p>
+                        </div>
 
-                        <div class="grid grid-cols-3 gap-2">
-                            <div class="p-2 border rounded-xl bg-slate-50">
-                                <label class="text-[9px] font-bold block uppercase text-slate-400 mb-1">Foto Alumno</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="p-3 border-2 border-dashed rounded-xl bg-slate-50 hover:bg-slate-100 transition">
+                                <label class="text-[9px] font-bold block uppercase text-slate-400 mb-1">📸 Foto Alumno (Obligatorio)</label>
                                 <input type="file" id="photo-upload" accept="image/*" class="text-[10px] w-full">
                             </div>
-                            <div class="p-2 border rounded-xl bg-slate-50">
-                                <label class="text-[9px] font-bold block uppercase text-slate-400 mb-1">Marca Agua</label>
-                                <input type="file" id="watermark-upload" accept="image/*" class="text-[10px] w-full">
-                            </div>
-                            <div class="p-2 border rounded-xl bg-slate-50">
-                                <label class="text-[9px] font-bold block uppercase text-slate-400 mb-1">Logos (1-3)</label>
-                                <input type="file" id="logo-upload" accept="image/*" multiple class="text-[10px] w-full">
+                            <div class="p-3 border-2 border-dashed rounded-xl bg-slate-50 hover:bg-slate-100 transition">
+                                <label class="text-[9px] font-bold block uppercase text-slate-400 mb-1">🏅 Logos Avales (Hasta 5)</label>
+                                <input type="file" id="avales-upload" accept="image/*" multiple class="text-[10px] w-full">
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl">
-                            <span class="text-xs font-bold text-slate-500 uppercase">Color Institucional</span>
-                            <input type="color" id="color-picker" value="#1e3a8a" class="w-12 h-8 rounded cursor-pointer border-none">
+                        <div class="flex items-center justify-between bg-gradient-to-r from-slate-50 to-slate-100 p-4 rounded-xl border border-slate-200">
+                            <span class="text-xs font-bold text-slate-600 uppercase">🎨 Color Institucional</span>
+                            <input type="color" id="color-picker" value="#1e3a8a" class="w-14 h-10 rounded-lg cursor-pointer border-2 border-slate-300">
                         </div>
 
-                        <button type="submit" id="submit-btn" class="w-full bg-blue-900 text-white py-5 rounded-2xl font-black text-lg hover:bg-black transition-all shadow-xl uppercase tracking-widest">
-                            Emitir & Guardar
+                        <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-blue-900 to-blue-700 text-white py-5 rounded-2xl font-black text-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-xl uppercase tracking-widest border-2 border-yellow-600">
+                            🎓 Emitir Credencial Oficial
                         </button>
                     </form>
                 </div>
@@ -178,7 +488,7 @@
                     </div>
                     <div class="border-t pt-4">
                         <button onclick="exportCSV()" class="w-full bg-slate-800 text-white py-4 rounded-xl font-black uppercase text-sm hover:bg-black">
-                            Descargar Base Completa (CSV)
+                            📥 Descargar Base Completa (CSV)
                         </button>
                     </div>
                 </div>
@@ -189,27 +499,55 @@
                     <div id="preview-container" class="carnet-preview">
                         <div class="security-bg"></div>
                         
-                        <div class="bar-style header-bar">
-                            <span id="institucion-preview" class="font-black text-xl uppercase italic tracking-tighter">INSTITUCIÓN</span>
-                            <span class="text-[10px] font-black opacity-80 uppercase tracking-widest">Acreditación Oficial</span>
+                        <!-- Bandas laterales verticales -->
+                        <div class="banda-lateral banda-izquierda">
+                            <div class="texto-vertical" id="banda-izq-text">REGISTRO NACIONAL</div>
+                        </div>
+                        <div class="banda-lateral banda-derecha">
+                            <div class="texto-vertical" id="banda-der-text">MATRICULACIONES</div>
                         </div>
                         
-                        <div class="bar-style footer-bar">
-                            <span class="text-[10px] font-black opacity-70 italic uppercase">Sistema SAS Córdoba</span>
-                            <span class="text-[10px] font-black uppercase">Válido en Argentina</span>
+                        <!-- Header -->
+                        <div class="header-bar">
+                            <span id="institucion-preview" class="font-black text-base uppercase tracking-wide">INSTITUCIÓN</span>
+                            <span class="text-[9px] font-black opacity-90 uppercase tracking-widest">Credencial Oficial</span>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div class="footer-bar">
+                            <span class="text-[9px] font-black opacity-80 uppercase">RENAM - Argentina</span>
+                            <span class="text-[9px] font-black uppercase">ASARI.SAS</span>
                         </div>
 
-                        <img id="photo-preview" src="https://placehold.co/320x410/f1f5f9/cbd5e1?text=FOTO" alt="Foto">
-                        <img id="watermark-preview" src="" alt="">
+                        <!-- Foto -->
+                        <img id="photo-preview" src="https://placehold.co/260x340/e2e8f0/94a3b8?text=FOTO" alt="Foto">
                         
-                        <div id="logos-header" class="absolute top-[75px] left-[345px] flex gap-3 h-[50px] items-center"></div>
+                        <!-- Logo RENAM mejorado -->
+                        <div class="renam-logo-container">
+                            <div class="renam-logo-circle">
+                                <div class="renam-logo-text">
+                                    <div class="renam-main">RENAM</div>
+                                    <div class="renam-sub">ARGENTINA</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Marca de agua ASARI -->
+                        <img id="watermark-asari" src="" alt="">
+                        
+                        <!-- Logos de Avales -->
+                        <div id="avales-container"></div>
 
-                        <div id="curso-display-preview"></div>
-                        <div id="nombre-preview">NOMBRE DEL ALUMNO</div>
+                        <!-- Sección de Cursos -->
+                        <div id="cursos-section"></div>
+
+                        <!-- Datos del alumno -->
+                        <div id="nombre-preview" class="auto-fit-text">NOMBRE DEL ALUMNO</div>
                         <div id="dni-display-preview">DNI: -</div>
                         <div id="codigo-preview">MATRÍCULA: -</div>
                         <div id="vence-display-preview">VENCE: -</div>
                         
+                        <!-- QR Code -->
                         <div class="qr-box">
                             <canvas id="qr-code-preview"></canvas>
                         </div>
@@ -218,7 +556,7 @@
                 
                 <div class="mt-8 flex gap-4">
                     <button onclick="downloadImage('png')" class="bg-slate-800 text-white px-10 py-3 rounded-2xl font-black shadow-lg hover:scale-105 transition-transform">PNG</button>
-                    <button onclick="downloadImage('jpeg')" class="bg-blue-600 text-white px-10 py-3 rounded-2xl font-black shadow-lg hover:scale-105 transition-transform">JPG</button>
+                    <button onclick="downloadImage('jpeg')" class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-10 py-3 rounded-2xl font-black shadow-lg hover:scale-105 transition-transform border-2 border-yellow-600">JPG</button>
                 </div>
             </section>
         </div>
@@ -226,38 +564,42 @@
 
     <div id="student-panel" class="max-w-md mx-auto min-h-screen flex items-center justify-center hidden">
         <div class="bg-white p-8 rounded-3xl shadow-2xl w-full border-t-8 border-blue-900">
-            <h1 class="text-2xl font-black text-blue-900 text-center uppercase mb-2">Alta de Alumno</h1>
-            <p class="text-center text-xs text-gray-400 font-bold mb-6">Complete sus datos para la acreditación</p>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-900 rounded-full flex items-center justify-center text-white mx-auto mb-3 shadow-xl border-4 border-yellow-600">
+                    <div class="text-center">
+                        <div class="text-xl font-black">RENAM</div>
+                    </div>
+                </div>
+                <h1 class="text-2xl font-black text-blue-900 uppercase">Alta de Alumno</h1>
+                <p class="text-xs text-gray-400 font-bold">Complete sus datos para la acreditación</p>
+            </div>
             
             <form id="student-form" class="space-y-6">
-                <div class="bg-blue-50 p-4 rounded-xl text-center">
+                <div class="bg-blue-50 p-4 rounded-xl text-center border-2 border-blue-200">
                     <p class="text-[10px] font-bold text-blue-400 uppercase">Documento Validado</p>
                     <p id="student-dni-display" class="text-2xl font-black text-blue-900">Loading...</p>
                 </div>
 
-                <input type="text" id="student-name" placeholder="Su Nombre Completo" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none ring-1 ring-slate-200" required>
+                <input type="text" id="student-name" placeholder="Su Nombre Completo" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none ring-2 ring-slate-200" required>
 
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase ml-2">Subir Foto (Fondo liso)</label>
+                    <label class="text-xs font-bold text-gray-400 uppercase ml-2">📸 Subir Foto (Fondo liso)</label>
                     <input type="file" id="student-photo" accept="image/*" class="w-full text-xs p-3 border-2 border-dashed rounded-2xl" required>
                 </div>
 
                 <div id="student-preview-mini" class="hidden">
                     <p class="text-[10px] text-center font-bold text-gray-300 uppercase mb-2">Vista Previa</p>
-                    <img id="mini-img" class="w-32 h-40 object-cover mx-auto rounded-lg shadow-md border-2 border-white">
+                    <img id="mini-img" class="w-32 h-40 object-cover mx-auto rounded-lg shadow-md border-4 border-blue-900">
                 </div>
 
-                <button type="submit" id="student-submit" class="w-full bg-blue-900 text-white py-5 rounded-2xl font-black text-lg shadow-xl uppercase">
-                    Guardar Datos
+                <button type="submit" id="student-submit" class="w-full bg-gradient-to-r from-blue-900 to-blue-700 text-white py-5 rounded-2xl font-black text-lg shadow-xl uppercase border-2 border-yellow-600">
+                    💾 Guardar Datos
                 </button>
             </form>
         </div>
     </div>
 
     <script>
-        // ============================================
-        // CONFIGURACIÓN - YA CONFIGURADO CON TUS CREDENCIALES
-        // ============================================
         const CONFIG = {
             supabaseUrl: 'https://fuxnsebrhxxbalqfmtzs.supabase.co',
             supabaseKey: 'sb_publishable_brWrs7Bn3vGFS7H2mEHkKQ_hcK1a8WV',
@@ -266,10 +608,6 @@
 
         const sb = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
 
-        // ============================================
-        // UTILIDADES
-        // ============================================
-        
         function showNotification(message, type = 'info') {
             const div = document.createElement('div');
             div.className = `notification ${type}`;
@@ -286,9 +624,6 @@
             if (cleaned.length < 7 || cleaned.length > 8) {
                 throw new Error('DNI debe tener 7 u 8 dígitos');
             }
-            if (!/^\d+$/.test(cleaned)) {
-                throw new Error('DNI solo debe contener números');
-            }
             return cleaned;
         }
 
@@ -296,9 +631,6 @@
             const cleaned = name.trim().toUpperCase();
             if (cleaned.length < 3) {
                 throw new Error('El nombre debe tener al menos 3 caracteres');
-            }
-            if (!/^[A-ZÁÉÍÓÚÑ\s]+$/.test(cleaned)) {
-                throw new Error('El nombre solo debe contener letras');
             }
             return cleaned;
         }
@@ -357,6 +689,17 @@
             }
         }
 
+        function autoFitText(element, maxSize, minSize = 12) {
+            const container = element.parentElement || element;
+            let fontSize = maxSize;
+            element.style.fontSize = fontSize + 'px';
+            
+            while ((element.scrollWidth > container.offsetWidth || element.scrollHeight > container.offsetHeight) && fontSize > minSize) {
+                fontSize--;
+                element.style.fontSize = fontSize + 'px';
+            }
+        }
+
         let coursesCache = null;
         let lastCourseFetch = 0;
         const CACHE_DURATION = 60000;
@@ -377,10 +720,6 @@
             }
         }
 
-        // ============================================
-        // MODO ALUMNO
-        // ============================================
-        
         function setupStudentMode() {
             document.getElementById('admin-panel').classList.add('hidden');
             document.getElementById('student-panel').classList.remove('hidden');
@@ -450,22 +789,18 @@
 
                     showNotification('¡Datos guardados con éxito!', 'success');
                     setTimeout(() => {
-                        document.body.innerHTML = '<div class="h-screen flex items-center justify-center bg-blue-900 text-white font-black text-2xl uppercase">Registro Completado ✓</div>';
+                        document.body.innerHTML = '<div class="h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-blue-700 text-white"><div class="text-center"><div class="text-6xl mb-4">✓</div><div class="font-black text-3xl uppercase">Registro Completado</div><p class="text-sm mt-2 opacity-80">Sus datos han sido procesados correctamente</p></div></div>';
                     }, 1500);
 
                 } catch (err) {
                     showNotification(err.message, 'error');
                     console.error('Error:', err);
                     btn.disabled = false;
-                    btn.textContent = 'INTENTAR DE NUEVO';
+                    btn.textContent = '💾 INTENTAR DE NUEVO';
                 }
             };
         }
 
-        // ============================================
-        // MODO ADMIN
-        // ============================================
-        
         function setupAdminMode() {
             document.getElementById('admin-panel').classList.remove('hidden');
             loadCourses();
@@ -501,8 +836,7 @@
         function displayCourses(data) {
             const select = document.getElementById('curso-select');
             if (data && data.length > 0) {
-                select.innerHTML = '<option value="">-- SELECCIONAR CURSO OFICIAL --</option>' +
-                    data.map(c => `<option value="${c.id}">${c.nombre_curso.toUpperCase()}</option>`).join('');
+                select.innerHTML = data.map(c => `<option value="${c.id}">${c.nombre_curso.toUpperCase()}</option>`).join('');
             } else {
                 select.innerHTML = '<option value="">-- NO HAY CURSOS --</option>';
             }
@@ -535,8 +869,6 @@
             } catch (err) {
                 if (err.message.includes('DNI')) {
                     showNotification(err.message, 'error');
-                } else {
-                    console.error('Error al buscar alumno:', err);
                 }
             }
         }
@@ -631,7 +963,7 @@
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `BASE_SAS_${new Date().toISOString().split('T')[0]}.csv`;
+                a.download = `RENAM_BASE_${new Date().toISOString().split('T')[0]}.csv`;
                 a.click();
                 window.URL.revokeObjectURL(url);
                 
@@ -641,10 +973,6 @@
             }
         }
 
-        // ============================================
-        // PREVIEW Y FORMULARIO
-        // ============================================
-        
         const form = document.getElementById('carnet-form');
 
         document.getElementById('photo-upload').onchange = (e) => {
@@ -659,15 +987,10 @@
             }
         };
 
-        document.getElementById('watermark-upload').onchange = (e) => {
-            const file = e.target.files[0];
-            if (file) readFile(file, 'watermark-preview');
-        };
-        
-        document.getElementById('logo-upload').onchange = (e) => {
-            const container = document.getElementById('logos-header');
+        document.getElementById('avales-upload').onchange = (e) => {
+            const container = document.getElementById('avales-container');
             container.innerHTML = '';
-            const files = Array.from(e.target.files).slice(0,3);
+            const files = Array.from(e.target.files).slice(0, 5);
             
             if (files.length === 0) return;
             
@@ -676,7 +999,7 @@
                 r.onload = (ev) => {
                     const img = document.createElement('img');
                     img.src = ev.target.result;
-                    img.className = 'h-full w-auto object-contain';
+                    img.className = 'aval-logo';
                     container.appendChild(img);
                 };
                 r.readAsDataURL(f);
@@ -686,7 +1009,7 @@
         document.getElementById('color-picker').oninput = (e) => {
             const color = e.target.value;
             document.documentElement.style.setProperty('--primary-color', color);
-            document.documentElement.style.setProperty('--accent-color', color + 'cc');
+            document.documentElement.style.setProperty('--accent-color', color + 'dd');
         };
 
         function readFile(file, targetId) {
@@ -706,26 +1029,39 @@
             const nombre = document.getElementById('nombre').value;
             const inst = document.getElementById('institucion').value;
             const cursoSelect = document.getElementById('curso-select');
-            const cursoText = cursoSelect.options[cursoSelect.selectedIndex]?.text || '';
+            const selectedOptions = Array.from(cursoSelect.selectedOptions);
 
             if(dni) document.getElementById('dni-display-preview').textContent = `DNI: ${dni}`;
-            if(nombre) document.getElementById('nombre-preview').textContent = nombre.toUpperCase();
-            if(inst) document.getElementById('institucion-preview').textContent = inst.toUpperCase();
-            if(cursoText && !cursoText.includes('--')) {
-                document.getElementById('curso-display-preview').textContent = cursoText;
+            
+            if(nombre) {
+                const nombreEl = document.getElementById('nombre-preview');
+                nombreEl.textContent = nombre.toUpperCase();
+                setTimeout(() => autoFitText(nombreEl, 28, 18), 100);
+            }
+            
+            if(inst) {
+                document.getElementById('institucion-preview').textContent = inst.toUpperCase();
+                document.getElementById('banda-izq-text').textContent = inst.toUpperCase();
+            }
+            
+            const cursosSection = document.getElementById('cursos-section');
+            if(selectedOptions.length > 0) {
+                const cursosHTML = selectedOptions
+                    .map(opt => `<div class="curso-item">${opt.text}</div>`)
+                    .join('');
+                cursosSection.innerHTML = cursosHTML;
+            } else {
+                cursosSection.innerHTML = '<div class="curso-item">SELECCIONAR CURSO</div>';
             }
         }
 
-        // ============================================
-        // GENERAR CREDENCIAL
-        // ============================================
-        
         form.onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
             const dniInput = document.getElementById('dni');
             const nombreInput = document.getElementById('nombre');
-            const cursoId = document.getElementById('curso-select').value;
+            const cursoSelect = document.getElementById('curso-select');
+            const selectedCursos = Array.from(cursoSelect.selectedOptions);
             
             btn.disabled = true;
             btn.innerHTML = '<span class="loader"></span> PROCESANDO...';
@@ -734,7 +1070,7 @@
                 const dni = validateDNI(dniInput.value);
                 const nombre = validateName(nombreInput.value);
                 
-                if(!cursoId) throw new Error('Debe seleccionar un curso');
+                if(selectedCursos.length === 0) throw new Error('Debe seleccionar al menos un curso');
 
                 const photoInput = document.getElementById('photo-upload');
                 let publicUrl = document.getElementById('photo-preview').src;
@@ -770,39 +1106,36 @@
                 const venceISO = vence.toISOString().split('T')[0];
                 const venceStr = vence.toLocaleDateString('es-AR');
 
-                const { error: certError } = await sb.from('certificaciones').upsert({
-                    alumno_dni: dni,
-                    curso_id: parseInt(cursoId),
-                    fecha_vencimiento: venceISO
-                });
-
-                if (certError) throw certError;
+                for (const cursoOption of selectedCursos) {
+                    const cursoId = parseInt(cursoOption.value);
+                    await sb.from('certificaciones').upsert({
+                        alumno_dni: dni,
+                        curso_id: cursoId,
+                        fecha_vencimiento: venceISO
+                    });
+                }
 
                 document.getElementById('codigo-preview').textContent = `MATRÍCULA: ${matricula}`;
                 document.getElementById('vence-display-preview').textContent = `VENCE: ${venceStr}`;
                 
                 new QRious({ 
                     element: document.getElementById('qr-code-preview'), 
-                    value: `https://instructormap.github.io/verificador-Carnet-Oficial/?id=${matricula}`, 
-                    size: 110, 
+                    value: `https://renam.asari.ar/verificar/${matricula}`, 
+                    size: 90, 
                     level: 'H' 
                 });
 
-                showNotification('¡Acreditación Exitosa! Datos guardados en la nube', 'success');
+                showNotification('¡Credencial Oficial Emitida con ' + selectedCursos.length + ' curso(s)!', 'success');
 
             } catch (err) {
                 showNotification(err.message, 'error');
                 console.error('Error completo:', err);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = 'EMITIR & GUARDAR';
+                btn.innerHTML = '🎓 EMITIR CREDENCIAL OFICIAL';
             }
         };
 
-        // ============================================
-        // DESCARGAR IMAGEN
-        // ============================================
-        
         window.downloadImage = function(fmt) {
             html2canvas(document.getElementById('preview-container'), { 
                 scale: 3, 
@@ -812,10 +1145,11 @@
             }).then(canvas => {
                 const a = document.createElement('a');
                 const timestamp = new Date().toISOString().split('T')[0];
-                a.download = `CREDENTIAL_SAS_${timestamp}.${fmt === 'jpeg' ? 'jpg' : 'png'}`;
+                const dniValue = document.getElementById('dni').value || 'RENAM';
+                a.download = `RENAM_${dniValue}_${timestamp}.${fmt === 'jpeg' ? 'jpg' : 'png'}`;
                 a.href = canvas.toDataURL(`image/${fmt}`, 1.0);
                 a.click();
-                showNotification('Credencial descargada', 'success');
+                showNotification('✅ Credencial descargada', 'success');
             }).catch(err => {
                 showNotification('Error al descargar: ' + err.message, 'error');
             });
