@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RENAM - Registro Nacional de Matriculaciones</title>
+    <title>RENAM - Generador Oficial v27.0</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -16,7 +16,7 @@
         :root { 
             --primary-color: #1e3a8a; 
             --accent-color: #2563eb;
-            --gold-light: #f9f1d8; /* Dorado más suave tipo tarjeta */
+            --gold-light: #f9f1d8;
             --gold-dark: #d4af37;
         }
         body { font-family: 'Roboto', sans-serif; background: #f0f2f5; }
@@ -28,239 +28,85 @@
             height: 540px; 
             position: relative; 
             overflow: hidden; 
-            /* Fondo Dorado Degradado como en la imagen */
             background: linear-gradient(135deg, #e8dcb5 0%, #f4e4c1 50%, #d4af37 100%); 
             box-shadow: 0 25px 70px rgba(0,0,0,0.3); 
             border-radius: 20px;
         }
         
-        /* Borde Azul Externo (Marco) */
+        /* Marco Azul */
         .carnet-preview::after {
-            content: '';
-            position: absolute;
-            inset: 0;
+            content: ''; position: absolute; inset: 0;
             border: 12px solid var(--primary-color);
-            border-radius: 20px;
-            pointer-events: none;
-            z-index: 100;
+            border-radius: 20px; pointer-events: none; z-index: 100;
         }
 
-        /* BARRA SUPERIOR AZUL (Dentro del marco) */
+        /* Barras */
         .header-bar {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            right: 12px;
-            height: 60px;
-            background: var(--primary-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 40px;
-            z-index: 90;
-            color: white;
+            position: absolute; top: 12px; left: 12px; right: 12px; height: 60px;
+            background: var(--primary-color); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; z-index: 90; color: white;
         }
-
-        /* BARRA INFERIOR AZUL (Dentro del marco) */
         .footer-bar {
-            position: absolute;
-            bottom: 12px;
-            left: 12px;
-            right: 12px;
-            height: 40px;
-            background: #0f172a; /* Azul muy oscuro */
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 40px;
-            z-index: 90;
-            color: white;
+            position: absolute; bottom: 12px; left: 12px; right: 12px; height: 40px;
+            background: #0f172a; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; z-index: 90; color: white;
         }
 
-        /* FOTO - Posicionada a la izquierda */
+        /* Elementos Visuales */
         #photo-preview {
-            position: absolute;
-            top: 85px;
-            left: 45px;
-            width: 280px;
-            height: 350px;
-            object-fit: cover;
-            z-index: 10;
-            background: white;
-            border: 4px solid white;
+            position: absolute; top: 85px; left: 45px; width: 280px; height: 350px;
+            object-fit: cover; z-index: 10; background: white; border: 4px solid white;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        /* LOGO RENAM CIRCULAR */
-        .renam-logo-container {
-            position: absolute;
-            top: 85px;
-            left: 350px; /* Centrado respecto al espacio libre */
-            z-index: 30;
-        }
-
+        .renam-logo-container { position: absolute; top: 85px; left: 350px; z-index: 30; }
         .renam-logo-circle {
-            width: 130px;
-            height: 130px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            border: 4px solid #fbbf24; /* Borde dorado */
+            width: 130px; height: 130px; background: white; border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 4px solid #fbbf24;
         }
+        .renam-main { font-size: 28px; font-weight: 900; color: var(--primary-color); line-height: 1; }
+        .renam-sub { font-size: 8px; font-weight: 700; color: var(--gold-dark); letter-spacing: 1px; }
 
-        .renam-main {
-            font-size: 28px;
-            font-weight: 900;
-            color: var(--primary-color);
-            line-height: 1;
-        }
-        .renam-sub {
-            font-size: 8px;
-            font-weight: 700;
-            color: var(--gold-dark);
-            letter-spacing: 1px;
-        }
+        #avales-container { position: absolute; top: 225px; left: 350px; display: flex; gap: 15px; z-index: 25; }
+        .aval-logo { height: 45px; width: auto; object-fit: contain; background: white; padding: 2px; }
 
-        /* LOGOS AVALES (AAPS, COLBERT, UTN) */
-        #avales-container {
-            position: absolute;
-            top: 225px;
-            left: 350px;
-            display: flex;
-            gap: 15px;
-            z-index: 25;
-        }
-        .aval-logo {
-            height: 45px;
-            width: auto;
-            object-fit: contain;
-            background: white; /* Fondo blanco para resaltar logos */
-            padding: 2px;
-        }
-
-        /* LISTA DE CURSOS */
-        #cursos-section {
-            position: absolute;
-            top: 285px;
-            left: 350px;
-            width: 450px;
-            z-index: 20;
-        }
+        #cursos-section { position: absolute; top: 285px; left: 350px; width: 450px; z-index: 20; }
         .curso-item {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--accent-color); /* Azul brillante */
-            text-transform: uppercase;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
+            font-size: 16px; font-weight: 700; color: var(--accent-color); text-transform: uppercase;
+            margin-bottom: 6px; display: flex; align-items: center;
         }
-        .curso-item::before {
-            content: '▶';
-            font-size: 10px;
-            color: var(--gold-dark);
-            margin-right: 8px;
-        }
+        .curso-item::before { content: '▶'; font-size: 10px; color: var(--gold-dark); margin-right: 8px; }
 
-        /* DATOS PERSONALES (NOMBRE, DNI, MATRICULA) */
         #nombre-preview {
-            position: absolute;
-            bottom: 135px;
-            left: 350px;
-            right: 40px;
-            font-size: 32px;
-            font-weight: 900;
-            color: var(--primary-color);
-            text-transform: uppercase;
-            z-index: 30;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            position: absolute; bottom: 135px; left: 350px; right: 40px;
+            font-size: 32px; font-weight: 900; color: var(--primary-color);
+            text-transform: uppercase; z-index: 30; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-
-        #dni-container {
-            position: absolute;
-            bottom: 110px;
-            left: 350px;
-            font-size: 16px;
-            font-weight: 700;
-            color: #475569;
-            z-index: 30;
-        }
-
-        #matricula-container {
-            position: absolute;
-            bottom: 85px;
-            left: 350px;
-            font-size: 20px;
-            font-weight: 900;
-            color: #0f172a;
-            z-index: 30;
-        }
-
-        /* CAJA DE VENCIMIENTO (Estilo Sello Rojo) */
+        #dni-container { position: absolute; bottom: 110px; left: 350px; font-size: 16px; font-weight: 700; color: #475569; z-index: 30; }
+        #matricula-container { position: absolute; bottom: 85px; left: 350px; font-size: 20px; font-weight: 900; color: #0f172a; z-index: 30; }
+        
         #vence-display-preview {
-            position: absolute;
-            bottom: 60px;
-            left: 350px;
-            font-size: 14px;
-            color: #dc2626;
-            font-weight: 900;
-            z-index: 30;
-            border: 2px solid #dc2626;
-            padding: 2px 8px;
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.5);
+            position: absolute; bottom: 60px; left: 350px; font-size: 14px;
+            color: #dc2626; font-weight: 900; z-index: 30;
+            border: 2px solid #dc2626; padding: 2px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.5);
         }
 
-        /* QR CODE */
         .qr-box {
-            position: absolute;
-            bottom: 65px; /* Ajustado para que no tape */
-            left: 45px;
-            width: 100px;
-            height: 100px;
-            background: white;
-            padding: 5px;
-            z-index: 110;
-            border-radius: 8px;
+            position: absolute; bottom: 65px; left: 45px; width: 100px; height: 100px;
+            background: white; padding: 5px; z-index: 110; border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        /* MARCA DE AGUA */
         #watermark-asari {
-            position: absolute;
-            top: 50%;
-            right: 50px;
-            transform: translateY(-50%);
-            width: 250px;
-            height: 250px;
-            opacity: 0.05;
-            z-index: 1;
-            object-fit: contain;
+            position: absolute; top: 50%; right: 50px; transform: translateY(-50%);
+            width: 250px; height: 250px; opacity: 0.05; z-index: 1; object-fit: contain;
         }
 
-        /* Vertical Text Sidebar (Opcional, la imagen nueva no lo muestra tan claro, pero lo dejo sutil) */
+        /* Sidebar Text */
         .sidebar-text {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%) rotate(-90deg);
-            color: white;
-            font-weight: 900;
-            font-size: 10px;
-            letter-spacing: 4px;
-            z-index: 110;
+            position: absolute; left: 15px; top: 50%; transform: translateY(-50%) rotate(-90deg);
+            color: white; font-weight: 900; font-size: 10px; letter-spacing: 4px; z-index: 110;
         }
 
-        /* UI GENERADOR */
-        .tab-btn { padding-bottom: 0.5rem; text-transform: uppercase; font-weight: 700; color: #94a3b8; border-bottom: 4px solid transparent; }
-        .tab-btn:hover { color: #1e40af; }
-        .tab-active { border-color: var(--primary-color); color: var(--primary-color); }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .notification { position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 16px 24px; border-radius: 12px; font-weight: 700; box-shadow: 0 10px 25px rgba(0,0,0,0.15); animation: slideIn 0.3s ease-out; }
@@ -271,7 +117,7 @@
 </head>
 <body class="p-4 lg:p-8 min-h-screen">
 
-    <div id="admin-panel" class="max-w-7xl mx-auto hidden">
+    <div class="max-w-7xl mx-auto">
         <header class="bg-white p-6 rounded-3xl shadow-lg mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-4">
                 <div class="w-16 h-16 bg-blue-900 rounded-full flex items-center justify-center text-white border-4 border-yellow-500 shadow-lg">
@@ -279,66 +125,56 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-black text-slate-800 uppercase">RENAM - ASARI</h1>
-                    <p class="text-xs text-blue-600 font-bold">Generador Oficial de Credenciales</p>
+                    <p class="text-xs text-blue-600 font-bold">Generador Oficial & Base de Datos</p>
                 </div>
             </div>
-            <nav class="flex gap-6">
-                <button onclick="switchTab('manual')" id="tab-manual" class="tab-btn tab-active">Generador</button>
-                <button onclick="switchTab('autogestion')" id="tab-autogestion" class="tab-btn">Links Alumnos</button>
-                <button onclick="switchTab('database')" id="tab-database" class="tab-btn">Base de Datos</button>
-            </nav>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
             <section class="bg-white p-8 rounded-3xl shadow-xl h-fit">
-                <div id="content-manual">
-                    <form id="carnet-form" class="space-y-4">
-                        <input type="text" id="institucion" placeholder="NOMBRE INSTITUCIÓN (Encabezado)" class="w-full p-4 bg-slate-50 rounded-2xl font-black uppercase ring-1 ring-slate-200">
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="relative">
-                                <input type="text" id="dni" placeholder="DNI (Sin puntos)" maxlength="8" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-blue-900" onblur="checkExistingStudent()">
-                                <span class="absolute right-3 top-4 text-[10px] text-gray-400 font-bold">DETECTAR</span>
-                            </div>
-                            <input type="text" id="nombre" placeholder="NOMBRE COMPLETO" class="w-full p-4 bg-slate-50 rounded-2xl font-bold uppercase">
+                <form id="carnet-form" class="space-y-4">
+                    <input type="text" id="institucion" placeholder="INSTITUCIÓN (Encabezado)" class="w-full p-4 bg-slate-50 rounded-2xl font-black uppercase ring-1 ring-slate-200">
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="relative">
+                            <input type="text" id="dni" placeholder="DNI (Sin puntos)" maxlength="8" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-blue-900" onblur="checkExistingStudent()">
+                            <span class="absolute right-3 top-4 text-[10px] text-gray-400 font-bold">DETECTAR</span>
                         </div>
+                        <input type="text" id="nombre" placeholder="NOMBRE COMPLETO" class="w-full p-4 bg-slate-50 rounded-2xl font-bold uppercase">
+                    </div>
 
-                        <div class="bg-yellow-50 p-4 rounded-2xl border border-yellow-100">
-                            <label class="text-xs font-bold text-yellow-800 uppercase mb-2 block">Cursos (Selección Múltiple)</label>
-                            <select id="curso-select" multiple size="4" class="w-full p-3 bg-white rounded-xl font-bold text-blue-900 border-2 border-yellow-200">
-                                <option value="">-- CARGANDO CURSOS --</option>
-                            </select>
-                            <p class="text-[10px] text-yellow-700 mt-1">Usa Ctrl (PC) o Cmd (Mac) para seleccionar varios.</p>
+                    <div class="bg-yellow-50 p-4 rounded-2xl border border-yellow-100">
+                        <label class="text-xs font-bold text-yellow-800 uppercase mb-2 block">Cursos (Selección Múltiple)</label>
+                        <select id="curso-select" multiple size="4" class="w-full p-3 bg-white rounded-xl font-bold text-blue-900 border-2 border-yellow-200">
+                            <option value="">-- CARGANDO... --</option>
+                        </select>
+                        <p class="text-[10px] text-yellow-700 mt-1">Usa Ctrl (PC) o Cmd (Mac) para seleccionar varios.</p>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="p-2 border-2 border-dashed rounded-xl bg-slate-50 text-center hover:bg-white transition">
+                            <label class="text-[9px] font-bold block uppercase text-blue-600 mb-1 cursor-pointer">1. Foto</label>
+                            <input type="file" id="photo-upload" accept="image/*" class="text-[9px] w-full">
                         </div>
-
-                        <div class="grid grid-cols-3 gap-2">
-                            <div class="p-2 border-2 border-dashed rounded-xl bg-slate-50 text-center hover:bg-white transition">
-                                <label class="text-[9px] font-bold block uppercase text-blue-600 mb-1 cursor-pointer">1. Foto Alumno</label>
-                                <input type="file" id="photo-upload" accept="image/*" class="text-[9px] w-full">
-                            </div>
-                            <div class="p-2 border-2 border-dashed rounded-xl bg-slate-50 text-center hover:bg-white transition">
-                                <label class="text-[9px] font-bold block uppercase text-blue-600 mb-1 cursor-pointer">2. Logos Avales</label>
-                                <input type="file" id="avales-upload" accept="image/*" multiple class="text-[9px] w-full">
-                            </div>
-                            <div class="p-2 border-2 border-dashed rounded-xl bg-slate-50 text-center hover:bg-white transition">
-                                <label class="text-[9px] font-bold block uppercase text-blue-600 mb-1 cursor-pointer">3. Marca Agua</label>
-                                <input type="file" id="watermark-upload" accept="image/*" class="text-[9px] w-full">
-                            </div>
+                        <div class="p-2 border-2 border-dashed rounded-xl bg-slate-50 text-center hover:bg-white transition">
+                            <label class="text-[9px] font-bold block uppercase text-blue-600 mb-1 cursor-pointer">2. Avales</label>
+                            <input type="file" id="avales-upload" accept="image/*" multiple class="text-[9px] w-full">
                         </div>
-
-                        <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl">
-                            <span class="text-xs font-bold text-slate-500 uppercase">Color Institucional</span>
-                            <input type="color" id="color-picker" value="#1e3a8a" class="w-12 h-8 rounded cursor-pointer border-none">
+                        <div class="p-2 border-2 border-dashed rounded-xl bg-slate-50 text-center hover:bg-white transition">
+                            <label class="text-[9px] font-bold block uppercase text-blue-600 mb-1 cursor-pointer">3. Marca Agua</label>
+                            <input type="file" id="watermark-upload" accept="image/*" class="text-[9px] w-full">
                         </div>
+                    </div>
 
-                        <button type="submit" id="submit-btn" class="w-full bg-blue-900 text-white py-5 rounded-2xl font-black text-lg hover:bg-black transition-all shadow-xl uppercase tracking-widest border-b-4 border-blue-950 active:border-0 active:translate-y-1">
-                            Emitir Credencial
-                        </button>
-                    </form>
-                </div>
+                    <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Color Institucional</span>
+                        <input type="color" id="color-picker" value="#1e3a8a" class="w-12 h-8 rounded cursor-pointer border-none">
+                    </div>
 
-                <div id="content-autogestion" class="hidden"><p class="text-center text-gray-400 py-10">Módulo de Autogestión Activo</p></div>
-                <div id="content-database" class="hidden"><p class="text-center text-gray-400 py-10">Base de Datos Conectada</p></div>
+                    <button type="submit" id="submit-btn" class="w-full bg-blue-900 text-white py-5 rounded-2xl font-black text-lg hover:bg-black transition-all shadow-xl uppercase tracking-widest border-b-4 border-blue-950 active:border-0 active:translate-y-1">
+                        Emitir y Guardar en Nube
+                    </button>
+                </form>
             </section>
 
             <section class="flex flex-col items-center sticky top-8">
@@ -349,7 +185,6 @@
                         <div class="footer-bar"><span class="text-[10px] font-black opacity-70 uppercase">RENAM - Argentina</span><span class="text-[10px] font-black uppercase">ASARI.SAS</span></div>
                         
                         <div class="sidebar-text">INSTITUTO COLBERT</div>
-
                         <img id="photo-preview" src="https://placehold.co/280x350/e2e8f0/94a3b8?text=FOTO" alt="Foto">
                         
                         <div class="renam-logo-container">
@@ -360,14 +195,12 @@
                         </div>
 
                         <div id="avales-container"></div>
-
                         <div id="cursos-section"></div>
-
                         <img id="watermark-asari" src="" alt="">
 
                         <div id="nombre-preview">NOMBRE DEL ALUMNO</div>
                         <div id="dni-container">DNI: <span id="dni-val"></span></div>
-                        <div id="matricula-container">MATRÍCULA: <span id="mat-val">ARG-00000000</span></div>
+                        <div id="matricula-container">MATRÍCULA: <span id="mat-val">...</span></div>
                         <div id="vence-display-preview">VENCE: --/--/----</div>
 
                         <div class="qr-box"><canvas id="qr-code-preview"></canvas></div>
@@ -383,33 +216,21 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN
+        // --- CREDENCIALES SUPABASE ---
         const CONFIG = {
             supabaseUrl: 'https://fuxnsebrhxxbalqfmtzs.supabase.co',
             supabaseKey: 'sb_publishable_brWrs7Bn3vGFS7H2mEHkKQ_hcK1a8WV',
-            githubRepo: 'https://instructormap.github.io/verificador-Carnet-Oficial/' // DIRECCIÓN CORRECTA
+            githubRepo: 'https://instructormap.github.io/verificador-Carnet-Oficial/' 
         };
         const sb = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
 
-        // FUNCIONES DE UTILIDAD
+        // --- UTILIDADES ---
         function showNotification(msg, type='info') {
             const d = document.createElement('div');
             d.className = `notification ${type === 'error' ? 'error' : 'success'}`;
             d.textContent = msg;
             document.body.appendChild(d);
             setTimeout(() => d.remove(), 3000);
-        }
-
-        // INIT
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('admin-panel').classList.remove('hidden');
-            loadCourses();
-        });
-
-        function switchTab(t) {
-            ['manual','autogestion','database'].forEach(id => document.getElementById('content-'+id).classList.add('hidden'));
-            document.getElementById('content-'+t).classList.remove('hidden');
-            // Nota: He simplificado las pestañas secundarias para enfocarme en la corrección estética del generador
         }
 
         async function loadCourses() {
@@ -419,12 +240,10 @@
             }
         }
 
-        // PREVIEW UPDATE
+        // --- LÓGICA DE FOTOS Y PREVIEW ---
         const form = document.getElementById('carnet-form');
         
         document.getElementById('photo-upload').onchange = (e) => readFile(e.target.files[0], 'photo-preview');
-        
-        // LÓGICA MARCA DE AGUA (AGREGADA)
         document.getElementById('watermark-upload').onchange = (e) => readFile(e.target.files[0], 'watermark-asari');
 
         document.getElementById('avales-upload').onchange = (e) => {
@@ -436,6 +255,10 @@
                     c.appendChild(img);
                 }; r.readAsDataURL(f);
             });
+        };
+
+        document.getElementById('color-picker').oninput = (e) => {
+            document.documentElement.style.setProperty('--primary-color', e.target.value);
         };
 
         function readFile(f, id) {
@@ -457,33 +280,96 @@
             document.getElementById('cursos-section').innerHTML = opts.map(o => `<div class="curso-item">${o.text}</div>`).join('');
         }
 
-        // SUBMIT
+        // --- DETECTAR ALUMNO EXISTENTE ---
+        window.checkExistingStudent = async function() {
+            const dni = document.getElementById('dni').value;
+            if(!dni) return;
+            
+            const { data } = await sb.from('alumnos').select('*').eq('dni', dni).single();
+            if(data) {
+                if(confirm("Alumno existente encontrado. ¿Cargar datos?")) {
+                    document.getElementById('nombre').value = data.nombre_completo;
+                    if(data.foto_url) document.getElementById('photo-preview').src = data.foto_url;
+                    updatePreview();
+                }
+            }
+        }
+
+        // --- SUBMIT: GUARDAR EN SUPABASE Y GENERAR QR ---
         form.onsubmit = async (e) => {
             e.preventDefault();
+            const btn = document.getElementById('submit-btn');
             const dni = document.getElementById('dni').value;
-            if(!dni) return showNotification("Falta DNI", 'error');
+            const nombre = document.getElementById('nombre').value;
+            const selectedCursos = Array.from(document.getElementById('curso-select').selectedOptions);
 
-            const matricula = `ARG-${Math.floor(Math.random()*90000000 + 10000000)}`; // Simulado para preview rápido
+            if(!dni || !nombre) return showNotification("Falta DNI o Nombre", 'error');
             
-            // ACTUALIZAR PREVIEW FINAL
-            document.getElementById('mat-val').textContent = matricula;
-            
-            const hoy = new Date();
-            hoy.setFullYear(hoy.getFullYear() + 1);
-            document.getElementById('vence-display-preview').textContent = `VENCE: ${hoy.toLocaleDateString('es-AR')}`;
+            btn.disabled = true;
+            btn.textContent = "GUARDANDO EN NUBE...";
 
-            // GENERAR QR CORRECTO AL REPOSITORIO GITHUB
-            new QRious({
-                element: document.getElementById('qr-code-preview'),
-                value: `${CONFIG.githubRepo}?id=${matricula}`,
-                size: 100,
-                level: 'H'
-            });
+            try {
+                // 1. GESTIÓN DE FOTO (Subir si hay nueva, o usar placeholder/existente)
+                const photoInput = document.getElementById('photo-upload');
+                let publicUrl = document.getElementById('photo-preview').src;
 
-            showNotification("Credencial Generada Correctamente", "success");
-            // Aquí iría la lógica completa de subida a Supabase (mantenida de versiones anteriores)
+                if(photoInput.files.length > 0) {
+                    const fileName = `foto_${dni}_${Date.now()}.jpg`;
+                    await sb.storage.from('fotos_carnet').upload(fileName, photoInput.files[0]);
+                    const { data } = sb.storage.from('fotos_carnet').getPublicUrl(fileName);
+                    publicUrl = data.publicUrl;
+                }
+
+                // 2. MATRÍCULA (Buscar existente o crear nueva)
+                let { data: existing } = await sb.from('alumnos').select('matricula_arg').eq('dni', dni).single();
+                let matricula = existing ? existing.matricula_arg : `ARG-${Math.floor(Math.random()*90000000 + 10000000)}`;
+
+                // 3. GUARDAR ALUMNO (UPSERT)
+                const { error: errAlumno } = await sb.from('alumnos').upsert({
+                    dni: dni,
+                    nombre_completo: nombre,
+                    matricula_arg: matricula,
+                    foto_url: publicUrl
+                });
+                if(errAlumno) throw errAlumno;
+
+                // 4. GUARDAR CURSOS (Hoja de Vida)
+                const vence = new Date();
+                vence.setFullYear(vence.getFullYear() + 1);
+                const venceISO = vence.toISOString().split('T')[0];
+
+                for (const curso of selectedCursos) {
+                    await sb.from('certificaciones').upsert({
+                        alumno_dni: dni,
+                        curso_id: parseInt(curso.value),
+                        fecha_vencimiento: venceISO
+                    });
+                }
+
+                // 5. ACTUALIZAR UI FINAL
+                document.getElementById('mat-val').textContent = matricula;
+                document.getElementById('vence-display-preview').textContent = `VENCE: ${vence.toLocaleDateString('es-AR')}`;
+
+                // 6. GENERAR QR VÁLIDO (Apunta al validador con la Matrícula Real)
+                new QRious({
+                    element: document.getElementById('qr-code-preview'),
+                    value: `${CONFIG.githubRepo}?id=${matricula}`,
+                    size: 100,
+                    level: 'H'
+                });
+
+                showNotification("¡Datos Guardados en Nube! QR Válido.", "success");
+
+            } catch (err) {
+                console.error(err);
+                showNotification("Error: " + err.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Emitir y Guardar en Nube";
+            }
         };
 
+        // DOWNLOAD
         window.downloadImage = (fmt) => {
             html2canvas(document.getElementById('preview-container'), { scale:3, useCORS:true }).then(c => {
                 const a = document.createElement('a');
@@ -491,6 +377,9 @@
                 a.href = c.toDataURL(`image/${fmt}`, 1.0); a.click();
             });
         };
+
+        // INICIAR
+        loadCourses();
     </script>
 </body>
 </html>
