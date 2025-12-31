@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RENAM - Gestión v31.0 (Diseño Blue)</title>
+    <title>RENAM - Registro Nacional de Matriculaciones</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -14,468 +14,622 @@
     
     <style>
         :root { 
-            --primary-color: #1e40af; /* Azul Fuerte (Referencia) */
-            --text-blue: #1d4ed8;     /* Azul Texto */
-            --dark-blue: #172554;     /* Azul Oscuro Footer */
+            --primary-color: #1e40af;
+            --text-blue: #1d4ed8;
+            --dark-blue: #172554;
         }
-        body { font-family: 'Roboto', sans-serif; background: #f1f5f9; }
+        body { font-family: 'Roboto', sans-serif; background: #f0f2f5; }
 
-        /* --- CONTENEDOR DEL CARNET --- */
-        #download-area { width: 856px; padding: 20px; background: #cbd5e1; border-radius: 20px; margin: 0 auto; }
+        /* ============================================ */
+        /* DISEÑO OPTIMIZADO DE LA CREDENCIAL */
+        /* ============================================ */
+        
+        #download-area { 
+            width: 856px; 
+            padding: 20px; 
+            background: #e2e8f0; 
+            border-radius: 20px; 
+            margin: 0 auto; 
+        }
         
         .carnet-preview { 
             width: 856px; 
             height: 540px; 
             position: relative; 
             overflow: hidden; 
-            background: #ffffff; /* Fondo Blanco Puro */
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+            background: #ffffff;
+            font-family: 'Roboto', sans-serif;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         
-        /* BARRA SUPERIOR */
-        .header-bar {
-            position: absolute; top: 0; left: 0; width: 100%; height: 75px;
-            background: var(--primary-color); 
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 0 40px; z-index: 50; color: white;
+        /* GUILLOCHE MULTI-CAPA (Efecto Holográfico DNI) */
+        .security-guilloche {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background:
+                /* Capa 1: Diagonal fina 45° */
+                repeating-linear-gradient(45deg, 
+                    transparent 0px, transparent 8px, 
+                    rgba(30, 64, 175, 0.025) 8px, rgba(30, 64, 175, 0.025) 9px),
+                
+                /* Capa 2: Diagonal inversa -45° */
+                repeating-linear-gradient(-45deg, 
+                    transparent 0px, transparent 8px, 
+                    rgba(30, 64, 175, 0.025) 8px, rgba(30, 64, 175, 0.025) 9px),
+                
+                /* Capa 3: Líneas horizontales */
+                repeating-linear-gradient(90deg, 
+                    transparent 0px, transparent 12px, 
+                    rgba(30, 64, 175, 0.02) 12px, rgba(30, 64, 175, 0.02) 13px),
+                
+                /* Capa 4: Líneas verticales */
+                repeating-linear-gradient(0deg, 
+                    transparent 0px, transparent 12px, 
+                    rgba(30, 64, 175, 0.02) 12px, rgba(30, 64, 175, 0.02) 13px),
+                
+                /* Capa 5: Puntos micro */
+                radial-gradient(circle, rgba(30, 64, 175, 0.015) 0.5px, transparent 0.5px),
+                
+                /* Capa 6: Ondas diagonales sutiles */
+                repeating-linear-gradient(60deg, 
+                    transparent 0px, transparent 15px, 
+                    rgba(30, 64, 175, 0.015) 15px, rgba(30, 64, 175, 0.015) 16px);
+                    
+            background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 4px 4px, 100% 100%;
         }
 
-        /* LOGO RENAM EN CABECERA */
+        /* BANDA HOLOGRÁFICA (Efecto Arcoíris) */
+        .holographic-stripe {
+            position: absolute;
+            top: 0; 
+            right: -30px; 
+            bottom: 0;
+            width: 120px;
+            background: linear-gradient(135deg, 
+                rgba(255,0,0,0.06) 0%,
+                rgba(255,154,0,0.06) 14%,
+                rgba(208,222,33,0.06) 28%,
+                rgba(79,220,74,0.06) 42%,
+                rgba(63,218,216,0.06) 56%,
+                rgba(47,201,226,0.06) 70%,
+                rgba(28,127,238,0.06) 84%,
+                rgba(95,21,242,0.06) 100%
+            );
+            transform: skewX(-15deg);
+            z-index: 5;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        /* MICROIMPRESIONES */
+        .microprint {
+            position: absolute;
+            bottom: 52px; 
+            left: 360px; 
+            right: 40px;
+            font-size: 3px;
+            font-weight: 700;
+            color: rgba(30, 64, 175, 0.15);
+            letter-spacing: 0.5px;
+            line-height: 4px;
+            transform: scaleY(0.8);
+            z-index: 3;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        /* ROSETA DE SEGURIDAD */
+        .security-rosette {
+            position: absolute;
+            bottom: 60px;
+            right: 50px;
+            width: 50px;
+            height: 50px;
+            opacity: 0.15;
+            z-index: 3;
+        }
+
+        /* Barra Superior Azul */
+        .header-bar {
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 85px;
+            background: var(--primary-color); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 0 40px; 
+            z-index: 50; 
+            color: white;
+        }
+
+        .inst-title {
+            font-size: 28px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+
+        .id-label {
+            font-size: 12px;
+            font-weight: 900;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Logo RENAM Central */
         .renam-header-logo {
             position: absolute;
-            left: 50%; top: 50%;
+            left: 50%; 
+            top: 50%;
             transform: translate(-50%, -50%);
-            height: 65px; width: 65px;
+            height: 70px; 
+            width: 70px;
             background: white;
             border-radius: 50%;
-            padding: 2px;
-            border: 2px solid #fbbf24; /* Toque dorado sutil */
-            display: flex; align-items: center; justify-content: center;
+            padding: 3px;
+            border: 2px solid #fbbf24;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
-        .renam-text-logo { font-weight: 900; color: var(--primary-color); font-size: 14px; text-align: center; line-height: 1; }
+        
+        .renam-text-logo { 
+            font-weight: 900; 
+            color: var(--primary-color); 
+            font-size: 16px; 
+            text-align: center; 
+            line-height: 0.9; 
+        }
 
-        /* BARRA INFERIOR */
+        /* Barra Inferior */
         .footer-bar {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 50px;
-            background: var(--primary-color); /* Mismo azul para consistencia */
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 0 40px; z-index: 50; color: white;
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 50px;
+            background: var(--primary-color);
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 0 40px; 
+            z-index: 50; 
+            color: white;
+        }
+        
+        .footer-text { 
+            font-size: 11px; 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
         }
 
-        /* FOTO */
+        /* Foto del Alumno */
         #photo-preview {
-            position: absolute; top: 100px; left: 40px; width: 280px; height: 320px;
-            object-fit: cover; z-index: 10; 
-            /* Sin bordes exagerados, limpio como la referencia */
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+            position: absolute; 
+            top: 110px; 
+            left: 40px; 
+            width: 280px; 
+            height: 340px;
+            object-fit: cover; 
+            z-index: 10; 
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.15);
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
         }
 
-        /* LOGOS AVALES */
+        /* Contenedor de Logos */
         #avales-container { 
-            position: absolute; top: 90px; left: 350px; right: 40px;
-            display: flex; gap: 20px; align-items: center; justify-content: flex-start;
-            height: 60px; z-index: 25; 
+            position: absolute; 
+            top: 100px; 
+            left: 360px; 
+            right: 40px;
+            display: flex; 
+            gap: 15px; 
+            align-items: center; 
+            justify-content: flex-start;
+            height: 60px; 
+            z-index: 25;
+            flex-wrap: wrap;
         }
-        .aval-logo { height: 50px; width: auto; object-fit: contain; }
+        
+        .aval-logo { 
+            height: 50px; 
+            width: auto;
+            max-width: 70px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));
+        }
 
-        /* CURSOS (Estilo Lista Azul) */
+        /* Sección de Cursos */
         #cursos-section { 
-            position: absolute; top: 160px; left: 350px; right: 40px; 
-            z-index: 20; 
+            position: absolute; 
+            top: 180px; 
+            left: 360px; 
+            right: 40px; 
+            z-index: 20;
+            max-height: 200px;
+            overflow: hidden;
         }
+        
         .curso-item-clean {
-            font-size: 17px;
-            font-weight: 700;
+            font-size: 18px;
+            font-weight: 900;
             color: var(--text-blue);
             text-transform: uppercase;
-            margin-bottom: 6px;
-            line-height: 1.2;
-            display: flex; align-items: flex-start;
+            margin-bottom: 8px;
+            line-height: 1.1;
+            display: flex; 
+            align-items: flex-start;
         }
+        
         .curso-item-clean::before {
             content: '•';
             color: var(--text-blue);
-            margin-right: 10px;
-            font-size: 20px;
+            margin-right: 12px;
+            font-size: 24px;
             line-height: 18px;
         }
 
-        /* DATOS PERSONALES (Tipografía Grande Azul) */
+        /* Datos Personales */
         #nombre-preview {
-            position: absolute; bottom: 140px; left: 350px; right: 40px;
-            font-size: 36px; font-weight: 900; color: #172554; /* Azul muy oscuro */
-            text-transform: uppercase; z-index: 30; line-height: 1;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            position: absolute; 
+            bottom: 150px; 
+            left: 360px; 
+            right: 40px;
+            font-size: 38px; 
+            font-weight: 900; 
+            color: var(--dark-blue);
+            text-transform: uppercase; 
+            z-index: 30; 
+            line-height: 1;
         }
-        
-        #apellido-preview { /* Opcional si se separa */ }
 
         #dni-container { 
-            position: absolute; bottom: 110px; left: 350px; 
-            font-size: 18px; font-weight: 700; color: #334155; z-index: 30; text-transform: uppercase;
+            position: absolute; 
+            bottom: 115px; 
+            left: 360px; 
+            font-size: 20px; 
+            font-weight: 900; 
+            color: #475569; 
+            z-index: 30; 
+            text-transform: uppercase;
         }
         
         #matricula-container { 
-            position: absolute; bottom: 80px; left: 350px; 
-            font-size: 22px; font-weight: 900; color: #0f172a; z-index: 30; 
+            position: absolute; 
+            bottom: 85px; 
+            left: 360px; 
+            font-size: 24px; 
+            font-weight: 900; 
+            color: #000000; 
+            z-index: 30; 
         }
         
         #vence-display-preview {
-            position: absolute; bottom: 58px; left: 350px; 
-            font-size: 12px; font-weight: 700; color: #64748b; z-index: 30;
+            position: absolute; 
+            bottom: 60px; 
+            left: 360px; 
+            font-size: 13px; 
+            font-weight: 700; 
+            color: #64748b; 
+            z-index: 30;
+            text-transform: uppercase;
         }
 
-        /* QR CODE (Superpuesto en esquina inf izq) */
+        /* QR Code */
         .qr-box {
-            position: absolute; bottom: 70px; left: 40px; 
-            width: 110px; height: 110px;
-            background: white; padding: 5px; z-index: 110; 
+            position: absolute; 
+            bottom: 70px; 
+            left: 40px; 
+            width: 110px; 
+            height: 110px;
+            background: white; 
+            padding: 5px; 
+            z-index: 110; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             border: 1px solid #e2e8f0;
         }
 
-        /* MARCA DE AGUA (Sutil fondo) */
+        /* Marca de Agua (Más Visible) */
         #watermark-asari {
-            position: absolute; top: 50%; right: 50px; transform: translateY(-50%);
-            width: 350px; height: 350px; 
-            opacity: 0.08; /* Muy sutil */
-            z-index: 1; object-fit: contain;
+            position: absolute; 
+            top: 50%; 
+            right: 50px; 
+            transform: translateY(-50%);
+            width: 380px; 
+            height: 380px; 
+            opacity: 0.12;
+            z-index: 1; 
+            object-fit: contain; 
+            pointer-events: none;
         }
 
-        /* UTILS */
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .notification { position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 16px 24px; border-radius: 12px; font-weight: 700; box-shadow: 0 10px 25px rgba(0,0,0,0.15); animation: slideIn 0.3s ease-out; }
+        /* ============================================ */
+        /* INTERFAZ DE LOGOS INDIVIDUALES */
+        /* ============================================ */
+        
+        .logo-slot {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 8px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+
+        .logo-slot:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .logo-slot.has-logo {
+            border-style: solid;
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .logo-slot-preview {
+            max-width: 100%;
+            max-height: 70px;
+            object-fit: contain;
+        }
+
+        .logo-slot-btn {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logo-remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: #ef4444;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 900;
+        }
+
+        .logo-remove-btn:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+
+        /* ============================================ */
+        /* ESTILOS DE LA INTERFAZ ADMIN */
+        /* ============================================ */
+        
+        .tab-btn { 
+            text-align: center; 
+            padding-bottom: 0.5rem; 
+            text-transform: uppercase; 
+            font-weight: 700; 
+            font-size: 0.875rem; 
+            color: #94a3b8; 
+            transition: color 0.2s; 
+            cursor: pointer; 
+            border: none; 
+            background: none; 
+        }
+        .tab-btn:hover { color: #1e40af; }
+        .tab-active { border-bottom: 4px solid var(--primary-color); color: var(--primary-color); }
+
+        .loader { 
+            border: 4px solid #f3f3f3; 
+            border-top: 4px solid #3498db; 
+            border-radius: 50%; 
+            width: 20px; 
+            height: 20px; 
+            animation: spin 1s linear infinite; 
+            display: inline-block; 
+            vertical-align: middle; 
+        }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+
+        .notification {
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            z-index: 9999;
+            padding: 16px 24px; 
+            border-radius: 12px; 
+            font-weight: 700;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease-out;
+        }
         .notification.success { background: #10b981; color: white; }
         .notification.error { background: #ef4444; color: white; }
-        @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .tab-btn { padding-bottom: 0.5rem; text-transform: uppercase; font-weight: 700; color: #94a3b8; border-bottom: 4px solid transparent; }
-        .tab-active { border-color: var(--primary-color); color: var(--primary-color); }
+        .notification.info { background: #3b82f6; color: white; }
+        @keyframes slideIn { 
+            from { transform: translateX(400px); opacity: 0; } 
+            to { transform: translateX(0); opacity: 1; } 
+        }
     </style>
 </head>
 <body class="p-4 lg:p-8 min-h-screen">
 
-    <div class="max-w-7xl mx-auto">
+    <!-- PANEL ADMINISTRATIVO -->
+    <div id="admin-panel" class="max-w-7xl mx-auto hidden">
         <header class="bg-white p-6 rounded-3xl shadow-lg mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-16 h-16 bg-blue-800 rounded-full flex items-center justify-center text-white font-black text-xl shadow-lg">R</div>
+                <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-900 rounded-full flex items-center justify-center text-white shadow-xl border-4 border-yellow-600">
+                    <div class="text-center">
+                        <div class="text-xl font-black tracking-tight">RENAM</div>
+                        <div class="text-[6px] tracking-widest opacity-80">ARGENTINA</div>
+                    </div>
+                </div>
                 <div>
-                    <h1 class="text-2xl font-black text-slate-800 uppercase">RENAM v31</h1>
-                    <p class="text-xs text-blue-600 font-bold">Panel de Gestión Integral</p>
+                    <h1 class="text-2xl font-black text-slate-800 uppercase tracking-tight">RENAM</h1>
+                    <p class="text-xs text-blue-600 font-bold">Registro Nacional de Matriculaciones</p>
+                    <p class="text-xs text-slate-500 font-semibold">ASARI.SAS | v3.1 Final</p>
                 </div>
             </div>
-            <nav class="flex gap-6">
+            <nav class="flex gap-6 overflow-x-auto">
                 <button onclick="switchTab('manual')" id="tab-manual" class="tab-btn tab-active">Generador</button>
-                <button onclick="switchTab('autogestion')" id="tab-autogestion" class="tab-btn">Links</button>
+                <button onclick="switchTab('autogestion')" id="tab-autogestion" class="tab-btn">Links Alumnos</button>
                 <button onclick="switchTab('database')" id="tab-database" class="tab-btn">Base de Datos</button>
             </nav>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <!-- FORMULARIO -->
             <section class="bg-white p-8 rounded-3xl shadow-xl h-fit">
                 
                 <div id="content-manual">
                     <form id="carnet-form" class="space-y-4">
-                        <input type="text" id="institucion" placeholder="NOMBRE INSTITUCIÓN" class="w-full p-4 bg-slate-50 rounded-2xl font-black uppercase ring-1 ring-slate-200">
+                        <input type="text" id="institucion" placeholder="NOMBRE DE LA INSTITUCIÓN" class="w-full p-4 bg-slate-50 rounded-2xl font-black ring-1 ring-slate-200 uppercase">
                         
                         <div class="grid grid-cols-2 gap-4">
                             <div class="relative">
-                                <input type="text" id="dni" placeholder="DNI (Sin puntos)" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-blue-900" onblur="checkExistingStudent()">
+                                <input type="text" id="dni" placeholder="DNI (Sin puntos)" maxlength="8" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-blue-900" onblur="checkExistingStudent()">
                                 <span class="absolute right-3 top-4 text-[10px] text-gray-400 font-bold">DETECTAR</span>
                             </div>
                             <input type="text" id="nombre" placeholder="NOMBRE COMPLETO" class="w-full p-4 bg-slate-50 rounded-2xl font-bold uppercase">
                         </div>
 
-                        <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                            <label class="text-xs font-bold text-blue-800 uppercase mb-2 block">Seleccionar Cursos (Ctrl + Click)</label>
-                            <select id="curso-select" multiple size="5" class="w-full p-3 bg-white rounded-xl font-bold text-blue-900 border-2 border-blue-200">
-                                <option value="">-- CARGANDO... --</option>
+                        <div class="bg-blue-50 p-4 rounded-2xl">
+                            <label class="text-xs font-bold text-blue-900 uppercase mb-2 block">Cursos/Certificaciones (Ctrl/Cmd + Click para múltiples)</label>
+                            <select id="curso-select" multiple size="4" class="w-full p-3 bg-white rounded-xl font-bold text-blue-900 border-2 border-blue-200">
+                                <option value="">-- CARGANDO CURSOS --</option>
                             </select>
+                            <p class="text-xs text-blue-600 mt-2">💡 Mantén Ctrl (Win) o Cmd (Mac) para seleccionar varios</p>
                         </div>
 
-                        <div class="grid grid-cols-3 gap-2">
-                            <div class="p-2 border-2 border-dashed rounded-xl bg-slate-50 text-center cursor-pointer hover:bg-white transition">
-                                <label class="text-[9px] font-bold block uppercase text-blue-600 mb-1">1. Foto</label>
-                                <input type="file" id="photo-upload" accept="image/*" class="text-[9px] w-full">
-                            </div>
-                            <div class="p-2 border-2 border-dashed rounded-xl bg-slate-50 text-center cursor-pointer hover:bg-white transition">
-                                <label class="text-[9px] font-bold block uppercase text-blue-600 mb-1">2. Avales</label>
-                                <input type="file" id="avales-upload" accept="image/*" multiple class="text-[9px] w-full">
-                            </div>
-                            <div class="p-2 border-2 border-dashed rounded-xl bg-slate-50 text-center cursor-pointer hover:bg-white transition">
-                                <label class="text-[9px] font-bold block uppercase text-blue-600 mb-1">3. Marca Agua</label>
-                                <input type="file" id="watermark-upload" accept="image/*" class="text-[9px] w-full">
+                        <div class="p-3 border-2 border-dashed rounded-xl bg-slate-50">
+                            <label class="text-[9px] font-bold block uppercase text-slate-400 mb-2">📸 Foto Alumno (Obligatorio)</label>
+                            <input type="file" id="photo-upload" accept="image/*" class="text-[10px] w-full">
+                        </div>
+
+                        <!-- LOGOS INDIVIDUALES -->
+                        <div class="bg-gradient-to-br from-yellow-50 to-orange-50 p-4 rounded-2xl border-2 border-yellow-200">
+                            <label class="text-xs font-bold block uppercase text-orange-900 mb-3">🏅 Logos de Avales (Hasta 5)</label>
+                            <div class="grid grid-cols-5 gap-2" id="logos-grid">
+                                <!-- Se genera dinámicamente -->
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl">
-                            <span class="text-xs font-bold text-slate-500 uppercase">Color Barras</span>
-                            <input type="color" id="color-picker" value="#1e40af" class="w-12 h-8 rounded cursor-pointer border-none">
+                        <div class="flex items-center justify-between bg-gradient-to-r from-slate-50 to-slate-100 p-4 rounded-xl border border-slate-200">
+                            <span class="text-xs font-bold text-slate-600 uppercase">🎨 Color Institucional</span>
+                            <input type="color" id="color-picker" value="#1e40af" class="w-14 h-10 rounded-lg cursor-pointer border-2 border-slate-300">
                         </div>
 
-                        <button type="submit" id="submit-btn" class="w-full bg-blue-800 text-white py-5 rounded-2xl font-black text-lg hover:bg-black transition-all shadow-xl uppercase tracking-widest">
-                            Emitir y Guardar
+                        <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-blue-900 to-blue-700 text-white py-5 rounded-2xl font-black text-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-xl uppercase tracking-widest">
+                            🎓 Emitir Credencial Oficial
                         </button>
                     </form>
                 </div>
 
                 <div id="content-autogestion" class="hidden space-y-6">
-                    <div class="bg-blue-50 p-6 rounded-2xl">
-                        <h3 class="font-black text-blue-900 uppercase mb-2">Link para Alumno</h3>
+                    <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                        <h3 class="font-black text-blue-900 uppercase mb-2">Crear Invitación para Alumno</h3>
+                        <p class="text-xs text-blue-600 mb-4">Genera un enlace para que el alumno suba su propia foto.</p>
                         <div class="flex gap-2">
-                            <input type="text" id="invite-dni" placeholder="DNI Alumno" class="flex-1 p-3 rounded-xl font-bold">
-                            <button onclick="generateLink()" class="bg-blue-600 text-white px-6 rounded-xl font-black">Generar</button>
+                            <input type="text" id="invite-dni" placeholder="DNI del Alumno" maxlength="8" class="flex-1 p-3 rounded-xl border-none ring-1 ring-blue-200 font-bold">
+                            <button onclick="generateLink()" class="bg-blue-600 text-white px-6 rounded-xl font-black hover:bg-blue-700">Crear</button>
                         </div>
                     </div>
                     <div id="link-output" class="hidden bg-slate-100 p-4 rounded-xl break-all">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Enlace generado:</p>
                         <a id="generated-url" href="#" target="_blank" class="text-xs text-blue-600 font-mono font-bold hover:underline"></a>
-                        <button onclick="copyLink()" class="block mt-2 text-[10px] bg-slate-300 px-2 py-1 rounded font-bold">COPIAR</button>
+                        <button onclick="copyLink()" class="block mt-3 text-[10px] bg-slate-200 px-3 py-1 rounded font-bold uppercase hover:bg-slate-300">Copiar Link</button>
                     </div>
                 </div>
 
                 <div id="content-database" class="hidden space-y-6">
                     <div>
-                        <h3 class="font-black text-slate-800 uppercase mb-4">Catálogo de Cursos</h3>
-                        <div class="flex gap-2 mb-4 bg-yellow-50 p-4 rounded-xl">
-                            <input type="text" id="new-course-name" placeholder="Nombre del nuevo curso..." class="flex-1 p-3 bg-white rounded-xl text-sm font-bold border border-yellow-200">
-                            <button onclick="addCourse()" class="bg-green-600 text-white px-6 rounded-xl font-bold text-xs uppercase hover:bg-green-700 shadow-md">AGREGAR</button>
+                        <h3 class="font-black text-slate-800 uppercase mb-2">Catálogo de Cursos</h3>
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" id="new-course-name" placeholder="Nombre nuevo curso" class="flex-1 p-3 bg-slate-50 rounded-xl text-sm font-bold">
+                            <button onclick="addCourse()" class="bg-green-600 text-white px-4 rounded-xl font-bold text-xs uppercase hover:bg-green-700 transition">➕ Añadir</button>
                         </div>
-                        <div id="course-list-display" class="h-64 overflow-y-auto border rounded-xl p-2 bg-slate-50 text-xs font-mono space-y-1"></div>
+                        <div id="course-list-display" class="h-32 overflow-y-auto border rounded-xl p-2 bg-slate-50 text-xs font-mono space-y-1"></div>
                     </div>
-                    <button onclick="exportCSV()" class="w-full bg-slate-800 text-white py-4 rounded-xl font-black text-sm hover:bg-black">
-                        Descargar Base Completa (CSV)
-                    </button>
+                    <div class="border-t pt-4">
+                        <button onclick="exportCSV()" class="w-full bg-slate-800 text-white py-4 rounded-xl font-black uppercase text-sm hover:bg-black">
+                            📥 Descargar Base Completa (CSV)
+                        </button>
+                    </div>
                 </div>
             </section>
 
+            <!-- PREVIEW DE LA CREDENCIAL -->
             <section class="flex flex-col items-center sticky top-8">
                 <div id="download-area">
                     <div id="preview-container" class="carnet-preview">
                         
+                        <!-- Guilloche Multi-capa -->
+                        <div class="security-guilloche"></div>
+                        
+                        <!-- Banda Holográfica -->
+                        <div class="holographic-stripe"></div>
+                        
+                        <!-- Microimpresiones -->
+                        <div class="microprint">RENAM OFICIAL • RENAM OFICIAL • RENAM OFICIAL • RENAM OFICIAL • RENAM OFICIAL • RENAM OFICIAL • RENAM OFICIAL • RENAM OFICIAL • RENAM OFICIAL</div>
+                        
+                        <!-- Roseta de Seguridad -->
+                        <svg class="security-rosette" viewBox="0 0 60 60">
+                            <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(30,64,175,0.15)" stroke-width="0.5"/>
+                            <circle cx="30" cy="30" r="20" fill="none" stroke="rgba(30,64,175,0.12)" stroke-width="0.5"/>
+                            <circle cx="30" cy="30" r="15" fill="none" stroke="rgba(30,64,175,0.1)" stroke-width="0.5"/>
+                            <circle cx="30" cy="30" r="10" fill="none" stroke="rgba(30,64,175,0.08)" stroke-width="0.5"/>
+                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(0 30 30)"/>
+                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(30 30 30)"/>
+                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(60 30 30)"/>
+                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(90 30 30)"/>
+                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(120 30 30)"/>
+                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(150 30 30)"/>
+                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(180 30 30)"/>
+                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(210 30 30)"/>
+                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(240 30 30)"/>
+                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(270 30 30)"/>
+                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(300 30 30)"/>
+                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(330 30 30)"/>
+                        </svg>
+                        
+                        <!-- Header -->
                         <div class="header-bar">
-                            <span id="institucion-preview" class="font-black text-2xl uppercase tracking-tight">INSTITUTO COLBERT</span>
+                            <span id="institucion-preview" class="inst-title">INSTITUCIÓN</span>
                             
                             <div class="renam-header-logo">
-                                <div class="renam-text-logo">RENAM<br><span style="font-size:8px">ARG</span></div>
+                                <div class="renam-text-logo">RENAM<br><span style="font-size:9px">ARG</span></div>
                             </div>
 
-                            <span class="text-xs font-black opacity-80 uppercase tracking-widest">PROFESSIONAL ID</span>
+                            <span class="id-label">PROFESSIONAL ID</span>
                         </div>
 
+                        <!-- Footer -->
                         <div class="footer-bar">
-                            <span class="text-xs font-black opacity-90 uppercase tracking-wide">SISTEMA NACIONAL DE ACREDITACIÓN</span>
-                            <span class="text-xs font-black uppercase">VÁLIDO EN ARGENTINA</span>
+                            <span class="footer-text">SISTEMA NACIONAL DE ACREDITACIÓN</span>
+                            <span class="footer-text">VÁLIDO EN ARGENTINA</span>
                         </div>
                         
-                        <img id="photo-preview" src="https://placehold.co/280x320/e2e8f0/94a3b8?text=FOTO" alt="Foto">
+                        <!-- Foto -->
+                        <img id="photo-preview" src="https://placehold.co/280x340/e2e8f0/94a3b8?text=FOTO" alt="Foto">
                         
-                        <div id="avales-container"></div>
-
-                        <div id="cursos-section"></div>
-                        
+                        <!-- Marca de Agua -->
                         <img id="watermark-asari" src="" alt="">
-
-                        <div id="nombre-preview">NOMBRE DEL ALUMNO</div>
-                        <div id="dni-container">DNI: <span id="dni-val"></span></div>
-                        <div id="matricula-container">MATRÍCULA: <span id="mat-val">...</span></div>
-                        <div id="vence-display-preview">EMISIÓN: HOY | VENCE: 1 AÑO</div>
-
-                        <div class="qr-box"><canvas id="qr-code-preview"></canvas></div>
-                    </div>
-                </div>
-                
-                <div class="mt-8 flex gap-4">
-                    <button onclick="downloadImage('png')" class="bg-blue-800 text-white px-10 py-3 rounded-2xl font-black shadow-lg hover:scale-105 transition-transform">Descargar PNG</button>
-                    <button onclick="downloadImage('jpeg')" class="bg-blue-600 text-white px-10 py-3 rounded-2xl font-black shadow-lg hover:scale-105 transition-transform">Descargar JPG</button>
-                </div>
-            </section>
-        </div>
-    </div>
-
-    <script>
-        // CONFIGURACIÓN
-        const CONFIG = {
-            supabaseUrl: 'https://fuxnsebrhxxbalqfmtzs.supabase.co',
-            supabaseKey: 'sb_publishable_brWrs7Bn3vGFS7H2mEHkKQ_hcK1a8WV',
-            githubRepo: 'https://instructormap.github.io/verificador-Carnet-Oficial/' 
-        };
-        const sb = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
-
-        // UTILIDADES
-        function showNotification(msg, type='info') {
-            const d = document.createElement('div');
-            d.className = `notification ${type === 'error' ? 'error' : 'success'}`;
-            d.textContent = msg;
-            document.body.appendChild(d);
-            setTimeout(() => d.remove(), 3000);
-        }
-
-        function switchTab(t) {
-            ['manual','autogestion','database'].forEach(id => {
-                document.getElementById('content-'+id).classList.add('hidden');
-                document.getElementById('tab-'+id).classList.remove('tab-active');
-            });
-            document.getElementById('content-'+t).classList.remove('hidden');
-            document.getElementById('tab-'+t).classList.add('tab-active');
-            if(t === 'database') loadAdminCourseList();
-        }
-
-        async function loadCourses() {
-            const { data } = await sb.from('cursos').select('*').order('nombre_curso');
-            if(data) {
-                document.getElementById('curso-select').innerHTML = data.map(c => `<option value="${c.id}">${c.nombre_curso.toUpperCase()}</option>`).join('');
-            }
-        }
-
-        async function addCourse() {
-            const nameInput = document.getElementById('new-course-name');
-            const name = nameInput.value.trim();
-            if(!name) return showNotification('Escribe un nombre', 'error');
-            const { error } = await sb.from('cursos').insert([{ nombre_curso: name }]);
-            if(!error) {
-                showNotification('Curso agregado', 'success');
-                nameInput.value = '';
-                loadCourses(); loadAdminCourseList();
-            } else { showNotification(error.message, 'error'); }
-        }
-
-        async function loadAdminCourseList() {
-            const display = document.getElementById('course-list-display');
-            display.innerHTML = 'Cargando...';
-            const { data } = await sb.from('cursos').select('*').order('nombre_curso');
-            if(data) {
-                display.innerHTML = data.map(c => `<div class="flex justify-between border-b pb-1 hover:bg-slate-100 px-2 rounded"><span>${c.nombre_curso}</span><span class="text-gray-400">ID: ${c.id}</span></div>`).join('');
-            }
-        }
-
-        // PREVIEW LOGIC
-        const form = document.getElementById('carnet-form');
-        document.getElementById('photo-upload').onchange = (e) => readFile(e.target.files[0], 'photo-preview');
-        document.getElementById('watermark-upload').onchange = (e) => readFile(e.target.files[0], 'watermark-asari');
-        document.getElementById('avales-upload').onchange = (e) => {
-            const c = document.getElementById('avales-container'); c.innerHTML = '';
-            Array.from(e.target.files).forEach(f => {
-                const r = new FileReader();
-                r.onload = (ev) => { const img = document.createElement('img'); img.src = ev.target.result; img.className = 'aval-logo'; c.appendChild(img); }; 
-                r.readAsDataURL(f);
-            });
-        };
-        document.getElementById('color-picker').oninput = (e) => {
-            document.documentElement.style.setProperty('--primary-color', e.target.value);
-        };
-
-        function readFile(f, id) {
-            if(!f) return;
-            const r = new FileReader();
-            r.onload = (ev) => document.getElementById(id).src = ev.target.result;
-            r.readAsDataURL(f);
-        }
-
-        form.oninput = updatePreview;
-        document.getElementById('curso-select').onchange = updatePreview;
-
-        function updatePreview() {
-            document.getElementById('institucion-preview').textContent = document.getElementById('institucion').value.toUpperCase() || 'INSTITUCIÓN';
-            document.getElementById('nombre-preview').textContent = document.getElementById('nombre').value.toUpperCase() || 'NOMBRE ALUMNO';
-            document.getElementById('dni-val').textContent = document.getElementById('dni').value || '-';
-            
-            const opts = Array.from(document.getElementById('curso-select').selectedOptions);
-            document.getElementById('cursos-section').innerHTML = opts.map(o => `<div class="curso-item-clean">${o.text}</div>`).join('');
-        }
-
-        window.checkExistingStudent = async function() {
-            const dni = document.getElementById('dni').value;
-            if(!dni) return;
-            const { data } = await sb.from('alumnos').select('*').eq('dni', dni).single();
-            if(data) {
-                if(confirm("Alumno encontrado. ¿Cargar?")) {
-                    document.getElementById('nombre').value = data.nombre_completo;
-                    if(data.foto_url) document.getElementById('photo-preview').src = data.foto_url;
-                    updatePreview();
-                }
-            }
-        }
-
-        // GENERAR LINKS
-        window.generateLink = function() {
-            const dni = document.getElementById('invite-dni').value;
-            if(!dni) return showNotification("Ingresa DNI", 'error');
-            // Nota: Esto asume que tienes el index.html en el mismo repo para la autogestión
-            const url = `${window.location.href.split('?')[0].replace('panel.html','index.html')}?mode=student&token=${btoa(dni)}`; 
-            document.getElementById('generated-url').textContent = url;
-            document.getElementById('link-output').classList.remove('hidden');
-        }
-        window.copyLink = function() { navigator.clipboard.writeText(document.getElementById('generated-url').textContent); showNotification("Copiado", "success"); }
-
-        window.exportCSV = async function() {
-            const { data } = await sb.from('alumnos').select('*');
-            let csv = "DNI,Nombre,Matricula,URL\n"; data.forEach(r => csv += `${r.dni},"${r.nombre_completo}",${r.matricula_arg},${r.foto_url}\n`);
-            const blob = new Blob([csv], {type:'text/csv'});
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `BASE_${Date.now()}.csv`; a.click();
-        }
-
-        // SUBMIT
-        form.onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('submit-btn');
-            const dni = document.getElementById('dni').value;
-            const nombre = document.getElementById('nombre').value;
-            const selectedCursos = Array.from(document.getElementById('curso-select').selectedOptions);
-
-            if(!dni || !nombre) return showNotification("Falta DNI o Nombre", 'error');
-            
-            btn.disabled = true; btn.textContent = "GUARDANDO...";
-
-            try {
-                const photoInput = document.getElementById('photo-upload');
-                let publicUrl = document.getElementById('photo-preview').src;
-
-                if(photoInput.files.length > 0) {
-                    const fileName = `foto_${dni}_${Date.now()}.jpg`;
-                    await sb.storage.from('fotos_carnet').upload(fileName, photoInput.files[0]);
-                    const { data } = sb.storage.from('fotos_carnet').getPublicUrl(fileName);
-                    publicUrl = data.publicUrl;
-                }
-
-                let { data: existing } = await sb.from('alumnos').select('matricula_arg').eq('dni', dni).single();
-                let matricula = existing ? existing.matricula_arg : `ARG-${Math.floor(Math.random()*90000000 + 10000000)}`;
-
-                await sb.from('alumnos').upsert({ dni, nombre_completo: nombre, matricula_arg: matricula, foto_url: publicUrl });
-
-                const hoy = new Date();
-                const vence = new Date(); vence.setFullYear(hoy.getFullYear() + 1);
-                const venceISO = vence.toISOString().split('T')[0];
-
-                for (const curso of selectedCursos) {
-                    await sb.from('certificaciones').upsert({
-                        alumno_dni: dni, curso_id: parseInt(curso.value), fecha_vencimiento: venceISO
-                    });
-                }
-
-                document.getElementById('mat-val').textContent = matricula;
-                document.getElementById('vence-display-preview').textContent = `EMISIÓN: ${hoy.toLocaleDateString('es-AR')} | VENCE: ${vence.toLocaleDateString('es-AR')}`;
-
-                new QRious({
-                    element: document.getElementById('qr-code-preview'),
-                    value: `${CONFIG.githubRepo}?id=${matricula}`,
-                    size: 100, level: 'H'
-                });
-
-                showNotification("¡Guardado OK!", "success");
-
-            } catch (err) { showNotification(err.message, "error"); } 
-            finally { btn.disabled = false; btn.textContent = "Emitir y Guardar"; }
-        };
-
-        window.downloadImage = (fmt) => {
-            html2canvas(document.getElementById('preview-container'), { scale:3, useCORS:true }).then(c => {
-                const a = document.createElement('a'); a.download = `RENAM_${Date.now()}.${fmt==='jpeg'?'jpg':'png'}`; a.href = c.toDataURL(`image/${fmt}`, 1.0); a.click();
-            });
-        };
-
-        loadCourses();
-    </script>
-</body>
-</html>
