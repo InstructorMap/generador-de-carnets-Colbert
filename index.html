@@ -20,10 +20,6 @@
         }
         body { font-family: 'Roboto', sans-serif; background: #f0f2f5; }
 
-        /* ============================================ */
-        /* DISEÑO OPTIMIZADO DE LA CREDENCIAL */
-        /* ============================================ */
-        
         #download-area { 
             width: 856px; 
             padding: 20px; 
@@ -42,45 +38,30 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         
-        /* GUILLOCHE MULTI-CAPA (Efecto Holográfico DNI) */
+        /* GUILLOCHE MULTI-CAPA */
         .security-guilloche {
             position: absolute;
             inset: 0;
             z-index: 2;
             pointer-events: none;
             background:
-                /* Capa 1: Diagonal fina 45° */
                 repeating-linear-gradient(45deg, 
                     transparent 0px, transparent 8px, 
                     rgba(30, 64, 175, 0.025) 8px, rgba(30, 64, 175, 0.025) 9px),
-                
-                /* Capa 2: Diagonal inversa -45° */
                 repeating-linear-gradient(-45deg, 
                     transparent 0px, transparent 8px, 
                     rgba(30, 64, 175, 0.025) 8px, rgba(30, 64, 175, 0.025) 9px),
-                
-                /* Capa 3: Líneas horizontales */
                 repeating-linear-gradient(90deg, 
                     transparent 0px, transparent 12px, 
                     rgba(30, 64, 175, 0.02) 12px, rgba(30, 64, 175, 0.02) 13px),
-                
-                /* Capa 4: Líneas verticales */
                 repeating-linear-gradient(0deg, 
                     transparent 0px, transparent 12px, 
                     rgba(30, 64, 175, 0.02) 12px, rgba(30, 64, 175, 0.02) 13px),
-                
-                /* Capa 5: Puntos micro */
-                radial-gradient(circle, rgba(30, 64, 175, 0.015) 0.5px, transparent 0.5px),
-                
-                /* Capa 6: Ondas diagonales sutiles */
-                repeating-linear-gradient(60deg, 
-                    transparent 0px, transparent 15px, 
-                    rgba(30, 64, 175, 0.015) 15px, rgba(30, 64, 175, 0.015) 16px);
-                    
-            background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 4px 4px, 100% 100%;
+                radial-gradient(circle, rgba(30, 64, 175, 0.015) 0.5px, transparent 0.5px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 4px 4px;
         }
 
-        /* BANDA HOLOGRÁFICA (Efecto Arcoíris) */
+        /* BANDA HOLOGRÁFICA */
         .holographic-stripe {
             position: absolute;
             top: 0; 
@@ -120,7 +101,6 @@
             white-space: nowrap;
         }
 
-        /* ROSETA DE SEGURIDAD */
         .security-rosette {
             position: absolute;
             bottom: 60px;
@@ -131,7 +111,6 @@
             z-index: 3;
         }
 
-        /* Barra Superior Azul */
         .header-bar {
             position: absolute; 
             top: 0; 
@@ -162,7 +141,6 @@
             letter-spacing: 2px;
         }
 
-        /* Logo RENAM Central */
         .renam-header-logo {
             position: absolute;
             left: 50%; 
@@ -188,7 +166,6 @@
             line-height: 0.9; 
         }
 
-        /* Barra Inferior */
         .footer-bar {
             position: absolute; 
             bottom: 0; 
@@ -211,7 +188,6 @@
             letter-spacing: 1px; 
         }
 
-        /* Foto del Alumno */
         #photo-preview {
             position: absolute; 
             top: 110px; 
@@ -224,7 +200,6 @@
             background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
         }
 
-        /* Contenedor de Logos */
         #avales-container { 
             position: absolute; 
             top: 100px; 
@@ -247,7 +222,6 @@
             filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));
         }
 
-        /* Sección de Cursos */
         #cursos-section { 
             position: absolute; 
             top: 180px; 
@@ -277,7 +251,6 @@
             line-height: 18px;
         }
 
-        /* Datos Personales */
         #nombre-preview {
             position: absolute; 
             bottom: 150px; 
@@ -323,7 +296,6 @@
             text-transform: uppercase;
         }
 
-        /* QR Code */
         .qr-box {
             position: absolute; 
             bottom: 70px; 
@@ -337,7 +309,6 @@
             border: 1px solid #e2e8f0;
         }
 
-        /* Marca de Agua (Más Visible) */
         #watermark-asari {
             position: absolute; 
             top: 50%; 
@@ -351,10 +322,6 @@
             pointer-events: none;
         }
 
-        /* ============================================ */
-        /* INTERFAZ DE LOGOS INDIVIDUALES */
-        /* ============================================ */
-        
         .logo-slot {
             border: 2px dashed #cbd5e1;
             border-radius: 12px;
@@ -385,16 +352,6 @@
             object-fit: contain;
         }
 
-        .logo-slot-btn {
-            font-size: 10px;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-weight: 700;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
         .logo-remove-btn {
             position: absolute;
             top: 4px;
@@ -417,10 +374,6 @@
             transform: scale(1.1);
         }
 
-        /* ============================================ */
-        /* ESTILOS DE LA INTERFAZ ADMIN */
-        /* ============================================ */
-        
         .tab-btn { 
             text-align: center; 
             padding-bottom: 0.5rem; 
@@ -473,163 +426,537 @@
 </head>
 <body class="p-4 lg:p-8 min-h-screen">
 
-    <!-- PANEL ADMINISTRATIVO -->
     <div id="admin-panel" class="max-w-7xl mx-auto hidden">
-        <header class="bg-white p-6 rounded-3xl shadow-lg mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-4">
-                <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-900 rounded-full flex items-center justify-center text-white shadow-xl border-4 border-yellow-600">
-                    <div class="text-center">
-                        <div class="text-xl font-black tracking-tight">RENAM</div>
-                        <div class="text-[6px] tracking-widest opacity-80">ARGENTINA</div>
+        <header class="bg-white p-6 rounded-3xl shadow-lg mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-900 rounded-full flex items-center justify-center text-white shadow-xl">
+                        <div class="text-center">
+                            <div class="text-xl font-black">RENAM</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-black text-slate-800">RENAM</h1>
+                        <p class="text-xs text-blue-600 font-bold">Registro Nacional de Matriculaciones</p>
                     </div>
                 </div>
-                <div>
-                    <h1 class="text-2xl font-black text-slate-800 uppercase tracking-tight">RENAM</h1>
-                    <p class="text-xs text-blue-600 font-bold">Registro Nacional de Matriculaciones</p>
-                    <p class="text-xs text-slate-500 font-semibold">ASARI.SAS | v3.1 Final</p>
-                </div>
+                <nav class="flex gap-6">
+                    <button onclick="switchTab('manual')" id="tab-manual" class="tab-btn tab-active">Generador</button>
+                    <button onclick="switchTab('autogestion')" id="tab-autogestion" class="tab-btn">Links</button>
+                    <button onclick="switchTab('database')" id="tab-database" class="tab-btn">Base de Datos</button>
+                </nav>
             </div>
-            <nav class="flex gap-6 overflow-x-auto">
-                <button onclick="switchTab('manual')" id="tab-manual" class="tab-btn tab-active">Generador</button>
-                <button onclick="switchTab('autogestion')" id="tab-autogestion" class="tab-btn">Links Alumnos</button>
-                <button onclick="switchTab('database')" id="tab-database" class="tab-btn">Base de Datos</button>
-            </nav>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            <!-- FORMULARIO -->
-            <section class="bg-white p-8 rounded-3xl shadow-xl h-fit">
+            <section class="bg-white p-8 rounded-3xl shadow-xl">
                 
                 <div id="content-manual">
                     <form id="carnet-form" class="space-y-4">
-                        <input type="text" id="institucion" placeholder="NOMBRE DE LA INSTITUCIÓN" class="w-full p-4 bg-slate-50 rounded-2xl font-black ring-1 ring-slate-200 uppercase">
+                        <input type="text" id="institucion" placeholder="INSTITUCIÓN" class="w-full p-4 bg-slate-50 rounded-2xl font-black">
                         
                         <div class="grid grid-cols-2 gap-4">
-                            <div class="relative">
-                                <input type="text" id="dni" placeholder="DNI (Sin puntos)" maxlength="8" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-blue-900" onblur="checkExistingStudent()">
-                                <span class="absolute right-3 top-4 text-[10px] text-gray-400 font-bold">DETECTAR</span>
-                            </div>
-                            <input type="text" id="nombre" placeholder="NOMBRE COMPLETO" class="w-full p-4 bg-slate-50 rounded-2xl font-bold uppercase">
+                            <input type="text" id="dni" placeholder="DNI" maxlength="8" class="w-full p-4 bg-slate-50 rounded-2xl font-bold" onblur="checkExistingStudent()">
+                            <input type="text" id="nombre" placeholder="NOMBRE" class="w-full p-4 bg-slate-50 rounded-2xl font-bold">
                         </div>
 
-                        <div class="bg-blue-50 p-4 rounded-2xl">
-                            <label class="text-xs font-bold text-blue-900 uppercase mb-2 block">Cursos/Certificaciones (Ctrl/Cmd + Click para múltiples)</label>
-                            <select id="curso-select" multiple size="4" class="w-full p-3 bg-white rounded-xl font-bold text-blue-900 border-2 border-blue-200">
-                                <option value="">-- CARGANDO CURSOS --</option>
-                            </select>
-                            <p class="text-xs text-blue-600 mt-2">💡 Mantén Ctrl (Win) o Cmd (Mac) para seleccionar varios</p>
-                        </div>
+                        <select id="curso-select" multiple size="4" class="w-full p-3 bg-white rounded-xl font-bold border-2">
+                            <option>Cargando...</option>
+                        </select>
 
-                        <div class="p-3 border-2 border-dashed rounded-xl bg-slate-50">
-                            <label class="text-[9px] font-bold block uppercase text-slate-400 mb-2">📸 Foto Alumno (Obligatorio)</label>
-                            <input type="file" id="photo-upload" accept="image/*" class="text-[10px] w-full">
-                        </div>
+                        <input type="file" id="photo-upload" accept="image/*" class="w-full p-3 border-2 rounded-xl">
 
-                        <!-- LOGOS INDIVIDUALES -->
-                        <div class="bg-gradient-to-br from-yellow-50 to-orange-50 p-4 rounded-2xl border-2 border-yellow-200">
-                            <label class="text-xs font-bold block uppercase text-orange-900 mb-3">🏅 Logos de Avales (Hasta 5)</label>
-                            <div class="grid grid-cols-5 gap-2" id="logos-grid">
-                                <!-- Se genera dinámicamente -->
-                            </div>
-                        </div>
+                        <div id="logos-grid" class="grid grid-cols-5 gap-2"></div>
 
-                        <div class="flex items-center justify-between bg-gradient-to-r from-slate-50 to-slate-100 p-4 rounded-xl border border-slate-200">
-                            <span class="text-xs font-bold text-slate-600 uppercase">🎨 Color Institucional</span>
-                            <input type="color" id="color-picker" value="#1e40af" class="w-14 h-10 rounded-lg cursor-pointer border-2 border-slate-300">
-                        </div>
+                        <input type="color" id="color-picker" value="#1e40af" class="w-14 h-10">
 
-                        <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-blue-900 to-blue-700 text-white py-5 rounded-2xl font-black text-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-xl uppercase tracking-widest">
-                            🎓 Emitir Credencial Oficial
+                        <button type="submit" id="submit-btn" class="w-full bg-blue-900 text-white py-5 rounded-2xl font-black">
+                            EMITIR
                         </button>
                     </form>
                 </div>
 
-                <div id="content-autogestion" class="hidden space-y-6">
-                    <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
-                        <h3 class="font-black text-blue-900 uppercase mb-2">Crear Invitación para Alumno</h3>
-                        <p class="text-xs text-blue-600 mb-4">Genera un enlace para que el alumno suba su propia foto.</p>
-                        <div class="flex gap-2">
-                            <input type="text" id="invite-dni" placeholder="DNI del Alumno" maxlength="8" class="flex-1 p-3 rounded-xl border-none ring-1 ring-blue-200 font-bold">
-                            <button onclick="generateLink()" class="bg-blue-600 text-white px-6 rounded-xl font-black hover:bg-blue-700">Crear</button>
-                        </div>
-                    </div>
-                    <div id="link-output" class="hidden bg-slate-100 p-4 rounded-xl break-all">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Enlace generado:</p>
-                        <a id="generated-url" href="#" target="_blank" class="text-xs text-blue-600 font-mono font-bold hover:underline"></a>
-                        <button onclick="copyLink()" class="block mt-3 text-[10px] bg-slate-200 px-3 py-1 rounded font-bold uppercase hover:bg-slate-300">Copiar Link</button>
+                <div id="content-autogestion" class="hidden">
+                    <input type="text" id="invite-dni" placeholder="DNI" class="w-full p-3 rounded-xl">
+                    <button onclick="generateLink()" class="bg-blue-600 text-white px-6 py-3 rounded-xl mt-2">Crear Link</button>
+                    <div id="link-output" class="hidden mt-4">
+                        <a id="generated-url" href="#" class="text-blue-600"></a>
+                        <button onclick="copyLink()" class="block mt-2">Copiar</button>
                     </div>
                 </div>
 
-                <div id="content-database" class="hidden space-y-6">
-                    <div>
-                        <h3 class="font-black text-slate-800 uppercase mb-2">Catálogo de Cursos</h3>
-                        <div class="flex gap-2 mb-4">
-                            <input type="text" id="new-course-name" placeholder="Nombre nuevo curso" class="flex-1 p-3 bg-slate-50 rounded-xl text-sm font-bold">
-                            <button onclick="addCourse()" class="bg-green-600 text-white px-4 rounded-xl font-bold text-xs uppercase hover:bg-green-700 transition">➕ Añadir</button>
-                        </div>
-                        <div id="course-list-display" class="h-32 overflow-y-auto border rounded-xl p-2 bg-slate-50 text-xs font-mono space-y-1"></div>
-                    </div>
-                    <div class="border-t pt-4">
-                        <button onclick="exportCSV()" class="w-full bg-slate-800 text-white py-4 rounded-xl font-black uppercase text-sm hover:bg-black">
-                            📥 Descargar Base Completa (CSV)
-                        </button>
-                    </div>
+                <div id="content-database" class="hidden">
+                    <input type="text" id="new-course-name" placeholder="Nuevo curso" class="w-full p-3 rounded-xl">
+                    <button onclick="addCourse()" class="bg-green-600 text-white px-4 py-2 rounded-xl mt-2">Añadir</button>
+                    <div id="course-list-display" class="mt-4 p-2 border rounded-xl"></div>
+                    <button onclick="exportCSV()" class="w-full bg-slate-800 text-white py-4 rounded-xl mt-4">Exportar CSV</button>
                 </div>
             </section>
 
-            <!-- PREVIEW DE LA CREDENCIAL -->
-            <section class="flex flex-col items-center sticky top-8">
+            <section class="flex flex-col items-center">
                 <div id="download-area">
                     <div id="preview-container" class="carnet-preview">
-                        
-                        <!-- Guilloche Multi-capa -->
                         <div class="security-guilloche"></div>
-                        
-                        <!-- Banda Holográfica -->
                         <div class="holographic-stripe"></div>
+                        <div class="microprint">RENAM OFICIAL • RENAM OFICIAL • RENAM OFICIAL •</div>
                         
-                        <!-- Microimpresiones -->
-                        <div class="microprint">RENAM OFICIAL • RENAM OFICIAL • RENAM OFICIAL • RENAM OFICIAL • RENAM OFICIAL • RENAM OFICIAL • RENAM OFICIAL • RENAM OFICIAL • RENAM OFICIAL</div>
-                        
-                        <!-- Roseta de Seguridad -->
                         <svg class="security-rosette" viewBox="0 0 60 60">
                             <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(30,64,175,0.15)" stroke-width="0.5"/>
                             <circle cx="30" cy="30" r="20" fill="none" stroke="rgba(30,64,175,0.12)" stroke-width="0.5"/>
                             <circle cx="30" cy="30" r="15" fill="none" stroke="rgba(30,64,175,0.1)" stroke-width="0.5"/>
-                            <circle cx="30" cy="30" r="10" fill="none" stroke="rgba(30,64,175,0.08)" stroke-width="0.5"/>
-                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(0 30 30)"/>
-                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(30 30 30)"/>
-                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(60 30 30)"/>
-                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(90 30 30)"/>
-                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(120 30 30)"/>
-                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(150 30 30)"/>
-                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(180 30 30)"/>
-                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(210 30 30)"/>
-                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(240 30 30)"/>
-                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(270 30 30)"/>
-                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(300 30 30)"/>
-                            <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(330 30 30)"/>
                         </svg>
                         
-                        <!-- Header -->
                         <div class="header-bar">
                             <span id="institucion-preview" class="inst-title">INSTITUCIÓN</span>
-                            
                             <div class="renam-header-logo">
                                 <div class="renam-text-logo">RENAM<br><span style="font-size:9px">ARG</span></div>
                             </div>
-
                             <span class="id-label">PROFESSIONAL ID</span>
                         </div>
 
-                        <!-- Footer -->
                         <div class="footer-bar">
-                            <span class="footer-text">SISTEMA NACIONAL DE ACREDITACIÓN</span>
-                            <span class="footer-text">VÁLIDO EN ARGENTINA</span>
+                            <span class="footer-text">SISTEMA NACIONAL</span>
+                            <span class="footer-text">ARGENTINA</span>
                         </div>
                         
-                        <!-- Foto -->
-                        <img id="photo-preview" src="https://placehold.co/280x340/e2e8f0/94a3b8?text=FOTO" alt="Foto">
-                        
-                        <!-- Marca de Agua -->
+                        <img id="photo-preview" src="https://placehold.co/280x340?text=FOTO" alt="Foto">
                         <img id="watermark-asari" src="" alt="">
+                        
+                        <div id="avales-container"></div>
+                        <div id="cursos-section"><div class="curso-item-clean">SELECCIONAR CURSOS</div></div>
+
+                        <div id="nombre-preview">NOMBRE</div>
+                        <div id="dni-container">DNI: -</div>
+                        <div id="matricula-container">MATRÍCULA: -</div>
+                        <div id="vence-display-preview">EMISIÓN: -</div>
+
+                        <div class="qr-box">
+                            <canvas id="qr-code-preview"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex gap-4">
+                    <button onclick="downloadImage('png')" class="bg-slate-800 text-white px-10 py-3 rounded-2xl font-black">PNG</button>
+                    <button onclick="downloadImage('jpeg')" class="bg-blue-600 text-white px-10 py-3 rounded-2xl font-black">JPG</button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div id="student-panel" class="max-w-md mx-auto hidden">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl">
+            <h1 class="text-2xl font-black text-center mb-6">Alta de Alumno</h1>
+            <form id="student-form" class="space-y-6">
+                <div class="bg-blue-50 p-4 rounded-xl text-center">
+                    <p id="student-dni-display" class="text-2xl font-black">Loading...</p>
+                </div>
+                <input type="text" id="student-name" placeholder="Nombre" class="w-full p-4 rounded-2xl" required>
+                <input type="file" id="student-photo" accept="image/*" class="w-full p-3 border-2 rounded-2xl" required>
+                <div id="student-preview-mini" class="hidden text-center">
+                    <img id="mini-img" class="w-32 h-40 mx-auto rounded-lg">
+                </div>
+                <button type="submit" id="student-submit" class="w-full bg-blue-900 text-white py-5 rounded-2xl font-black">
+                    Guardar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const CONFIG = {
+            supabaseUrl: 'https://fuxnsebrhxxbalqfmtzs.supabase.co',
+            supabaseKey: 'sb_publishable_brWrs7Bn3vGFS7H2mEHkKQ_hcK1a8WV',
+            verificadorUrl: 'https://instructormap.github.io/verificador-Carnet-Oficial/'
+        };
+
+        const sb = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
+
+        const logosManager = {
+            slots: [null, null, null, null, null],
+            
+            init() {
+                this.renderGrid();
+            },
+            
+            renderGrid() {
+                const grid = document.getElementById('logos-grid');
+                grid.innerHTML = '';
+                
+                this.slots.forEach((slot, i) => {
+                    const div = document.createElement('div');
+                    div.className = `logo-slot ${slot ? 'has-logo' : ''}`;
+                    
+                    if (slot) {
+                        const img = document.createElement('img');
+                        img.src = slot.dataUrl;
+                        img.className = 'logo-slot-preview';
+                        div.appendChild(img);
+                        
+                        const removeBtn = document.createElement('div');
+                        removeBtn.className = 'logo-remove-btn';
+                        removeBtn.textContent = '×';
+                        removeBtn.onclick = () => this.removeLogo(i);
+                        div.appendChild(removeBtn);
+                    } else {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.className = 'hidden';
+                        input.id = `logo-input-${i}`;
+                        input.onchange = (e) => this.handleUpload(i, e.target.files[0]);
+                        
+                        const label = document.createElement('label');
+                        label.htmlFor = `logo-input-${i}`;
+                        label.textContent = '+';
+                        label.className = 'text-3xl text-gray-400 cursor-pointer';
+                        
+                        div.appendChild(input);
+                        div.appendChild(label);
+                    }
+                    
+                    grid.appendChild(div);
+                });
+                
+                this.updatePreview();
+            },
+            
+            handleUpload(index, file) {
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.slots[index] = {
+                        file: file,
+                        dataUrl: e.target.result
+                    };
+                    this.renderGrid();
+                };
+                reader.readAsDataURL(file);
+            },
+            
+            removeLogo(index) {
+                this.slots[index] = null;
+                this.renderGrid();
+            },
+            
+            updatePreview() {
+                const container = document.getElementById('avales-container');
+                container.innerHTML = '';
+                
+                this.slots.forEach(slot => {
+                    if (slot) {
+                        const img = document.createElement('img');
+                        img.src = slot.dataUrl;
+                        img.className = 'aval-logo';
+                        container.appendChild(img);
+                    }
+                });
+            }
+        };
+
+        function showNotification(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `notification ${type}`;
+            div.textContent = msg;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        function validateDNI(dni) {
+            const cleaned = String(dni).replace(/\D/g, '');
+            if (cleaned.length < 7) throw new Error('DNI inválido');
+            return cleaned;
+        }
+
+        async function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let w = img.width, h = img.height;
+                        if (w > 800) {
+                            h = Math.round(h * 800 / w);
+                            w = 800;
+                        }
+                        canvas.width = w;
+                        canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        canvas.toBlob(resolve, 'image/jpeg', 0.85);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function uploadPhoto(dni, file) {
+            const compressed = await compressImage(file);
+            const fileName = `foto_${dni}_${crypto.randomUUID()}.jpg`;
+            await sb.storage.from('fotos_carnet').upload(fileName, compressed);
+            const { data } = sb.storage.from('fotos_carnet').getPublicUrl(fileName);
+            return data.publicUrl;
+        }
+
+        let currentMode = 'admin';
+        let studentDniToken = null;
+
+        document.addEventListener('DOMContentLoaded', init);
+
+        function init() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('mode') && params.get('mode') === 'student') {
+                studentDniToken = decodeURIComponent(params.get('token'));
+                setupStudentMode();
+            } else {
+                setupAdminMode();
+            }
+        }
+
+        function setupStudentMode() {
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('student-panel').classList.remove('hidden');
+            document.getElementById('student-dni-display').textContent = studentDniToken;
+
+            document.getElementById('student-photo').onchange = (e) => {
+                const r = new FileReader();
+                r.onload = (ev) => {
+                    document.getElementById('mini-img').src = ev.target.result;
+                    document.getElementById('student-preview-mini').classList.remove('hidden');
+                };
+                r.readAsDataURL(e.target.files[0]);
+            };
+
+            document.getElementById('student-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('student-submit');
+                btn.disabled = true;
+                btn.textContent = 'Subiendo...';
+
+                try {
+                    const dni = validateDNI(studentDniToken);
+                    const name = document.getElementById('student-name').value.toUpperCase();
+                    const file = document.getElementById('student-photo').files[0];
+                    
+                    const photoUrl = await uploadPhoto(dni, file);
+                    const matricula = `ARG-${Math.floor(10000000 + Math.random() * 90000000)}`;
+
+                    await sb.from('alumnos').upsert({
+                        dni: dni,
+                        nombre_completo: name,
+                        matricula_arg: matricula,
+                        foto_url: photoUrl
+                    });
+
+                    showNotification('¡Datos guardados!', 'success');
+                    setTimeout(() => {
+                        document.body.innerHTML = '<div class="h-screen flex items-center justify-center bg-blue-900 text-white"><div class="text-center"><div class="text-6xl mb-4">✓</div><div class="font-black text-3xl">Completado</div></div></div>';
+                    }, 1500);
+                } catch (err) {
+                    showNotification(err.message, 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Guardar';
+                }
+            };
+        }
+
+        function setupAdminMode() {
+            document.getElementById('admin-panel').classList.remove('hidden');
+            logosManager.init();
+            loadCourses();
+        }
+
+        window.switchTab = function(tab) {
+            ['manual', 'autogestion', 'database'].forEach(t => {
+                document.getElementById('content-'+t).classList.toggle('hidden', t !== tab);
+                document.getElementById('tab-'+t).classList.toggle('tab-active', t === tab);
+            });
+            if(tab === 'database') loadAdminCourseList();
+        }
+
+        async function loadCourses() {
+            const { data } = await sb.from('cursos').select('*').order('nombre_curso');
+            const select = document.getElementById('curso-select');
+            if (data && data.length > 0) {
+                select.innerHTML = data.map(c => `<option value="${c.id}">${c.nombre_curso.toUpperCase()}</option>`).join('');
+            }
+        }
+
+        window.checkExistingStudent = async function() {
+            const dni = document.getElementById('dni').value.replace(/\D/g, '');
+            if (!dni || dni.length < 7) return;
+            
+            const { data } = await sb.from('alumnos').select('*').eq('dni', dni).single();
+            if (data && confirm(`Alumno: ${data.nombre_completo}\n¿Cargar datos?`)) {
+                document.getElementById('nombre').value = data.nombre_completo;
+                if (data.foto_url) document.getElementById('photo-preview').src = data.foto_url;
+                updatePreview();
+            }
+        }
+
+        window.generateLink = function() {
+            const dni = document.getElementById('invite-dni').value.replace(/\D/g, '');
+            if (!dni) return showNotification('DNI inválido', 'error');
+            
+            const url = `${window.location.href.split('?')[0]}?mode=student&token=${encodeURIComponent(dni)}`;
+            document.getElementById('generated-url').href = url;
+            document.getElementById('generated-url').textContent = url;
+            document.getElementById('link-output').classList.remove('hidden');
+            showNotification('Link generado', 'success');
+        }
+
+        window.copyLink = function() {
+            const url = document.getElementById('generated-url').textContent;
+            navigator.clipboard.writeText(url);
+            showNotification('Copiado', 'success');
+        }
+
+        window.addCourse = async function() {
+            const name = document.getElementById('new-course-name').value.trim();
+            if(!name) return showNotification('Ingresa un nombre', 'error');
+
+            const { error } = await sb.from('cursos').insert([{ nombre_curso: name }]);
+            if(!error) {
+                showNotification('Curso añadido', 'success');
+                document.getElementById('new-course-name').value = '';
+                loadCourses();
+                loadAdminCourseList();
+            }
+        }
+
+        async function loadAdminCourseList() {
+            const display = document.getElementById('course-list-display');
+            const { data } = await sb.from('cursos').select('*').order('nombre_curso');
+            if(data && data.length > 0) {
+                display.innerHTML = data.map(c => `<div class="p-2 border-b">${c.nombre_curso}</div>`).join('');
+            }
+        }
+
+        window.exportCSV = async function() {
+            const { data } = await sb.from('alumnos').select('*');
+            if(!data || data.length === 0) return showNotification('Sin datos', 'info');
+            
+            let csv = "DNI,Nombre,Matricula\n";
+            data.forEach(r => csv += `${r.dni},"${r.nombre_completo}",${r.matricula_arg}\n`);
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `RENAM_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            showNotification('Exportado', 'success');
+        }
+
+        const form = document.getElementById('carnet-form');
+
+        document.getElementById('photo-upload').onchange = (e) => {
+            if (e.target.files[0]) {
+                const r = new FileReader();
+                r.onload = (ev) => document.getElementById('photo-preview').src = ev.target.result;
+                r.readAsDataURL(e.target.files[0]);
+            }
+        };
+
+        document.getElementById('color-picker').oninput = (e) => {
+            document.documentElement.style.setProperty('--primary-color', e.target.value);
+        };
+
+        form.oninput = updatePreview;
+        document.getElementById('curso-select').onchange = updatePreview;
+
+        function updatePreview() {
+            const dni = document.getElementById('dni').value;
+            const nombre = document.getElementById('nombre').value;
+            const inst = document.getElementById('institucion').value;
+            const selectedOptions = Array.from(document.getElementById('curso-select').selectedOptions);
+
+            if(dni) document.getElementById('dni-container').textContent = `DNI: ${dni}`;
+            if(nombre) document.getElementById('nombre-preview').textContent = nombre.toUpperCase();
+            if(inst) document.getElementById('institucion-preview').textContent = inst.toUpperCase();
+            
+            const cursosSection = document.getElementById('cursos-section');
+            if(selectedOptions.length > 0) {
+                cursosSection.innerHTML = selectedOptions.map(opt => `<div class="curso-item-clean">${opt.text}</div>`).join('');
+            } else {
+                cursosSection.innerHTML = '<div class="curso-item-clean">SELECCIONAR CURSOS</div>';
+            }
+        }
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.textContent = 'Procesando...';
+
+            try {
+                const dni = validateDNI(document.getElementById('dni').value);
+                const nombre = document.getElementById('nombre').value.trim().toUpperCase();
+                const selectedCursos = Array.from(document.getElementById('curso-select').selectedOptions);
+                
+                if(selectedCursos.length === 0) throw new Error('Selecciona al menos un curso');
+
+                const photoFile = document.getElementById('photo-upload').files[0];
+                if (!photoFile) throw new Error('Sube una foto');
+
+                const publicUrl = await uploadPhoto(dni, photoFile);
+
+                let { data: alumno } = await sb.from('alumnos').select('matricula_arg').eq('dni', dni).single();
+                const matricula = alumno?.matricula_arg || `ARG-${Math.floor(10000000 + Math.random() * 90000000)}`;
+
+                await sb.from('alumnos').upsert({
+                    dni: dni,
+                    nombre_completo: nombre,
+                    matricula_arg: matricula,
+                    foto_url: publicUrl
+                });
+
+                const vence = new Date();
+                vence.setFullYear(vence.getFullYear() + 1);
+
+                for (const curso of selectedCursos) {
+                    await sb.from('certificaciones').upsert({
+                        alumno_dni: dni,
+                        curso_id: parseInt(curso.value),
+                        fecha_vencimiento: vence.toISOString().split('T')[0]
+                    });
+                }
+
+                document.getElementById('matricula-container').textContent = `MATRÍCULA: ${matricula}`;
+                document.getElementById('vence-display-preview').textContent = `EMISIÓN: ${new Date().toLocaleDateString('es-AR')}`;
+                
+                new QRious({ 
+                    element: document.getElementById('qr-code-preview'), 
+                    value: `${CONFIG.verificadorUrl}?id=${matricula}`, 
+                    size: 100, 
+                    level: 'H' 
+                });
+
+                showNotification('¡Credencial emitida!', 'success');
+
+            } catch (err) {
+                showNotification(err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'EMITIR';
+            }
+        };
+
+        window.downloadImage = function(fmt) {
+            html2canvas(document.getElementById('preview-container'), { 
+                scale: 3, 
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const a = document.createElement('a');
+                a.download = `RENAM_${new Date().toISOString().split('T')[0]}.${fmt === 'jpeg' ? 'jpg' : 'png'}`;
+                a.href = canvas.toDataURL(`image/${fmt}`, 1.0);
+                a.click();
+                showNotification('Descargado', 'success');
+            });
+        }
+    </script>
+</body>
+</html>
