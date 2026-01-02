@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RENAM - Registro Nacional de Matriculaciones</title>
+    <title>RENAM v4.0 Enterprise - Sistema Completo</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -19,6 +19,120 @@
             --dark-blue: #172554;
         }
         body { font-family: 'Roboto', sans-serif; background: #f0f2f5; }
+
+        /* LOADING OVERLAY */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .loading-overlay .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* MODAL SYSTEM */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* TABLES */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .data-table th {
+            background: #1e40af;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .data-table tr:hover {
+            background: #f8fafc;
+        }
+
+        /* PAGINATION */
+        .pagination {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pagination button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .pagination button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .pagination button.active {
+            background: #1e40af;
+            color: white;
+        }
+
+        /* BADGES */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-super-admin { background: #7c3aed; color: white; }
+        .badge-admin { background: #1e40af; color: white; }
+        .badge-editor { background: #059669; color: white; }
+        .badge-visor { background: #64748b; color: white; }
 
         #download-area { 
             width: 856px; 
@@ -38,7 +152,6 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         
-        /* GUILLOCHE MEJORADO - 8 CAPAS */
         .security-guilloche {
             position: absolute;
             inset: 0;
@@ -56,7 +169,6 @@
             background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 3px 3px;
         }
 
-        /* BANDA HOLOGRÁFICA SVG - EXPORTABLE */
         .holographic-stripe-svg {
             position: absolute;
             top: 0; 
@@ -68,7 +180,6 @@
             transform: skewX(-15deg);
         }
 
-        /* MICROIMPRESIONES - 3 ZONAS */
         .microprint {
             position: absolute;
             font-size: 4px;
@@ -125,7 +236,6 @@
             letter-spacing: 2px;
         }
 
-        /* LOGO RENAM CON EFECTO EMBOSS */
         .renam-header-logo {
             position: absolute;
             left: 50%; 
@@ -179,7 +289,6 @@
             letter-spacing: 1px; 
         }
 
-        /* FOTO CON MARCO PROFESIONAL */
         #photo-preview {
             position: absolute; 
             top: 115px; 
@@ -293,7 +402,6 @@
             text-transform: uppercase;
         }
 
-        /* QR CON LABEL */
         .qr-container {
             position: absolute; 
             bottom: 75px; 
@@ -320,7 +428,6 @@
             border-radius: 3px;
         }
 
-        /* MARCA DE AGUA MEJORADA */
         #watermark-asari {
             position: absolute; 
             top: 50%; 
@@ -481,48 +588,147 @@
             visibility: visible;
             opacity: 1;
         }
+
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .btn-edit { background: #3b82f6; color: white; }
+        .btn-delete { background: #ef4444; color: white; }
+        .btn-view { background: #10b981; color: white; }
+        .btn-download { background: #8b5cf6; color: white; }
     </style>
 </head>
 <body class="p-4 lg:p-8 min-h-screen">
 
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-md w-full border-t-8 border-blue-900">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-900 rounded-full flex items-center justify-center text-white mx-auto mb-4 shadow-xl border-4 border-yellow-600">
+                    <div class="text-2xl font-black">RENAM</div>
+                </div>
+                <h1 class="text-3xl font-black text-blue-900 mb-2">RENAM v4.0</h1>
+                <p class="text-sm text-gray-500 font-bold">Enterprise Edition</p>
+            </div>
+            
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label class="text-xs font-bold text-gray-600 uppercase mb-2 block">Usuario</label>
+                    <input type="text" id="login-username" placeholder="Ingrese usuario" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200 focus:ring-blue-600" required>
+                </div>
+                
+                <div>
+                    <label class="text-xs font-bold text-gray-600 uppercase mb-2 block">Contraseña</label>
+                    <input type="password" id="login-password" placeholder="••••••••" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200 focus:ring-blue-600" required>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-gray-600 uppercase mb-2 block">Institución</label>
+                    <select id="login-institucion" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200 focus:ring-blue-600" required>
+                        <option value="">Cargando...</option>
+                    </select>
+                </div>
+                
+                <button type="submit" id="login-btn" class="w-full bg-gradient-to-r from-blue-900 to-blue-700 text-white py-5 rounded-xl font-black text-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-xl uppercase">
+                    🔐 Iniciar Sesión
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-xs text-gray-400 mb-3">Usuarios de prueba:</p>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="bg-purple-50 p-2 rounded"><span class="badge badge-super-admin">Super Admin</span><br>admin / admin123</div>
+                    <div class="bg-blue-50 p-2 rounded"><span class="badge badge-admin">Admin</span><br>admin1 / admin123</div>
+                    <div class="bg-green-50 p-2 rounded"><span class="badge badge-editor">Editor</span><br>editor1 / editor123</div>
+                    <div class="bg-gray-50 p-2 rounded"><span class="badge badge-visor">Visor</span><br>visor1 / visor123</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VERIFICADOR PÚBLICO -->
+    <div id="verificador-screen" class="hidden min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-2xl w-full">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-900 rounded-full flex items-center justify-center text-white mx-auto mb-4 shadow-xl border-4 border-yellow-600">
+                    <div class="text-xl font-black">RENAM</div>
+                </div>
+                <h1 class="text-2xl font-black text-blue-900">Verificador de Credenciales</h1>
+                <p class="text-sm text-gray-500">Consulta pública de validez</p>
+            </div>
+
+            <div class="mb-6">
+                <input type="text" id="verify-matricula" placeholder="Ingrese matrícula (ej: ARG-12345678)" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200 focus:ring-blue-600 text-center text-lg">
+            </div>
+
+            <button onclick="verificarCredencial()" class="w-full bg-gradient-to-r from-green-600 to-green-800 text-white py-4 rounded-xl font-black text-lg hover:from-green-500 hover:to-green-700 transition-all shadow-xl uppercase mb-4">
+                🔍 Verificar Credencial
+            </button>
+
+            <div id="verify-result" class="hidden mt-6 p-6 bg-slate-50 rounded-xl"></div>
+
+            <div class="mt-6 text-center">
+                <button onclick="volverAlInicio()" class="text-blue-600 font-bold text-sm hover:underline">← Volver al inicio</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN PANEL -->
     <div id="admin-panel" class="max-w-7xl mx-auto hidden">
         <header class="bg-white p-6 rounded-3xl shadow-lg mb-8">
             <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
-                    <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-900 rounded-full flex items-center justify-center text-white shadow-xl border-4 border-yellow-600">
-                        <div class="text-center">
-                            <div class="text-xl font-black">RENAM</div>
-                            <div class="text-[6px] opacity-80">ARG</div>
-                        </div>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-black text-slate-800">RENAM</h1>
-                        <p class="text-xs text-blue-600 font-bold">Registro Nacional de Matriculaciones</p>
-                        <p class="text-xs text-slate-500 font-semibold">ASARI.SAS | v3.2 Final</p>
-                    </div>
+                    <span id="user-role-badge" class="badge">Cargando...</span>
+                    <button onclick="logout()" class="bg-red-600 text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-red-700 transition">
+                        🚪 Cerrar Sesión
+                    </button>
                 </div>
-                <nav class="flex gap-6">
-                    <button onclick="switchTab('manual')" id="tab-manual" class="tab-btn tab-active">
-                        <span>📝 Generador</span>
-                    </button>
-                    <button onclick="switchTab('autogestion')" id="tab-autogestion" class="tab-btn">
-                        <span>🔗 Links</span>
-                    </button>
-                    <button onclick="switchTab('database')" id="tab-database" class="tab-btn">
-                        <span>📊 Cursos</span>
-                    </button>
-                </nav>
             </div>
+            <nav class="flex gap-6 mt-6">
+                <button onclick="switchTab('manual')" id="tab-manual" class="tab-btn tab-active">
+                    <span>📝 Generador</span>
+                </button>
+                <button onclick="switchTab('alumnos')" id="tab-alumnos" class="tab-btn">
+                    <span>👥 Alumnos</span>
+                </button>
+                <button onclick="switchTab('cursos')" id="tab-cursos" class="tab-btn">
+                    <span>📚 Cursos</span>
+                </button>
+                <button onclick="switchTab('historial')" id="tab-historial" class="tab-btn">
+                    <span>📋 Historial</span>
+                </button>
+                <button onclick="switchTab('instituciones')" id="tab-instituciones" class="tab-btn">
+                    <span>🏢 Instituciones</span>
+                </button>
+                <button onclick="switchTab('usuarios')" id="tab-usuarios" class="tab-btn">
+                    <span>👤 Usuarios</span>
+                </button>
+                <button onclick="switchTab('autogestion')" id="tab-autogestion" class="tab-btn">
+                    <span>🔗 Links</span>
+                </button>
+            </nav>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
             <section class="bg-white p-8 rounded-3xl shadow-xl">
                 
+                <!-- TAB: GENERADOR MANUAL -->
                 <div id="content-manual">
                     <form id="carnet-form" class="space-y-4">
                         <div>
                             <label class="text-xs font-bold text-slate-600 uppercase mb-1 block required-field">Institución</label>
-                            <input type="text" id="institucion" placeholder="NOMBRE DE LA INSTITUCIÓN" class="w-full p-4 bg-slate-50 rounded-2xl font-black ring-1 ring-slate-200 uppercase">
+                            <input type="text" id="institucion" placeholder="NOMBRE DE LA INSTITUCIÓN" class="w-full p-4 bg-slate-50 rounded-2xl font-black ring-1 ring-slate-200 uppercase" readonly>
                         </div>
                         
                         <div class="grid grid-cols-2 gap-4">
@@ -538,16 +744,27 @@
 
                         <div class="bg-blue-50 p-4 rounded-2xl border-2 border-blue-200">
                             <label class="text-xs font-bold text-blue-900 uppercase mb-2 block required-field">Cursos/Certificaciones</label>
+                            <input type="text" id="curso-search" placeholder="🔍 Buscar curso..." class="w-full p-2 bg-white rounded-lg text-sm font-bold ring-1 ring-blue-200 mb-2">
                             <select id="curso-select" multiple size="4" class="w-full p-3 bg-white rounded-xl font-bold text-blue-900">
                                 <option>Cargando...</option>
                             </select>
                             <p class="text-xs text-blue-600 mt-2">💡 Mantén Ctrl (Win) o Cmd (Mac) + Click</p>
                             <div id="selected-count" class="text-xs font-bold text-blue-700 mt-1">0 cursos seleccionados</div>
+                            
+                            <div class="mt-3 pt-3 border-t-2 border-blue-300">
+                                <div class="flex gap-2">
+                                    <input type="text" id="quick-course-name" placeholder="Crear curso nuevo..." class="flex-1 p-2 bg-white rounded-lg text-sm font-bold ring-1 ring-blue-200">
+                                    <button type="button" onclick="quickAddCourse()" class="bg-blue-600 text-white px-4 rounded-lg font-bold text-sm uppercase hover:bg-blue-700 transition shadow-lg">
+                                        ➕
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div>
                             <label class="text-xs font-bold text-slate-600 uppercase mb-1 block required-field">Foto del Alumno</label>
                             <input type="file" id="photo-upload" accept="image/*" class="w-full p-3 border-2 border-dashed rounded-xl bg-slate-50 hover:bg-blue-50 transition">
+                            <p class="text-xs text-gray-500 mt-1">Tamaño recomendado: 800x1000px - Máximo: 2MB</p>
                         </div>
 
                         <div class="bg-gradient-to-br from-yellow-50 to-orange-50 p-4 rounded-2xl border-2 border-yellow-200">
@@ -561,7 +778,7 @@
                                 <label class="text-xs font-bold text-yellow-900 uppercase">🔰 Marca de Agua / Sello</label>
                                 <div class="tooltip">
                                     <span class="text-xs bg-yellow-600 text-white px-2 py-1 rounded-full cursor-help">?</span>
-                                    <span class="tooltiptext">Imagen que aparece de fondo en la credencial (ej: logo institucional grande)</span>
+                                    <span class="tooltiptext">Imagen que aparece de fondo en la credencial</span>
                                 </div>
                             </div>
                             <input type="file" id="watermark-upload" accept="image/*" class="w-full p-3 border-2 border-dashed rounded-xl bg-white text-xs">
@@ -583,6 +800,90 @@
                     </form>
                 </div>
 
+                <!-- TAB: GESTIÓN DE ALUMNOS -->
+                <div id="content-alumnos" class="hidden">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-black text-slate-800 mb-4">Gestión de Alumnos</h2>
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" id="search-alumno" placeholder="🔍 Buscar por DNI o nombre..." class="flex-1 p-3 bg-slate-50 rounded-xl font-bold ring-1 ring-slate-200">
+                            <button onclick="searchAlumnos()" class="bg-blue-600 text-white px-6 rounded-xl font-bold hover:bg-blue-700">Buscar</button>
+                        </div>
+                    </div>
+                    <div id="alumnos-list" class="overflow-x-auto"></div>
+                    <div id="alumnos-pagination" class="pagination"></div>
+                </div>
+
+                <!-- TAB: GESTIÓN DE CURSOS -->
+                <div id="content-cursos" class="hidden">
+                    <div class="bg-green-50 p-6 rounded-2xl border-2 border-green-200 mb-6">
+                        <h3 class="font-black text-green-900 uppercase mb-3">Gestión de Cursos</h3>
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" id="new-course-name" placeholder="Nombre del nuevo curso" class="flex-1 p-3 bg-white rounded-xl text-sm font-bold ring-1 ring-green-200">
+                            <button onclick="addCourse()" class="bg-green-600 text-white px-6 rounded-xl font-bold text-sm uppercase hover:bg-green-700 transition shadow-lg">
+                                ➕ Añadir
+                            </button>
+                        </div>
+                        <input type="text" id="search-curso" placeholder="🔍 Buscar curso..." class="w-full p-2 bg-white rounded-lg text-sm font-bold ring-1 ring-green-200 mb-3">
+                        <div id="course-list-display" class="h-96 overflow-y-auto border-2 border-green-200 rounded-xl p-3 bg-white text-xs space-y-2"></div>
+                    </div>
+                </div>
+
+                <!-- TAB: HISTORIAL DE CREDENCIALES -->
+                <div id="content-historial" class="hidden">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-black text-slate-800 mb-4">Historial de Credenciales</h2>
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            <input type="date" id="filter-fecha-desde" class="p-2 bg-slate-50 rounded-lg text-sm font-bold">
+                            <input type="date" id="filter-fecha-hasta" class="p-2 bg-slate-50 rounded-lg text-sm font-bold">
+                            <button onclick="filterHistorial()" class="bg-purple-600 text-white rounded-lg font-bold text-sm hover:bg-purple-700">Filtrar</button>
+                        </div>
+                    </div>
+                    <div id="historial-list" class="overflow-x-auto"></div>
+                    <div id="historial-pagination" class="pagination"></div>
+                </div>
+
+                <!-- TAB: INSTITUCIONES (SUPER ADMIN) -->
+                <div id="content-instituciones" class="hidden">
+                    <div class="bg-purple-50 p-6 rounded-2xl border-2 border-purple-200 mb-6">
+                        <h3 class="font-black text-purple-900 uppercase mb-3">Gestión de Instituciones</h3>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <input type="text" id="new-inst-nombre" placeholder="Nombre institución" class="p-3 bg-white rounded-xl text-sm font-bold ring-1 ring-purple-200">
+                            <input type="text" id="new-inst-codigo" placeholder="Código único" class="p-3 bg-white rounded-xl text-sm font-bold ring-1 ring-purple-200">
+                        </div>
+                        <button onclick="addInstitucion()" class="w-full bg-purple-600 text-white px-6 py-3 rounded-xl font-bold text-sm uppercase hover:bg-purple-700 transition shadow-lg">
+                            ➕ Añadir Institución
+                        </button>
+                    </div>
+                    <div id="instituciones-list" class="overflow-x-auto"></div>
+                </div>
+
+                <!-- TAB: USUARIOS (SUPER ADMIN) -->
+                <div id="content-usuarios" class="hidden">
+                    <div class="bg-indigo-50 p-6 rounded-2xl border-2 border-indigo-200 mb-6">
+                        <h3 class="font-black text-indigo-900 uppercase mb-3">Gestión de Usuarios</h3>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <input type="text" id="new-user-username" placeholder="Usuario" class="p-3 bg-white rounded-xl text-sm font-bold ring-1 ring-indigo-200">
+                            <input type="password" id="new-user-password" placeholder="Contraseña" class="p-3 bg-white rounded-xl text-sm font-bold ring-1 ring-indigo-200">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <select id="new-user-rol" class="p-3 bg-white rounded-xl text-sm font-bold ring-1 ring-indigo-200">
+                                <option value="visor">Visor</option>
+                                <option value="editor">Editor</option>
+                                <option value="admin">Admin</option>
+                                <option value="super_admin">Super Admin</option>
+                            </select>
+                            <select id="new-user-institucion" class="p-3 bg-white rounded-xl text-sm font-bold ring-1 ring-indigo-200">
+                                <option value="">Seleccionar institución</option>
+                            </select>
+                        </div>
+                        <button onclick="addUsuario()" class="w-full bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold text-sm uppercase hover:bg-indigo-700 transition shadow-lg">
+                            ➕ Añadir Usuario
+                        </button>
+                    </div>
+                    <div id="usuarios-list" class="overflow-x-auto"></div>
+                </div>
+
+                <!-- TAB: AUTOGESTIÓN -->
                 <div id="content-autogestion" class="hidden space-y-6">
                     <div class="bg-blue-50 p-6 rounded-2xl border-2 border-blue-200">
                         <h3 class="font-black text-blue-900 uppercase mb-2">Crear Link de Autogestión</h3>
@@ -599,32 +900,14 @@
                     </div>
                 </div>
 
-                <div id="content-database" class="hidden space-y-6">
-                    <div class="bg-green-50 p-6 rounded-2xl border-2 border-green-200">
-                        <h3 class="font-black text-green-900 uppercase mb-3">Gestión de Cursos</h3>
-                        <div class="flex gap-2 mb-4">
-                            <input type="text" id="new-course-name" placeholder="Nombre del nuevo curso" class="flex-1 p-3 bg-white rounded-xl text-sm font-bold ring-1 ring-green-200">
-                            <button onclick="addCourse()" class="bg-green-600 text-white px-6 rounded-xl font-bold text-sm uppercase hover:bg-green-700 transition shadow-lg">
-                                ➕ Añadir
-                            </button>
-                        </div>
-                        <div id="course-list-display" class="h-40 overflow-y-auto border-2 border-green-200 rounded-xl p-3 bg-white text-xs space-y-2"></div>
-                    </div>
-                    <div class="border-t-2 pt-4">
-                        <button onclick="exportCSV()" class="w-full bg-slate-800 text-white py-4 rounded-xl font-black uppercase text-sm hover:bg-black transition shadow-xl">
-                            📥 Exportar Base de Datos (CSV)
-                        </button>
-                    </div>
-                </div>
             </section>
 
+            <!-- PREVIEW SECTION -->
             <section class="flex flex-col items-center sticky top-8">
                 <div id="download-area">
                     <div id="preview-container" class="carnet-preview">
-                        
                         <div class="security-guilloche"></div>
                         
-                        <!-- BANDA HOLOGRÁFICA SVG - EXPORTABLE -->
                         <svg class="holographic-stripe-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 540">
                             <defs>
                                 <linearGradient id="holographic-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -641,12 +924,10 @@
                             <rect width="120" height="540" fill="url(#holographic-gradient)" opacity="0.8"/>
                         </svg>
                         
-                        <!-- MICROIMPRESIONES - 3 ZONAS -->
-                        <div class="microprint microprint-bottom">RENAM OFICIAL • REPÚBLICA ARGENTINA • RENAM OFICIAL • REPÚBLICA ARGENTINA • RENAM OFICIAL • REPÚBLICA ARGENTINA • RENAM OFICIAL •</div>
-                        <div class="microprint microprint-left">RENAM • ARGENTINA • RENAM • ARGENTINA •</div>
-                        <div class="microprint microprint-top">SISTEMA NACIONAL • SISTEMA NACIONAL • SISTEMA NACIONAL •</div>
+                        <div class="microprint microprint-bottom">RENAM OFICIAL • REPÚBLICA ARGENTINA • RENAM OFICIAL • REPÚBLICA ARGENTINA •</div>
+                        <div class="microprint microprint-left">RENAM • ARGENTINA •</div>
+                        <div class="microprint microprint-top">SISTEMA NACIONAL • SISTEMA NACIONAL •</div>
                         
-                        <!-- ROSETA DE SEGURIDAD -->
                         <svg class="security-rosette" viewBox="0 0 60 60">
                             <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(30,64,175,0.15)" stroke-width="0.5"/>
                             <circle cx="30" cy="30" r="20" fill="none" stroke="rgba(30,64,175,0.12)" stroke-width="0.5"/>
@@ -666,7 +947,6 @@
                             <path d="M30,5 L32,28 L30,30 L28,28 Z" fill="rgba(30,64,175,0.08)" transform="rotate(330 30 30)"/>
                         </svg>
                         
-                        <!-- HEADER -->
                         <div class="header-bar">
                             <span id="institucion-preview" class="inst-title">INSTITUCIÓN</span>
                             <div class="renam-header-logo">
@@ -675,33 +955,23 @@
                             <span class="id-label">PROFESSIONAL ID</span>
                         </div>
 
-                        <!-- FOOTER -->
                         <div class="footer-bar">
                             <span class="footer-text">SISTEMA NACIONAL DE ACREDITACIÓN</span>
                             <span class="footer-text">ARGENTINA</span>
                         </div>
                         
-                        <!-- FOTO -->
                         <img id="photo-preview" src="https://placehold.co/280x340/e2e8f0/94a3b8?text=FOTO" alt="Foto">
-                        
-                        <!-- MARCA DE AGUA -->
                         <img id="watermark-asari" src="" alt="">
-                        
-                        <!-- LOGOS DE AVALES -->
                         <div id="avales-container"></div>
-
-                        <!-- CURSOS -->
                         <div id="cursos-section">
                             <div class="curso-item-clean">SELECCIONAR CURSOS</div>
                         </div>
 
-                        <!-- DATOS DEL ALUMNO -->
                         <div id="nombre-preview">NOMBRE DEL ALUMNO</div>
                         <div id="dni-container">DNI: -</div>
                         <div id="matricula-container">MATRÍCULA: -</div>
                         <div id="vence-display-preview">EMISIÓN: -</div>
 
-                        <!-- QR CODE CON LABEL -->
                         <div class="qr-container">
                             <div class="qr-label">VERIFICAR ONLINE</div>
                             <div class="qr-box">
@@ -762,34 +1032,37 @@
     <script>
         const CONFIG = {
             supabaseUrl: 'https://fuxnsebrhxxbalqfmtzs.supabase.co',
-            supabaseKey: 'sb_publishable_brWrs7Bn3vGFS7H2mEHkKQ_hcK1a8WV',
-            verificadorUrl: 'https://instructormap.github.io/verificador-Carnet-Oficial/'
+            supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1eG5zZWJyaHh4YmFscWZtdHpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc0Nzc2NzAsImV4cCI6MjA1MzA1MzY3MH0.fH3SZw8Y2V0ZOTr-_bsv5LXy0gxj2VPnBzLqo5M2n6E'
         };
 
         const sb = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
 
+        // SISTEMA DE SESIÓN
+        let currentUser = null;
+        let currentSession = {
+            user: null,
+            rol: null,
+            institucion_id: null,
+            institucion_nombre: null
+        };
+
         // GESTOR DE LOGOS
         const logosManager = {
             slots: [null, null, null, null, null],
-            
             init() {
                 this.renderGrid();
             },
-            
             renderGrid() {
                 const grid = document.getElementById('logos-grid');
                 grid.innerHTML = '';
-                
                 this.slots.forEach((slot, i) => {
                     const div = document.createElement('div');
                     div.className = `logo-slot ${slot ? 'has-logo' : ''}`;
-                    
                     if (slot) {
                         const img = document.createElement('img');
                         img.src = slot.dataUrl;
                         img.className = 'logo-slot-preview';
                         div.appendChild(img);
-                        
                         const removeBtn = document.createElement('div');
                         removeBtn.className = 'logo-remove-btn';
                         removeBtn.textContent = '×';
@@ -802,51 +1075,38 @@
                         input.className = 'hidden';
                         input.id = `logo-input-${i}`;
                         input.onchange = (e) => this.handleUpload(i, e.target.files[0]);
-                        
                         const label = document.createElement('label');
                         label.htmlFor = `logo-input-${i}`;
                         label.textContent = '+';
                         label.className = 'text-3xl text-gray-400 cursor-pointer hover:text-blue-600 transition';
-                        
                         div.appendChild(input);
                         div.appendChild(label);
                     }
-                    
                     grid.appendChild(div);
                 });
-                
                 this.updateCount();
                 this.updatePreview();
             },
-            
             handleUpload(index, file) {
                 if (!file) return;
-                
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    this.slots[index] = {
-                        file: file,
-                        dataUrl: e.target.result
-                    };
+                    this.slots[index] = { file: file, dataUrl: e.target.result };
                     this.renderGrid();
                 };
                 reader.readAsDataURL(file);
             },
-            
             removeLogo(index) {
                 this.slots[index] = null;
                 this.renderGrid();
             },
-            
             updateCount() {
                 const count = this.slots.filter(s => s !== null).length;
                 document.getElementById('logos-count').textContent = `${count}/5 slots usados`;
             },
-            
             updatePreview() {
                 const container = document.getElementById('avales-container');
                 container.innerHTML = '';
-                
                 this.slots.forEach(slot => {
                     if (slot) {
                         const img = document.createElement('img');
@@ -858,6 +1118,7 @@
             }
         };
 
+        // UTILIDADES
         function showNotification(msg, type = 'info') {
             const div = document.createElement('div');
             div.className = `notification ${type}`;
@@ -866,10 +1127,67 @@
             setTimeout(() => div.remove(), 3000);
         }
 
+        function showLoading(text = 'Cargando...') {
+            const existing = document.querySelector('.loading-overlay');
+            if (existing) return;
+            const div = document.createElement('div');
+            div.className = 'loading-overlay';
+            div.innerHTML = `<div class="spinner"></div><p class="text-white font-bold text-xl">${text}</p>`;
+            document.body.appendChild(div);
+        }
+
+        function hideLoading() {
+            const loading = document.querySelector('.loading-overlay');
+            if (loading) loading.remove();
+        }
+
+        function showModal(title, content, buttons = []) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h2 class="text-2xl font-black text-slate-800 mb-4">${title}</h2>
+                    <div class="mb-6">${content}</div>
+                    <div class="flex gap-3 justify-end">
+                        ${buttons.map(btn => `<button onclick="${btn.action}" class="action-btn ${btn.class}">${btn.text}</button>`).join('')}
+                        <button onclick="closeModal()" class="action-btn bg-gray-500 text-white">Cerrar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+        }
+
+        function closeModal() {
+            const modal = document.querySelector('.modal-overlay');
+            if (modal) modal.remove();
+        }
+
         function validateDNI(dni) {
             const cleaned = String(dni).replace(/\D/g, '');
             if (cleaned.length < 7) throw new Error('DNI debe tener 7-8 dígitos');
             return cleaned;
+        }
+
+        function sanitizeInput(str) {
+            return str.trim().replace(/[<>\"\']/g, '');
+        }
+
+        async function validateImage(file) {
+            if (!file.type.startsWith('image/')) throw new Error('El archivo debe ser una imagen');
+            if (file.size > 2 * 1024 * 1024) throw new Error('La imagen no puede superar 2MB');
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    if (img.width < 400 || img.height < 500) {
+                        reject(new Error('Dimensiones mínimas: 400x500px'));
+                    } else {
+                        resolve(true);
+                    }
+                };
+                img.onerror = () => reject(new Error('Imagen inválida'));
+                img.src = URL.createObjectURL(file);
+            });
         }
 
         async function compressImage(file) {
@@ -903,22 +1221,928 @@
             return data.publicUrl;
         }
 
-        let currentMode = 'admin';
-        let studentDniToken = null;
+        // SISTEMA DE AUTENTICACIÓN
+        async function initDatabase() {
+            // Crear tablas si no existen
+            const instituciones = await sb.from('instituciones').select('*').limit(1);
+            if (!instituciones.data || instituciones.data.length === 0) {
+                await sb.from('instituciones').insert([
+                    { nombre: 'Institución Demo 1', codigo: 'INST001' },
+                    { nombre: 'Institución Demo 2', codigo: 'INST002' }
+                ]);
+            }
 
-        document.addEventListener('DOMContentLoaded', init);
-
-        function init() {
-            const params = new URLSearchParams(window.location.search);
-            if (params.has('mode') && params.get('mode') === 'student') {
-                studentDniToken = decodeURIComponent(params.get('token'));
-                setupStudentMode();
-            } else {
-                setupAdminMode();
+            const usuarios = await sb.from('usuarios').select('*').limit(1);
+            if (!usuarios.data || usuarios.data.length === 0) {
+                const { data: inst } = await sb.from('instituciones').select('id').limit(1).single();
+                await sb.from('usuarios').insert([
+                    { username: 'admin', password: 'admin123', rol: 'super_admin', institucion_id: inst.id },
+                    { username: 'admin1', password: 'admin123', rol: 'admin', institucion_id: inst.id },
+                    { username: 'editor1', password: 'editor123', rol: 'editor', institucion_id: inst.id },
+                    { username: 'visor1', password: 'visor123', rol: 'visor', institucion_id: inst.id }
+                ]);
             }
         }
 
+        async function loadInstituciones() {
+            const { data } = await sb.from('instituciones').select('*').order('nombre');
+            const select = document.getElementById('login-institucion');
+            const selectNewUser = document.getElementById('new-user-institucion');
+            if (data && data.length > 0) {
+                select.innerHTML = data.map(i => `<option value="${i.id}">${i.nombre}</option>`).join('');
+                if (selectNewUser) {
+                    selectNewUser.innerHTML = '<option value="">Seleccionar institución</option>' + 
+                        data.map(i => `<option value="${i.id}">${i.nombre}</option>`).join('');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            
+            if (params.has('verificar')) {
+                mostrarVerificador();
+                return;
+            }
+            
+            if (params.has('mode') && params.get('mode') === 'student') {
+                studentDniToken = decodeURIComponent(params.get('token'));
+                setupStudentMode();
+                return;
+            }
+
+            await initDatabase();
+            await loadInstituciones();
+            
+            const savedSession = localStorage.getItem('renam_session');
+            if (savedSession) {
+                try {
+                    currentSession = JSON.parse(savedSession);
+                    await setupAdminMode();
+                } catch (e) {
+                    localStorage.removeItem('renam_session');
+                }
+            }
+        });
+
+        document.getElementById('login-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('login-btn');
+            btn.disabled = true;
+            btn.textContent = 'Verificando...';
+
+            try {
+                const username = sanitizeInput(document.getElementById('login-username').value);
+                const password = document.getElementById('login-password').value;
+                const institucionId = document.getElementById('login-institucion').value;
+
+                const { data: user, error } = await sb
+                    .from('usuarios')
+                    .select('*, instituciones(nombre)')
+                    .eq('username', username)
+                    .eq('password', password)
+                    .eq('institucion_id', institucionId)
+                    .single();
+
+                if (error || !user) throw new Error('Credenciales inválidas');
+
+                currentSession = {
+                    user: user.username,
+                    rol: user.rol,
+                    institucion_id: user.institucion_id,
+                    institucion_nombre: user.instituciones.nombre,
+                    user_id: user.id
+                };
+
+                localStorage.setItem('renam_session', JSON.stringify(currentSession));
+                await setupAdminMode();
+                showNotification('¡Bienvenido!', 'success');
+
+            } catch (err) {
+                showNotification(err.message, 'error');
+                btn.disabled = false;
+                btn.textContent = '🔐 Iniciar Sesión';
+            }
+        };
+
+        function logout() {
+            if (!confirm('¿Cerrar sesión?')) return;
+            localStorage.removeItem('renam_session');
+            currentSession = null;
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+            showNotification('Sesión cerrada', 'info');
+        }
+
+        async function setupAdminMode() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('admin-panel').classList.remove('hidden');
+            
+            document.getElementById('user-info-header').textContent = 
+                `${currentSession.institucion_nombre} | ${currentSession.user}`;
+            
+            const roleBadge = document.getElementById('user-role-badge');
+            roleBadge.textContent = currentSession.rol.replace('_', ' ').toUpperCase();
+            roleBadge.className = `badge badge-${currentSession.rol}`;
+
+            document.getElementById('institucion').value = currentSession.institucion_nombre;
+
+            // Permisos por rol
+            const isVisor = currentSession.rol === 'visor';
+            const isSuperAdmin = currentSession.rol === 'super_admin';
+
+            if (isVisor) {
+                document.getElementById('submit-btn').disabled = true;
+                document.getElementById('submit-btn').textContent = '🔒 Sin permisos de emisión';
+            }
+
+            // Ocultar tabs según permisos
+            document.getElementById('tab-instituciones').style.display = isSuperAdmin ? 'block' : 'none';
+            document.getElementById('tab-usuarios').style.display = isSuperAdmin ? 'block' : 'none';
+
+            logosManager.init();
+            await loadCourses();
+            
+            document.getElementById('watermark-opacity').oninput = (e) => {
+                const value = e.target.value;
+                document.getElementById('opacity-value').textContent = `${value}%`;
+                document.getElementById('watermark-asari').style.opacity = value / 100;
+            };
+            
+            document.getElementById('watermark-upload').onchange = (e) => {
+                if (e.target.files[0]) {
+                    const r = new FileReader();
+                    r.onload = (ev) => {
+                        document.getElementById('watermark-asari').src = ev.target.result;
+                    };
+                    r.readAsDataURL(e.target.files[0]);
+                }
+            };
+            
+            document.getElementById('curso-select').onchange = () => {
+                const count = document.getElementById('curso-select').selectedOptions.length;
+                document.getElementById('selected-count').textContent = `${count} curso(s) seleccionado(s)`;
+                updatePreview();
+            };
+
+            // Búsqueda de cursos
+            document.getElementById('curso-search').oninput = (e) => {
+                const search = e.target.value.toLowerCase();
+                const options = document.getElementById('curso-select').options;
+                for (let opt of options) {
+                    const match = opt.text.toLowerCase().includes(search);
+                    opt.style.display = match ? 'block' : 'none';
+                }
+            };
+        }
+
+        window.switchTab = function(tab) {
+            const tabs = ['manual', 'alumnos', 'cursos', 'historial', 'instituciones', 'usuarios', 'autogestion'];
+            tabs.forEach(t => {
+                const content = document.getElementById('content-' + t);
+                const btn = document.getElementById('tab-' + t);
+                if (content) content.classList.toggle('hidden', t !== tab);
+                if (btn) btn.classList.toggle('tab-active', t === tab);
+            });
+            
+            if (tab === 'alumnos') loadAlumnosList();
+            if (tab === 'cursos') loadCoursesList();
+            if (tab === 'historial') loadHistorialList();
+            if (tab === 'instituciones') loadInstitucionesList();
+            if (tab === 'usuarios') loadUsuariosList();
+        }
+
+        // GESTIÓN DE CURSOS
+        async function loadCourses() {
+            const { data } = await sb.from('cursos')
+                .select('*')
+                .eq('institucion_id', currentSession.institucion_id)
+                .order('nombre_curso');
+            const select = document.getElementById('curso-select');
+            if (data && data.length > 0) {
+                select.innerHTML = data.map(c => `<option value="${c.id}">${c.nombre_curso.toUpperCase()}</option>`).join('');
+            } else {
+                select.innerHTML = '<option>No hay cursos disponibles</option>';
+            }
+        }
+
+        async function loadCoursesList() {
+            const { data } = await sb.from('cursos')
+                .select('*')
+                .eq('institucion_id', currentSession.institucion_id)
+                .order('nombre_curso');
+            const display = document.getElementById('course-list-display');
+            if (data && data.length > 0) {
+                display.innerHTML = data.map(c => `
+                    <div class="flex justify-between items-center p-3 border-b hover:bg-green-50 rounded">
+                        <div>
+                            <span class="font-bold">${c.nombre_curso}</span>
+                            <span class="text-gray-400 text-xs ml-2">ID: ${c.id}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="editCourse(${c.id}, '${c.nombre_curso.replace(/'/g, "\\'")}' )" class="action-btn btn-edit">✏️</button>
+                            <button onclick="deleteCourse(${c.id})" class="action-btn btn-delete">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                display.innerHTML = '<p class="text-center text-gray-400 p-4">No hay cursos registrados</p>';
+            }
+
+            // Búsqueda
+            document.getElementById('search-curso').oninput = (e) => {
+                const search = e.target.value.toLowerCase();
+                const items = display.querySelectorAll('div.flex');
+                items.forEach(item => {
+                    const match = item.textContent.toLowerCase().includes(search);
+                    item.style.display = match ? 'flex' : 'none';
+                });
+            };
+        }
+
+        window.addCourse = async function() {
+            if (currentSession.rol === 'visor') return showNotification('Sin permisos', 'error');
+            const name = sanitizeInput(document.getElementById('new-course-name').value);
+            if (!name) return showNotification('Ingresa un nombre', 'error');
+
+            const { error } = await sb.from('cursos').insert([{ 
+                nombre_curso: name, 
+                institucion_id: currentSession.institucion_id 
+            }]);
+            
+            if (!error) {
+                showNotification('✓ Curso añadido', 'success');
+                document.getElementById('new-course-name').value = '';
+                loadCourses();
+                loadCoursesList();
+            } else {
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        window.quickAddCourse = async function() {
+            if (currentSession.rol === 'visor') return showNotification('Sin permisos', 'error');
+            const name = sanitizeInput(document.getElementById('quick-course-name').value);
+            if (!name) return showNotification('Ingresa un nombre de curso', 'error');
+
+            const { data, error } = await sb.from('cursos').insert([{ 
+                nombre_curso: name,
+                institucion_id: currentSession.institucion_id
+            }]).select();
+            
+            if (!error && data) {
+                showNotification('✓ Curso creado y añadido', 'success');
+                document.getElementById('quick-course-name').value = '';
+                await loadCourses();
+                const select = document.getElementById('curso-select');
+                const newOption = Array.from(select.options).find(opt => opt.value == data[0].id);
+                if (newOption) {
+                    newOption.selected = true;
+                    select.dispatchEvent(new Event('change'));
+                }
+            } else {
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        window.editCourse = function(id, currentName) {
+            if (currentSession.rol === 'visor') return showNotification('Sin permisos', 'error');
+            showModal('Editar Curso', `
+                <input type="text" id="edit-course-name" value="${currentName}" class="w-full p-3 bg-slate-50 rounded-xl font-bold">
+            `, [{
+                text: '💾 Guardar',
+                class: 'btn-edit',
+                action: `saveCourseEdit(${id})`
+            }]);
+        }
+
+        window.saveCourseEdit = async function(id) {
+            const newName = sanitizeInput(document.getElementById('edit-course-name').value);
+            if (!newName) return showNotification('Nombre inválido', 'error');
+
+            const { error } = await sb.from('cursos').update({ nombre_curso: newName }).eq('id', id);
+            if (!error) {
+                showNotification('✓ Curso actualizado', 'success');
+                closeModal();
+                loadCourses();
+                loadCoursesList();
+            } else {
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        window.deleteCourse = async function(id) {
+            if (currentSession.rol === 'visor') return showNotification('Sin permisos', 'error');
+            if (!confirm('¿Eliminar este curso? Esta acción no se puede deshacer.')) return;
+
+            const { error } = await sb.from('cursos').delete().eq('id', id);
+            if (!error) {
+                showNotification('✓ Curso eliminado', 'success');
+                loadCourses();
+                loadCoursesList();
+            } else {
+                showNotification('Error: El curso está en uso', 'error');
+            }
+        }
+
+        // GESTIÓN DE ALUMNOS
+        let alumnosPage = 1;
+        const alumnosPerPage = 10;
+
+        async function loadAlumnosList(page = 1) {
+            alumnosPage = page;
+            showLoading('Cargando alumnos...');
+            
+            const from = (page - 1) * alumnosPerPage;
+            const to = from + alumnosPerPage - 1;
+
+            const { data, count } = await sb.from('alumnos')
+                .select('*', { count: 'exact' })
+                .eq('institucion_id', currentSession.institucion_id)
+                .order('created_at', { ascending: false })
+                .range(from, to);
+
+            const display = document.getElementById('alumnos-list');
+            if (data && data.length > 0) {
+                display.innerHTML = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>DNI</th>
+                                <th>Nombre</th>
+                                <th>Matrícula</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(a => `
+                                <tr>
+                                    <td>${a.dni}</td>
+                                    <td>${a.nombre_completo}</td>
+                                    <td>${a.matricula_arg}</td>
+                                    <td>
+                                        <button onclick="editAlumno('${a.dni}')" class="action-btn btn-edit">✏️</button>
+                                        <button onclick="deleteAlumno('${a.dni}')" class="action-btn btn-delete">🗑️</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+
+                renderPagination('alumnos', count, page);
+            } else {
+                display.innerHTML = '<p class="text-center text-gray-400 p-8">No hay alumnos registrados</p>';
+            }
+            
+            hideLoading();
+        }
+
+        window.searchAlumnos = async function() {
+            const search = document.getElementById('search-alumno').value.trim();
+            if (!search) return loadAlumnosList();
+
+            showLoading('Buscando...');
+            const { data } = await sb.from('alumnos')
+                .select('*')
+                .eq('institucion_id', currentSession.institucion_id)
+                .or(`dni.ilike.%${search}%,nombre_completo.ilike.%${search}%`);
+
+            const display = document.getElementById('alumnos-list');
+            if (data && data.length > 0) {
+                display.innerHTML = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>DNI</th>
+                                <th>Nombre</th>
+                                <th>Matrícula</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(a => `
+                                <tr>
+                                    <td>${a.dni}</td>
+                                    <td>${a.nombre_completo}</td>
+                                    <td>${a.matricula_arg}</td>
+                                    <td>
+                                        <button onclick="editAlumno('${a.dni}')" class="action-btn btn-edit">✏️</button>
+                                        <button onclick="deleteAlumno('${a.dni}')" class="action-btn btn-delete">🗑️</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } else {
+                display.innerHTML = '<p class="text-center text-gray-400 p-8">Sin resultados</p>';
+            }
+            hideLoading();
+        }
+
+        window.editAlumno = async function(dni) {
+            if (currentSession.rol === 'visor') return showNotification('Sin permisos', 'error');
+            const { data } = await sb.from('alumnos').select('*').eq('dni', dni).single();
+            if (!data) return;
+
+            showModal('Editar Alumno', `
+                <div class="space-y-3">
+                    <input type="text" id="edit-alumno-nombre" value="${data.nombre_completo}" class="w-full p-3 bg-slate-50 rounded-xl font-bold" placeholder="Nombre completo">
+                </div>
+            `, [{
+                text: '💾 Guardar',
+                class: 'btn-edit',
+                action: `saveAlumnoEdit('${dni}')`
+            }]);
+        }
+
+        window.saveAlumnoEdit = async function(dni) {
+            const nombre = sanitizeInput(document.getElementById('edit-alumno-nombre').value).toUpperCase();
+            if (!nombre) return showNotification('Nombre inválido', 'error');
+
+            const { error } = await sb.from('alumnos').update({ nombre_completo: nombre }).eq('dni', dni);
+            if (!error) {
+                showNotification('✓ Alumno actualizado', 'success');
+                closeModal();
+                loadAlumnosList(alumnosPage);
+            } else {
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        window.deleteAlumno = async function(dni) {
+            if (currentSession.rol === 'visor' || currentSession.rol === 'editor') {
+                return showNotification('Sin permisos', 'error');
+            }
+            if (!confirm('¿Eliminar este alumno y todas sus certificaciones?')) return;
+
+            const { error } = await sb.from('alumnos').delete().eq('dni', dni);
+            if (!error) {
+                showNotification('✓ Alumno eliminado', 'success');
+                loadAlumnosList(alumnosPage);
+            } else {
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        // HISTORIAL DE CREDENCIALES
+        let historialPage = 1;
+        const historialPerPage = 10;
+
+        async function loadHistorialList(page = 1) {
+            historialPage = page;
+            showLoading('Cargando historial...');
+            
+            const from = (page - 1) * historialPerPage;
+            const to = from + historialPerPage - 1;
+
+            const { data, count } = await sb.from('historial_emisiones')
+                .select('*, alumnos(nombre_completo, matricula_arg)', { count: 'exact' })
+                .eq('institucion_id', currentSession.institucion_id)
+                .order('created_at', { ascending: false })
+                .range(from, to);
+
+            const display = document.getElementById('historial-list');
+            if (data && data.length > 0) {
+                display.innerHTML = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Alumno</th>
+                                <th>Matrícula</th>
+                                <th>Usuario</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(h => `
+                                <tr>
+                                    <td>${new Date(h.created_at).toLocaleDateString('es-AR')}</td>
+                                    <td>${h.alumnos?.nombre_completo || 'N/A'}</td>
+                                    <td>${h.alumnos?.matricula_arg || 'N/A'}</td>
+                                    <td>${h.usuario_emisor}</td>
+                                    <td>
+                                        <button onclick="redownloadCredencial('${h.alumno_dni}')" class="action-btn btn-download">📥</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+
+                renderPagination('historial', count, page);
+            } else {
+                display.innerHTML = '<p class="text-center text-gray-400 p-8">Sin emisiones registradas</p>';
+            }
+            
+            hideLoading();
+        }
+
+        window.filterHistorial = async function() {
+            const desde = document.getElementById('filter-fecha-desde').value;
+            const hasta = document.getElementById('filter-fecha-hasta').value;
+            
+            if (!desde || !hasta) return showNotification('Selecciona ambas fechas', 'error');
+
+            showLoading('Filtrando...');
+            const { data } = await sb.from('historial_emisiones')
+                .select('*, alumnos(nombre_completo, matricula_arg)')
+                .eq('institucion_id', currentSession.institucion_id)
+                .gte('created_at', desde)
+                .lte('created_at', hasta)
+                .order('created_at', { ascending: false });
+
+            const display = document.getElementById('historial-list');
+            if (data && data.length > 0) {
+                display.innerHTML = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Alumno</th>
+                                <th>Matrícula</th>
+                                <th>Usuario</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(h => `
+                                <tr>
+                                    <td>${new Date(h.created_at).toLocaleDateString('es-AR')}</td>
+                                    <td>${h.alumnos?.nombre_completo || 'N/A'}</td>
+                                    <td>${h.alumnos?.matricula_arg || 'N/A'}</td>
+                                    <td>${h.usuario_emisor}</td>
+                                    <td>
+                                        <button onclick="redownloadCredencial('${h.alumno_dni}')" class="action-btn btn-download">📥</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } else {
+                display.innerHTML = '<p class="text-center text-gray-400 p-8">Sin resultados</p>';
+            }
+            hideLoading();
+        }
+
+        window.redownloadCredencial = async function(dni) {
+            showNotification('Cargando datos del alumno...', 'info');
+            const { data } = await sb.from('alumnos').select('*').eq('dni', dni).single();
+            if (!data) return showNotification('Alumno no encontrado', 'error');
+
+            document.getElementById('dni').value = data.dni;
+            document.getElementById('nombre').value = data.nombre_completo;
+            if (data.foto_url) document.getElementById('photo-preview').src = data.foto_url;
+            
+            const { data: certs } = await sb.from('certificaciones')
+                .select('curso_id')
+                .eq('alumno_dni', dni);
+            
+            if (certs && certs.length > 0) {
+                const select = document.getElementById('curso-select');
+                certs.forEach(cert => {
+                    const option = Array.from(select.options).find(opt => opt.value == cert.curso_id);
+                    if (option) option.selected = true;
+                });
+                select.dispatchEvent(new Event('change'));
+            }
+
+            switchTab('manual');
+            updatePreview();
+            showNotification('Datos cargados. Revisa y descarga nuevamente.', 'success');
+        }
+
+        // GESTIÓN DE INSTITUCIONES (SUPER ADMIN)
+        async function loadInstitucionesList() {
+            if (currentSession.rol !== 'super_admin') {
+                document.getElementById('instituciones-list').innerHTML = 
+                    '<p class="text-center text-red-500 p-8">Acceso restringido a Super Admin</p>';
+                return;
+            }
+
+            const { data } = await sb.from('instituciones').select('*').order('nombre');
+            const display = document.getElementById('instituciones-list');
+            if (data && data.length > 0) {
+                display.innerHTML = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Código</th>
+                                <th>Fecha Creación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(i => `
+                                <tr>
+                                    <td>${i.nombre}</td>
+                                    <td>${i.codigo}</td>
+                                    <td>${new Date(i.created_at).toLocaleDateString('es-AR')}</td>
+                                    <td>
+                                        <button onclick="editInstitucion(${i.id}, '${i.nombre.replace(/'/g, "\\'")}', '${i.codigo}')" class="action-btn btn-edit">✏️</button>
+                                        <button onclick="deleteInstitucion(${i.id})" class="action-btn btn-delete">🗑️</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+        }
+
+        window.addInstitucion = async function() {
+            if (currentSession.rol !== 'super_admin') return showNotification('Sin permisos', 'error');
+            
+            const nombre = sanitizeInput(document.getElementById('new-inst-nombre').value);
+            const codigo = sanitizeInput(document.getElementById('new-inst-codigo').value).toUpperCase();
+            
+            if (!nombre || !codigo) return showNotification('Completa todos los campos', 'error');
+
+            const { error } = await sb.from('instituciones').insert([{ nombre, codigo }]);
+            if (!error) {
+                showNotification('✓ Institución añadida', 'success');
+                document.getElementById('new-inst-nombre').value = '';
+                document.getElementById('new-inst-codigo').value = '';
+                loadInstitucionesList();
+                loadInstituciones();
+            } else {
+                showNotification('Error: Código duplicado', 'error');
+            }
+        }
+
+        window.editInstitucion = function(id, nombre, codigo) {
+            showModal('Editar Institución', `
+                <div class="space-y-3">
+                    <input type="text" id="edit-inst-nombre" value="${nombre}" class="w-full p-3 bg-slate-50 rounded-xl font-bold" placeholder="Nombre">
+                    <input type="text" id="edit-inst-codigo" value="${codigo}" class="w-full p-3 bg-slate-50 rounded-xl font-bold" placeholder="Código">
+                </div>
+            `, [{
+                text: '💾 Guardar',
+                class: 'btn-edit',
+                action: `saveInstitucionEdit(${id})`
+            }]);
+        }
+
+        window.saveInstitucionEdit = async function(id) {
+            const nombre = sanitizeInput(document.getElementById('edit-inst-nombre').value);
+            const codigo = sanitizeInput(document.getElementById('edit-inst-codigo').value).toUpperCase();
+            
+            if (!nombre || !codigo) return showNotification('Campos inválidos', 'error');
+
+            const { error } = await sb.from('instituciones').update({ nombre, codigo }).eq('id', id);
+            if (!error) {
+                showNotification('✓ Institución actualizada', 'success');
+                closeModal();
+                loadInstitucionesList();
+                loadInstituciones();
+            } else {
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        window.deleteInstitucion = async function(id) {
+            if (!confirm('¿Eliminar institución? Se eliminarán TODOS sus datos asociados.')) return;
+
+            const { error } = await sb.from('instituciones').delete().eq('id', id);
+            if (!error) {
+                showNotification('✓ Institución eliminada', 'success');
+                loadInstitucionesList();
+                loadInstituciones();
+            } else {
+                showNotification('Error: Tiene datos asociados', 'error');
+            }
+        }
+
+        // GESTIÓN DE USUARIOS (SUPER ADMIN)
+        async function loadUsuariosList() {
+            if (currentSession.rol !== 'super_admin') {
+                document.getElementById('usuarios-list').innerHTML = 
+                    '<p class="text-center text-red-500 p-8">Acceso restringido a Super Admin</p>';
+                return;
+            }
+
+            const { data } = await sb.from('usuarios')
+                .select('*, instituciones(nombre)')
+                .order('created_at', { ascending: false });
+            
+            const display = document.getElementById('usuarios-list');
+            if (data && data.length > 0) {
+                display.innerHTML = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Rol</th>
+                                <th>Institución</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(u => `
+                                <tr>
+                                    <td>${u.username}</td>
+                                    <td><span class="badge badge-${u.rol}">${u.rol.replace('_', ' ').toUpperCase()}</span></td>
+                                    <td>${u.instituciones?.nombre || 'N/A'}</td>
+                                    <td>
+                                        <button onclick="editUsuario(${u.id}, '${u.username}', '${u.rol}', ${u.institucion_id})" class="action-btn btn-edit">✏️</button>
+                                        <button onclick="deleteUsuario(${u.id})" class="action-btn btn-delete">🗑️</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+        }
+
+        window.addUsuario = async function() {
+            if (currentSession.rol !== 'super_admin') return showNotification('Sin permisos', 'error');
+            
+            const username = sanitizeInput(document.getElementById('new-user-username').value);
+            const password = document.getElementById('new-user-password').value;
+            const rol = document.getElementById('new-user-rol').value;
+            const institucion_id = document.getElementById('new-user-institucion').value;
+            
+            if (!username || !password || !institucion_id) {
+                return showNotification('Completa todos los campos', 'error');
+            }
+
+            const { error } = await sb.from('usuarios').insert([{ username, password, rol, institucion_id }]);
+            if (!error) {
+                showNotification('✓ Usuario añadido', 'success');
+                document.getElementById('new-user-username').value = '';
+                document.getElementById('new-user-password').value = '';
+                loadUsuariosList();
+            } else {
+                showNotification('Error: Usuario duplicado', 'error');
+            }
+        }
+
+        window.editUsuario = function(id, username, rol, institucion_id) {
+            showModal('Editar Usuario', `
+                <div class="space-y-3">
+                    <input type="text" id="edit-user-username" value="${username}" class="w-full p-3 bg-slate-50 rounded-xl font-bold" placeholder="Usuario">
+                    <input type="password" id="edit-user-password" placeholder="Nueva contraseña (opcional)" class="w-full p-3 bg-slate-50 rounded-xl font-bold">
+                    <select id="edit-user-rol" class="w-full p-3 bg-slate-50 rounded-xl font-bold">
+                        <option value="visor" ${rol === 'visor' ? 'selected' : ''}>Visor</option>
+                        <option value="editor" ${rol === 'editor' ? 'selected' : ''}>Editor</option>
+                        <option value="admin" ${rol === 'admin' ? 'selected' : ''}>Admin</option>
+                        <option value="super_admin" ${rol === 'super_admin' ? 'selected' : ''}>Super Admin</option>
+                    </select>
+                </div>
+            `, [{
+                text: '💾 Guardar',
+                class: 'btn-edit',
+                action: `saveUsuarioEdit(${id})`
+            }]);
+        }
+
+        window.saveUsuarioEdit = async function(id) {
+            const username = sanitizeInput(document.getElementById('edit-user-username').value);
+            const password = document.getElementById('edit-user-password').value;
+            const rol = document.getElementById('edit-user-rol').value;
+            
+            if (!username) return showNotification('Usuario inválido', 'error');
+
+            const updates = { username, rol };
+            if (password) updates.password = password;
+
+            const { error } = await sb.from('usuarios').update(updates).eq('id', id);
+            if (!error) {
+                showNotification('✓ Usuario actualizado', 'success');
+                closeModal();
+                loadUsuariosList();
+            } else {
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        window.deleteUsuario = async function(id) {
+            if (!confirm('¿Eliminar este usuario?')) return;
+
+            const { error } = await sb.from('usuarios').delete().eq('id', id);
+            if (!error) {
+                showNotification('✓ Usuario eliminado', 'success');
+                loadUsuariosList();
+            } else {
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        // PAGINACIÓN
+        function renderPagination(type, totalCount, currentPage) {
+            const perPage = type === 'alumnos' ? alumnosPerPage : historialPerPage;
+            const totalPages = Math.ceil(totalCount / perPage);
+            const container = document.getElementById(`${type}-pagination`);
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            html += `<button onclick="load${type.charAt(0).toUpperCase() + type.slice(1)}List(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="bg-blue-600 text-white">← Anterior</button>`;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    html += `<button onclick="load${type.charAt(0).toUpperCase() + type.slice(1)}List(${i})" class="${i === currentPage ? 'active bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}">${i}</button>`;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    html += '<span class="px-2">...</span>';
+                }
+            }
+            
+            html += `<button onclick="load${type.charAt(0).toUpperCase() + type.slice(1)}List(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="bg-blue-600 text-white">Siguiente →</button>`;
+            
+            container.innerHTML = html;
+        }
+
+        // VERIFICADOR PÚBLICO
+        function mostrarVerificador() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('verificador-screen').classList.remove('hidden');
+        }
+
+        window.verificarCredencial = async function() {
+            const matricula = document.getElementById('verify-matricula').value.trim();
+            if (!matricula) return showNotification('Ingresa una matrícula', 'error');
+
+            showLoading('Verificando...');
+            const { data } = await sb.from('alumnos')
+                .select('*, instituciones(nombre)')
+                .eq('matricula_arg', matricula)
+                .single();
+
+            const result = document.getElementById('verify-result');
+            if (data) {
+                const { data: certs } = await sb.from('certificaciones')
+                    .select('*, cursos(nombre_curso)')
+                    .eq('alumno_dni', data.dni);
+
+                result.innerHTML = `
+                    <div class="text-center mb-4">
+                        <div class="text-6xl mb-3">✅</div>
+                        <h3 class="text-2xl font-black text-green-600">CREDENCIAL VÁLIDA</h3>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <p><strong>Nombre:</strong> ${data.nombre_completo}</p>
+                        <p><strong>DNI:</strong> ${data.dni}</p>
+                        <p><strong>Matrícula:</strong> ${data.matricula_arg}</p>
+                        <p><strong>Institución:</strong> ${data.instituciones?.nombre || 'N/A'}</p>
+                        <p><strong>Cursos certificados:</strong></p>
+                        <ul class="list-disc list-inside ml-4">
+                            ${certs && certs.length > 0 ? certs.map(c => `<li>${c.cursos?.nombre_curso}</li>`).join('') : '<li>Sin cursos registrados</li>'}
+                        </ul>
+                    </div>
+                `;
+                result.classList.remove('hidden');
+            } else {
+                result.innerHTML = `
+                    <div class="text-center">
+                        <div class="text-6xl mb-3">❌</div>
+                        <h3 class="text-2xl font-black text-red-600">CREDENCIAL NO VÁLIDA</h3>
+                        <p class="text-gray-500 mt-2">No se encontró ninguna credencial con esta matrícula</p>
+                    </div>
+                `;
+                result.classList.remove('hidden');
+            }
+            hideLoading();
+        }
+
+        window.volverAlInicio = function() {
+            window.location.href = window.location.href.split('?')[0];
+        }
+
+        // AUTOGESTIÓN
+        window.generateLink = function() {
+            const dni = document.getElementById('invite-dni').value.replace(/\D/g, '');
+            if (!dni) return showNotification('DNI inválido', 'error');
+            
+            const url = `${window.location.href.split('?')[0]}?mode=student&token=${encodeURIComponent(dni)}&inst=${currentSession.institucion_id}`;
+            document.getElementById('generated-url').href = url;
+            document.getElementById('generated-url').textContent = url;
+            document.getElementById('link-output').classList.remove('hidden');
+            showNotification('✓ Link generado', 'success');
+        }
+
+        window.copyLink = function() {
+            const url = document.getElementById('generated-url').textContent;
+            navigator.clipboard.writeText(url);
+            showNotification('✓ Copiado', 'success');
+        }
+
+        // MODO ESTUDIANTE
+        let studentDniToken = null;
+        let studentInstId = null;
+
         function setupStudentMode() {
+            document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('admin-panel').classList.add('hidden');
             document.getElementById('student-panel').classList.remove('hidden');
             document.getElementById('student-dni-display').textContent = studentDniToken;
@@ -940,8 +2164,11 @@
 
                 try {
                     const dni = validateDNI(studentDniToken);
-                    const name = document.getElementById('student-name').value.toUpperCase();
+                    const name = sanitizeInput(document.getElementById('student-name').value).toUpperCase();
                     const file = document.getElementById('student-photo').files[0];
+                    
+                    if (!file) throw new Error('Selecciona una foto');
+                    await validateImage(file);
                     
                     const photoUrl = await uploadPhoto(dni, file);
                     const matricula = `ARG-${Math.floor(10000000 + Math.random() * 90000000)}`;
@@ -950,12 +2177,13 @@
                         dni: dni,
                         nombre_completo: name,
                         matricula_arg: matricula,
-                        foto_url: photoUrl
+                        foto_url: photoUrl,
+                        institucion_id: studentInstId
                     });
 
                     showNotification('¡Datos guardados!', 'success');
                     setTimeout(() => {
-                        document.body.innerHTML = '<div class="h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-blue-700 text-white"><div class="text-center"><div class="text-6xl mb-4">✓</div><div class="font-black text-3xl">Completado</div></div></div>';
+                        document.body.innerHTML = '<div class="h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-blue-700 text-white"><div class="text-center"><div class="text-6xl mb-4">✓</div><div class="font-black text-3xl">Completado</div><p class="mt-4">Tus datos han sido registrados correctamente</p></div></div>';
                     }, 1500);
                 } catch (err) {
                     showNotification(err.message, 'error');
@@ -965,125 +2193,23 @@
             };
         }
 
-        function setupAdminMode() {
-            document.getElementById('admin-panel').classList.remove('hidden');
-            logosManager.init();
-            loadCourses();
-            
-            // Watermark opacity control
-            document.getElementById('watermark-opacity').oninput = (e) => {
-                const value = e.target.value;
-                document.getElementById('opacity-value').textContent = `${value}%`;
-                document.getElementById('watermark-asari').style.opacity = value / 100;
-            };
-            
-            // Watermark upload
-            document.getElementById('watermark-upload').onchange = (e) => {
-                if (e.target.files[0]) {
-                    const r = new FileReader();
-                    r.onload = (ev) => {
-                        document.getElementById('watermark-asari').src = ev.target.result;
-                    };
-                    r.readAsDataURL(e.target.files[0]);
-                }
-            };
-            
-            // Curso select counter
-            document.getElementById('curso-select').onchange = () => {
-                const count = document.getElementById('curso-select').selectedOptions.length;
-                document.getElementById('selected-count').textContent = `${count} curso(s) seleccionado(s)`;
-                updatePreview();
-            };
-        }
-
-        window.switchTab = function(tab) {
-            ['manual', 'autogestion', 'database'].forEach(t => {
-                document.getElementById('content-'+t).classList.toggle('hidden', t !== tab);
-                document.getElementById('tab-'+t).classList.toggle('tab-active', t === tab);
-            });
-            if(tab === 'database') loadAdminCourseList();
-        }
-
-        async function loadCourses() {
-            const { data } = await sb.from('cursos').select('*').order('nombre_curso');
-            const select = document.getElementById('curso-select');
-            if (data && data.length > 0) {
-                select.innerHTML = data.map(c => `<option value="${c.id}">${c.nombre_curso.toUpperCase()}</option>`).join('');
-            }
-        }
-
+        // FORMULARIO PRINCIPAL - EMISIÓN
         window.checkExistingStudent = async function() {
             const dni = document.getElementById('dni').value.replace(/\D/g, '');
             if (!dni || dni.length < 7) return;
             
-            const { data } = await sb.from('alumnos').select('*').eq('dni', dni).single();
+            const { data } = await sb.from('alumnos')
+                .select('*')
+                .eq('dni', dni)
+                .eq('institucion_id', currentSession.institucion_id)
+                .single();
+            
             if (data && confirm(`✓ Alumno: ${data.nombre_completo}\n¿Cargar datos?`)) {
                 document.getElementById('nombre').value = data.nombre_completo;
                 if (data.foto_url) document.getElementById('photo-preview').src = data.foto_url;
                 updatePreview();
                 showNotification('Datos cargados', 'success');
             }
-        }
-
-        window.generateLink = function() {
-            const dni = document.getElementById('invite-dni').value.replace(/\D/g, '');
-            if (!dni) return showNotification('DNI inválido', 'error');
-            
-            const url = `${window.location.href.split('?')[0]}?mode=student&token=${encodeURIComponent(dni)}`;
-            document.getElementById('generated-url').href = url;
-            document.getElementById('generated-url').textContent = url;
-            document.getElementById('link-output').classList.remove('hidden');
-            showNotification('✓ Link generado', 'success');
-        }
-
-        window.copyLink = function() {
-            const url = document.getElementById('generated-url').textContent;
-            navigator.clipboard.writeText(url);
-            showNotification('✓ Copiado', 'success');
-        }
-
-        window.addCourse = async function() {
-            const name = document.getElementById('new-course-name').value.trim();
-            if(!name) return showNotification('Ingresa un nombre', 'error');
-
-            const { error } = await sb.from('cursos').insert([{ nombre_curso: name }]);
-            if(!error) {
-                showNotification('✓ Curso añadido', 'success');
-                document.getElementById('new-course-name').value = '';
-                loadCourses();
-                loadAdminCourseList();
-            } else {
-                showNotification('Error: ' + error.message, 'error');
-            }
-        }
-
-        async function loadAdminCourseList() {
-            const display = document.getElementById('course-list-display');
-            const { data } = await sb.from('cursos').select('*').order('nombre_curso');
-            if(data && data.length > 0) {
-                display.innerHTML = data.map(c => `
-                    <div class="flex justify-between p-2 border-b hover:bg-green-50 rounded">
-                        <span class="font-bold">${c.nombre_curso}</span>
-                        <span class="text-gray-400">ID: ${c.id}</span>
-                    </div>
-                `).join('');
-            }
-        }
-
-        window.exportCSV = async function() {
-            const { data } = await sb.from('alumnos').select('*');
-            if(!data || data.length === 0) return showNotification('Sin datos', 'info');
-            
-            let csv = "DNI,Nombre,Matricula,Foto_URL\n";
-            data.forEach(r => csv += `${r.dni},"${r.nombre_completo}",${r.matricula_arg},${r.foto_url || ''}\n`);
-
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `RENAM_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            showNotification('✓ Exportado', 'success');
         }
 
         const form = document.getElementById('carnet-form');
@@ -1109,12 +2235,12 @@
             const inst = document.getElementById('institucion').value;
             const selectedOptions = Array.from(document.getElementById('curso-select').selectedOptions);
 
-            if(dni) document.getElementById('dni-container').textContent = `DNI: ${dni}`;
-            if(nombre) document.getElementById('nombre-preview').textContent = nombre.toUpperCase();
-            if(inst) document.getElementById('institucion-preview').textContent = inst.toUpperCase();
+            if (dni) document.getElementById('dni-container').textContent = `DNI: ${dni}`;
+            if (nombre) document.getElementById('nombre-preview').textContent = nombre.toUpperCase();
+            if (inst) document.getElementById('institucion-preview').textContent = inst.toUpperCase();
             
             const cursosSection = document.getElementById('cursos-section');
-            if(selectedOptions.length > 0) {
+            if (selectedOptions.length > 0) {
                 cursosSection.innerHTML = selectedOptions.map(opt => `<div class="curso-item-clean">${opt.text}</div>`).join('');
             } else {
                 cursosSection.innerHTML = '<div class="curso-item-clean">SELECCIONAR CURSOS</div>';
@@ -1123,31 +2249,55 @@
 
         form.onsubmit = async (e) => {
             e.preventDefault();
+            
+            if (currentSession.rol === 'visor') {
+                return showNotification('Sin permisos de emisión', 'error');
+            }
+
             const btn = document.getElementById('submit-btn');
             btn.disabled = true;
             btn.innerHTML = '<span class="loader"></span> Procesando...';
 
             try {
                 const dni = validateDNI(document.getElementById('dni').value);
-                const nombre = document.getElementById('nombre').value.trim().toUpperCase();
+                const nombre = sanitizeInput(document.getElementById('nombre').value).trim().toUpperCase();
                 const selectedCursos = Array.from(document.getElementById('curso-select').selectedOptions);
                 
-                if(!nombre) throw new Error('Ingresa el nombre');
-                if(selectedCursos.length === 0) throw new Error('Selecciona al menos un curso');
+                if (!nombre) throw new Error('Ingresa el nombre');
+                if (selectedCursos.length === 0) throw new Error('Selecciona al menos un curso');
 
                 const photoFile = document.getElementById('photo-upload').files[0];
                 if (!photoFile) throw new Error('Sube una foto');
-
+                
+                await validateImage(photoFile);
                 const publicUrl = await uploadPhoto(dni, photoFile);
 
-                let { data: alumno } = await sb.from('alumnos').select('matricula_arg').eq('dni', dni).single();
-                const matricula = alumno?.matricula_arg || `ARG-${Math.floor(10000000 + Math.random() * 90000000)}`;
+                let { data: alumno } = await sb.from('alumnos')
+                    .select('matricula_arg')
+                    .eq('dni', dni)
+                    .eq('institucion_id', currentSession.institucion_id)
+                    .single();
+                
+                let matricula = alumno?.matricula_arg;
+                if (!matricula) {
+                    // Validar matrícula única
+                    let isUnique = false;
+                    while (!isUnique) {
+                        matricula = `ARG-${Math.floor(10000000 + Math.random() * 90000000)}`;
+                        const { data: exists } = await sb.from('alumnos')
+                            .select('matricula_arg')
+                            .eq('matricula_arg', matricula)
+                            .single();
+                        if (!exists) isUnique = true;
+                    }
+                }
 
                 await sb.from('alumnos').upsert({
                     dni: dni,
                     nombre_completo: nombre,
                     matricula_arg: matricula,
-                    foto_url: publicUrl
+                    foto_url: publicUrl,
+                    institucion_id: currentSession.institucion_id
                 });
 
                 const vence = new Date();
@@ -1157,16 +2307,25 @@
                     await sb.from('certificaciones').upsert({
                         alumno_dni: dni,
                         curso_id: parseInt(curso.value),
-                        fecha_vencimiento: vence.toISOString().split('T')[0]
+                        fecha_vencimiento: vence.toISOString().split('T')[0],
+                        institucion_id: currentSession.institucion_id
                     });
                 }
+
+                // Registrar en historial
+                await sb.from('historial_emisiones').insert({
+                    alumno_dni: dni,
+                    usuario_emisor: currentSession.user,
+                    institucion_id: currentSession.institucion_id
+                });
 
                 document.getElementById('matricula-container').textContent = `MATRÍCULA: ${matricula}`;
                 document.getElementById('vence-display-preview').textContent = `EMISIÓN: ${new Date().toLocaleDateString('es-AR')}`;
                 
+                const verificadorUrl = `${window.location.origin}${window.location.pathname}?verificar=1`;
                 new QRious({ 
                     element: document.getElementById('qr-code-preview'), 
-                    value: `${CONFIG.verificadorUrl}?id=${matricula}`, 
+                    value: `${verificadorUrl}&matricula=${matricula}`, 
                     size: 100, 
                     level: 'H' 
                 });
@@ -1201,4 +2360,17 @@
         }
     </script>
 </body>
-</html>
+</html> items-center gap-4">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-900 rounded-full flex items-center justify-center text-white shadow-xl border-4 border-yellow-600">
+                        <div class="text-center">
+                            <div class="text-xl font-black">RENAM</div>
+                            <div class="text-[6px] opacity-80">ARG</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-black text-slate-800">RENAM v4.0</h1>
+                        <p class="text-xs text-blue-600 font-bold">Registro Nacional de Matriculaciones</p>
+                        <p class="text-xs text-slate-500 font-semibold" id="user-info-header">Cargando...</p>
+                    </div>
+                </div>
+                <div class="flex
