@@ -1,1054 +1,817 @@
-await sb.from('logs_sistema').insert([{
-                    accion: 'setup_completado',
-                    usuario: wizardData.superAdmin.username,
-                    detalles: `Sistema configurado. Institución: ${wizardData.institucion.nombre}`,
-                    institucion_id: inst.id
-                }]);
-                
-                hideLoading();
-                showNotification('¡Sistema configurado exitosamente!', 'success');
-                
-                // Guardar flag de setup completado
-                localStorage.setItem('renam_setup_complete', 'true');
-                
-                // Mostrar credenciales
-                showModal('🎉 ¡Setup Completado!', `
-                    <div class="space-y-4">
-                        <div class="bg-green-50 p-4 rounded-xl border-2 border-green-200">
-                            <p class="font-bold text-green-900 mb-2">✅ Sistema Configurado</p>
-                            <p class="text-sm text-green-700">El sistema está listo para usar</p>
+<div id="password-display-area" class="hidden mt-4"><div class="password-display"><div class="text-xs mb-2">CREDENCIALES</div><div>Usuario: <span id="gen-username"></span></div><div>Password: <span id="gen-password"></span></div></div></div>
+                <div class="flex gap-3 mt-4">
+                    <button onclick="crearUsuario()" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-800 text-white py-4 rounded-xl font-black shadow-xl">👤 Crear</button>
+                    <button onclick="copiarCreds()" id="copy-btn" class="px-6 bg-green-600 text-white rounded-xl font-bold hidden">📋</button>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-lg"><h3 class="text-xl font-black mb-4">Usuarios</h3><div id="usuarios-table"></div></div>
+        </div>
+        <div id="sa-content-logs" class="hidden">
+            <div class="bg-white p-6 rounded-2xl shadow-lg"><h3 class="text-xl font-black mb-4">📜 Logs</h3><div id="logs-table"></div></div>
+        </div>
+    </div>
+
+    <!-- ==================== ADMIN PANEL (GENERADOR) ==================== -->
+    <div id="admin-panel" class="max-w-7xl mx-auto hidden">
+        <header class="bg-white p-6 rounded-3xl shadow-lg mb-8">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-900 rounded-full flex items-center justify-center text-white shadow-xl border-4 border-yellow-600">
+                        <div class="text-xl font-black">RENAM</div>
+                    </div>
+                    <div><h1 class="text-2xl font-black text-slate-800">RENAM v4.0</h1><p class="text-xs text-blue-600 font-bold">Sistema de Credenciales</p><p class="text-xs text-slate-500 font-semibold" id="admin-user-info"></p></div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span id="admin-role-badge" class="badge"></span>
+                    <button onclick="logout()" class="bg-red-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-red-700">🚪 Salir</button>
+                </div>
+            </div>
+            <nav class="flex gap-6 mt-6">
+                <button onclick="switchAdminTab('generador')" id="admin-tab-generador" class="tab-btn tab-active">📝 Generador</button>
+                <button onclick="switchAdminTab('alumnos')" id="admin-tab-alumnos" class="tab-btn">👥 Alumnos</button>
+                <button onclick="switchAdminTab('cursos')" id="admin-tab-cursos" class="tab-btn">📚 Cursos</button>
+            </nav>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <section class="bg-white p-8 rounded-3xl shadow-xl">
+                <div id="admin-content-generador">
+                    <form id="carnet-form" class="space-y-4">
+                        <input type="text" id="institucion" placeholder="INSTITUCIÓN" class="w-full p-4 bg-slate-50 rounded-2xl font-black uppercase" readonly>
+                        <div class="grid grid-cols-2 gap-4">
+                            <input type="text" id="dni" placeholder="DNI (sin puntos)" maxlength="8" class="w-full p-4 bg-slate-50 rounded-2xl font-bold">
+                            <input type="text" id="nombre" placeholder="NOMBRE COMPLETO" class="w-full p-4 bg-slate-50 rounded-2xl font-bold uppercase">
                         </div>
-                        <div class="bg-purple-50 p-4 rounded-xl border-2 border-purple-200">
-                            <p class="font-bold text-purple-900 mb-2">🔐 Credenciales Super Admin</p>
-                            <p class="text-sm text-purple-700 font-mono">Usuario: ${wizardData.superAdmin.username}</p>
-                            <p class="text-sm text-purple-700 font-mono">Contraseña: ${wizardData.superAdmin.password}</p>
-                            <p class="text-xs text-purple-600 mt-2">⚠️ Guarda estas credenciales en un lugar seguro</p>
+                        <div class="bg-blue-50 p-4 rounded-2xl border-2 border-blue-200">
+                            <label class="text-xs font-bold text-blue-900 uppercase mb-2 block">Cursos</label>
+                            <input type="text" id="curso-search" placeholder="🔍 Buscar..." class="w-full p-2 bg-white rounded-lg text-sm font-bold mb-2">
+                            <select id="curso-select" multiple size="4" class="w-full p-3 bg-white rounded-xl font-bold text-blue-900"></select>
+                            <div id="selected-count" class="text-xs font-bold text-blue-700 mt-2">0 cursos</div>
+                            <div class="mt-3 pt-3 border-t-2 border-blue-300 flex gap-2">
+                                <input type="text" id="quick-course-name" placeholder="Crear curso..." class="flex-1 p-2 bg-white rounded-lg text-sm font-bold">
+                                <button type="button" onclick="quickAddCourse()" class="bg-blue-600 text-white px-4 rounded-lg font-bold">➕</button>
+                            </div>
                         </div>
-                        <div class="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
-                            <p class="font-bold text-blue-900 mb-2">🏢 Institución</p>
-                            <p class="text-sm text-blue-700">${wizardData.institucion.nombre}</p>
-                            <p class="text-sm text-blue-700 font-mono">Código: ${wizardData.codigo}</p>
+                        <div>
+                            <label class="text-xs font-bold text-slate-600 uppercase mb-1 block">Foto del Alumno</label>
+                            <input type="file" id="photo-upload" accept="image/*" class="w-full p-3 border-2 border-dashed rounded-xl bg-slate-50">
+                        </div>
+                        <div class="bg-gradient-to-br from-yellow-50 to-orange-50 p-4 rounded-2xl border-2 border-yellow-200">
+                            <label class="text-xs font-bold text-orange-900 uppercase mb-3 block">🏅 Logos (hasta 5)</label>
+                            <div class="grid grid-cols-5 gap-2" id="logos-grid"></div>
+                        </div>
+                        <div class="watermark-section p-4 rounded-2xl">
+                            <label class="text-xs font-bold text-yellow-900 uppercase mb-2 block">🔰 Marca de Agua</label>
+                            <input type="file" id="watermark-upload" accept="image/*" class="w-full p-3 border-2 border-dashed rounded-xl bg-white text-xs">
+                            <div class="mt-2 flex items-center gap-3">
+                                <label class="text-xs font-bold">Opacidad:</label>
+                                <input type="range" id="watermark-opacity" min="5" max="30" value="15" class="flex-1">
+                                <span id="opacity-value" class="text-xs font-bold">15%</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between bg-slate-50 p-4 rounded-xl">
+                            <span class="text-xs font-bold text-slate-600 uppercase">🎨 Color</span>
+                            <input type="color" id="color-picker" value="#1e40af" class="w-14 h-10 rounded-lg cursor-pointer">
+                        </div>
+                        <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-blue-900 to-blue-700 text-white py-5 rounded-2xl font-black text-lg shadow-xl uppercase">🎓 Emitir Credencial</button>
+                    </form>
+                </div>
+
+                <div id="admin-content-alumnos" class="hidden">
+                    <h2 class="text-2xl font-black mb-4">Gestión de Alumnos</h2>
+                    <input type="text" id="search-alumno" placeholder="🔍 Buscar..." class="w-full p-3 bg-slate-50 rounded-xl font-bold mb-4">
+                    <div id="alumnos-list"></div>
+                </div>
+
+                <div id="admin-content-cursos" class="hidden">
+                    <h2 class="text-2xl font-black mb-4">Gestión de Cursos</h2>
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" id="new-course-name" placeholder="Nuevo curso" class="flex-1 p-3 bg-slate-50 rounded-xl font-bold">
+                        <button onclick="addCourse()" class="bg-green-600 text-white px-6 rounded-xl font-bold">➕</button>
+                    </div>
+                    <div id="course-list-display"></div>
+                </div>
+            </section>
+
+            <section class="flex flex-col items-center sticky top-8">
+                <div id="download-area">
+                    <div id="preview-container" class="carnet-preview">
+                        <div class="security-guilloche"></div>
+                        <svg class="holographic-stripe-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 540">
+                            <defs><linearGradient id="holographic-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:rgba(255,0,0,0.06);stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:rgba(79,220,74,0.06);stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:rgba(95,21,242,0.06);stop-opacity:1" />
+                            </linearGradient></defs>
+                            <rect width="120" height="540" fill="url(#holographic-gradient)" opacity="0.8"/>
+                        </svg>
+                        <div class="microprint microprint-bottom">RENAM OFICIAL • REPÚBLICA ARGENTINA •</div>
+                        <div class="microprint microprint-left">RENAM • ARGENTINA •</div>
+                        <div class="microprint microprint-top">SISTEMA NACIONAL •</div>
+                        <svg class="security-rosette" viewBox="0 0 60 60">
+                            <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(30,64,175,0.15)" stroke-width="0.5"/>
+                            <circle cx="30" cy="30" r="20" fill="none" stroke="rgba(30,64,175,0.12)" stroke-width="0.5"/>
+                            <circle cx="30" cy="30" r="15" fill="none" stroke="rgba(30,64,175,0.1)" stroke-width="0.5"/>
+                        </svg>
+                        <div class="header-bar">
+                            <span id="institucion-preview" class="inst-title">INSTITUCIÓN</span>
+                            <div class="renam-header-logo"><div class="renam-text-logo">RENAM<br><span style="font-size:9px">ARG</span></div></div>
+                            <span class="id-label">PROFESSIONAL ID</span>
+                        </div>
+                        <div class="footer-bar">
+                            <span class="footer-text">SISTEMA NACIONAL DE ACREDITACIÓN</span>
+                            <span class="footer-text">ARGENTINA</span>
+                        </div>
+                        <img id="photo-preview" src="https://placehold.co/280x340/e2e8f0/94a3b8?text=FOTO" alt="Foto">
+                        <img id="watermark-asari" src="" alt="">
+                        <div id="avales-container"></div>
+                        <div id="cursos-section"><div class="curso-item-clean">SELECCIONAR CURSOS</div></div>
+                        <div id="nombre-preview">NOMBRE DEL ALUMNO</div>
+                        <div id="dni-container">DNI: -</div>
+                        <div id="matricula-container">MATRÍCULA: -</div>
+                        <div id="vence-display-preview">EMISIÓN: -</div>
+                        <div class="qr-container">
+                            <div class="qr-label">VERIFICAR ONLINE</div>
+                            <div class="qr-box"><canvas id="qr-code-preview"></canvas></div>
                         </div>
                     </div>
-                `, [{
-                    text: '🚀 Ir al Login',
-                    class: 'bg-green-600 text-white',
-                    action: 'irAlLogin()'
-                }]);
-                
-            } catch (error) {
-                hideLoading();
-                showNotification(error.message, 'error');
-                console.error('Error en setup:', error);
-            }
-        }
+                </div>
+                <div class="mt-8 flex gap-4">
+                    <button onclick="downloadImage('png')" class="bg-slate-800 text-white px-10 py-3 rounded-2xl font-black shadow-lg hover:scale-105 transition">🖼️ PNG</button>
+                    <button onclick="downloadImage('jpeg')" class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-10 py-3 rounded-2xl font-black shadow-lg hover:scale-105 transition border-2 border-yellow-600">📄 JPG</button>
+                </div>
+            </section>
+        </div>
+    </div>
 
-        function irAlLogin() {
-            closeModal();
-            document.getElementById('onboarding-screen').classList.add('hidden');
-            document.getElementById('login-screen').classList.remove('hidden');
-            loadInstituciones();
-        }
+    <script>
+        const CONFIG = {
+            supabaseUrl: 'https://fuxnsebrhxxbalqfmtzs.supabase.co',
+            supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1eG5zZWJyaHh4YmFscWZtdHpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc0Nzc2NzAsImV4cCI6MjA1MzA1MzY3MH0.fH3SZw8Y2V0ZOTr-_bsv5LXy0gxj2VPnBzLqo5M2n6E'
+        };
+        const sb = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
+        let currentSession = null;
+        let wizardData = { superAdmin: {}, institucion: {}, codigo: `INST-${Math.floor(1000 + Math.random() * 9000)}-2026` };
 
-        function togglePasswordVisibility(inputId) {
-            const input = document.getElementById(inputId);
-            input.type = input.type === 'password' ? 'text' : 'password';
-        }
-
-        // Validación de fuerza de contraseña en tiempo real
-        document.addEventListener('DOMContentLoaded', () => {
-            const pwdInput = document.getElementById('wizard-super-password');
-            if (pwdInput) {
-                pwdInput.oninput = (e) => {
-                    const strength = checkPasswordStrength(e.target.value);
-                    const display = document.getElementById('password-strength-1');
-                    display.innerHTML = `<span class="${strength.class}">Seguridad: ${strength.text}</span>`;
+        const logosManager = {
+            slots: [null, null, null, null, null],
+            init() { this.renderGrid(); },
+            renderGrid() {
+                const grid = document.getElementById('logos-grid');
+                if (!grid) return;
+                grid.innerHTML = '';
+                this.slots.forEach((slot, i) => {
+                    const div = document.createElement('div');
+                    div.className = `logo-slot ${slot ? 'has-logo' : ''}`;
+                    if (slot) {
+                        const img = document.createElement('img');
+                        img.src = slot.dataUrl;
+                        img.className = 'logo-slot-preview';
+                        div.appendChild(img);
+                        const removeBtn = document.createElement('div');
+                        removeBtn.className = 'logo-remove-btn';
+                        removeBtn.textContent = '×';
+                        removeBtn.onclick = () => this.removeLogo(i);
+                        div.appendChild(removeBtn);
+                    } else {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.className = 'hidden';
+                        input.id = `logo-input-${i}`;
+                        input.onchange = (e) => this.handleUpload(i, e.target.files[0]);
+                        const label = document.createElement('label');
+                        label.htmlFor = `logo-input-${i}`;
+                        label.textContent = '+';
+                        label.className = 'text-3xl text-gray-400 cursor-pointer hover:text-blue-600';
+                        div.appendChild(input);
+                        div.appendChild(label);
+                    }
+                    grid.appendChild(div);
+                });
+                this.updatePreview();
+            },
+            handleUpload(index, file) {
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.slots[index] = { file: file, dataUrl: e.target.result };
+                    this.renderGrid();
                 };
+                reader.readAsDataURL(file);
+            },
+            removeLogo(index) {
+                this.slots[index] = null;
+                this.renderGrid();
+            },
+            updatePreview() {
+                const container = document.getElementById('avales-container');
+                if (!container) return;
+                container.innerHTML = '';
+                this.slots.forEach(slot => {
+                    if (slot) {
+                        const img = document.createElement('img');
+                        img.src = slot.dataUrl;
+                        img.className = 'aval-logo';
+                        container.appendChild(img);
+                    }
+                });
             }
-        });
+        };
 
-        // SISTEMA DE AUTENTICACIÓN
-        async function checkSetupStatus() {
-            const setupComplete = localStorage.getItem('renam_setup_complete');
-            
-            if (setupComplete) {
-                return true;
+        function showNotification(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `notification ${type}`;
+            div.textContent = msg;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+        function showLoading(text = 'Cargando...') {
+            const div = document.createElement('div');
+            div.className = 'loading-overlay';
+            div.innerHTML = `<div class="spinner"></div><p class="text-white font-bold text-xl">${text}</p>`;
+            document.body.appendChild(div);
+        }
+        function hideLoading() { document.querySelector('.loading-overlay')?.remove(); }
+        function sanitize(str) { return str.trim().replace(/[<>"']/g, ''); }
+        function generatePassword() {
+            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+            let pwd = '';
+            for(let i = 0; i < 14; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
+            return pwd;
+        }
+        function generateUsername(nombre) {
+            const parts = nombre.toLowerCase().split(' ');
+            return `${parts[0]}.${parts[parts.length-1]}${Math.floor(100+Math.random()*900)}`.replace(/[^a-z0-9.]/g, '');
+        }
+        async function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let w = img.width, h = img.height;
+                        if (w > 800) { h = Math.round(h * 800 / w); w = 800; }
+                        canvas.width = w;
+                        canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        canvas.toBlob(resolve, 'image/jpeg', 0.85);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        async function uploadPhoto(dni, file) {
+            const compressed = await compressImage(file);
+            const fileName = `foto_${dni}_${crypto.randomUUID()}.jpg`;
+            await sb.storage.from('fotos_carnet').upload(fileName, compressed);
+            const { data } = sb.storage.from('fotos_carnet').getPublicUrl(fileName);
+            return data.publicUrl;
+        }
+
+        function wizardNext(step) {
+            if (step === 2) {
+                const n = document.getElementById('wizard-super-nombre').value.trim();
+                const e = document.getElementById('wizard-super-email').value.trim();
+                const u = document.getElementById('wizard-super-username').value.trim();
+                const p = document.getElementById('wizard-super-password').value;
+                if (!n || !e || !u || !p || p.length < 8) return showNotification('Completa todos los campos', 'error');
+                wizardData.superAdmin = { nombre: n, email: e, username: u, password: p };
+                document.getElementById('wizard-inst-codigo-preview').textContent = wizardData.codigo;
             }
-            
-            // Verificar si ya hay usuarios en la BD
-            const { data: usuarios, error } = await sb.from('usuarios').select('*').limit(1);
-            
-            if (error) {
-                // Si hay error es porque la tabla no existe, mostrar instrucciones SQL
-                showModal('⚠️ Configuración de Base de Datos', `
-                    <div class="bg-yellow-50 p-4 rounded-lg mb-4">
-                        <p class="font-bold text-yellow-900 mb-2">Las tablas no existen en Supabase</p>
-                        <p class="text-sm text-yellow-800">Ejecuta el siguiente SQL en tu base de datos:</p>
-                    </div>
-                    <div class="bg-slate-900 text-green-400 p-4 rounded-lg text-xs font-mono overflow-auto max-h-96">
-                        <pre>-- SCRIPT DE CONFIGURACIÓN RENAM v4.0
-
--- 1. Tabla instituciones
-CREATE TABLE IF NOT EXISTS instituciones (
-  id BIGSERIAL PRIMARY KEY,
-  nombre TEXT NOT NULL,
-  codigo TEXT UNIQUE NOT NULL,
-  email TEXT,
-  limite_alumnos INTEGER DEFAULT 1000,
-  limite_usuarios INTEGER DEFAULT 50,
-  estado TEXT DEFAULT 'activo' CHECK (estado IN ('activo', 'suspendido')),
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- 2. Tabla usuarios
-CREATE TABLE IF NOT EXISTS usuarios (
-  id BIGSERIAL PRIMARY KEY,
-  username TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL,
-  nombre_completo TEXT,
-  email TEXT,
-  rol TEXT NOT NULL CHECK (rol IN ('super_admin', 'admin', 'editor', 'visor')),
-  institucion_id BIGINT REFERENCES instituciones(id) ON DELETE CASCADE,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- 3. Actualizar tabla alumnos
-ALTER TABLE alumnos ADD COLUMN IF NOT EXISTS institucion_id BIGINT REFERENCES instituciones(id) ON DELETE CASCADE;
-
--- 4. Actualizar tabla cursos
-ALTER TABLE cursos ADD COLUMN IF NOT EXISTS institucion_id BIGINT REFERENCES instituciones(id) ON DELETE CASCADE;
-
--- 5. Actualizar tabla certificaciones
-ALTER TABLE certificaciones ADD COLUMN IF NOT EXISTS institucion_id BIGINT REFERENCES instituciones(id) ON DELETE CASCADE;
-
--- 6. Tabla historial_emisiones
-CREATE TABLE IF NOT EXISTS historial_emisiones (
-  id BIGSERIAL PRIMARY KEY,
-  alumno_dni TEXT NOT NULL,
-  usuario_emisor TEXT NOT NULL,
-  institucion_id BIGINT REFERENCES instituciones(id) ON DELETE CASCADE,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- 7. Tabla logs_sistema (NUEVA)
-CREATE TABLE IF NOT EXISTS logs_sistema (
-  id BIGSERIAL PRIMARY KEY,
-  accion TEXT NOT NULL,
-  usuario TEXT NOT NULL,
-  detalles TEXT,
-  institucion_id BIGINT REFERENCES instituciones(id),
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- 8. Habilitar RLS
-ALTER TABLE instituciones ENABLE ROW LEVEL SECURITY;
-ALTER TABLE usuarios ENABLE ROW LEVEL SECURITY;
-ALTER TABLE historial_emisiones ENABLE ROW LEVEL SECURITY;
-ALTER TABLE logs_sistema ENABLE ROW LEVEL SECURITY;
-
--- 9. Políticas de acceso público (temporal)
-CREATE POLICY IF NOT EXISTS "Public access" ON instituciones FOR ALL USING (true);
-CREATE POLICY IF NOT EXISTS "Public access" ON usuarios FOR ALL USING (true);
-CREATE POLICY IF NOT EXISTS "Public access" ON historial_emisiones FOR ALL USING (true);
-CREATE POLICY IF NOT EXISTS "Public access" ON logs_sistema FOR ALL USING (true);</pre>
-                    </div>
-                    <div class="mt-4 bg-blue-50 p-4 rounded-lg">
-                        <p class="text-sm font-bold text-blue-900 mb-2">📋 Pasos:</p>
-                        <ol class="text-sm text-blue-800 list-decimal list-inside space-y-1">
-                            <li>Ve a Supabase Dashboard → SQL Editor</li>
-                            <li>Copia y pega el código SQL</li>
-                            <li>Clic en "Run"</li>
-                            <li>Recarga esta página</li>
-                        </ol>
-                    </div>
-                `, []);
-                return false;
+            if (step === 3) {
+                const n = document.getElementById('wizard-inst-nombre').value.trim();
+                const e = document.getElementById('wizard-inst-email').value.trim();
+                if (!n || !e) return showNotification('Completa los campos', 'error');
+                wizardData.institucion = {
+                    nombre: n, email: e,
+                    limiteAlumnos: document.getElementById('wizard-inst-limite-alumnos').value,
+                    limiteUsuarios: document.getElementById('wizard-inst-limite-usuarios').value
+                };
+                document.getElementById('wizard-confirm-super').textContent = `${wizardData.superAdmin.nombre} (${wizardData.superAdmin.username})`;
+                document.getElementById('wizard-confirm-inst').textContent = `${wizardData.institucion.nombre} - ${wizardData.codigo}`;
             }
-            
-            if (!usuarios || usuarios.length === 0) {
-                // No hay usuarios, iniciar onboarding
-                return false;
+            document.getElementById(`wizard-step-${step-1}`).classList.add('hidden');
+            document.getElementById(`wizard-step-${step}`).classList.remove('hidden');
+            document.getElementById(`step-dot-${step-1}`).classList.remove('active');
+            document.getElementById(`step-dot-${step}`).classList.add('active');
+        }
+        function wizardPrev(step) {
+            document.getElementById(`wizard-step-${step+1}`).classList.add('hidden');
+            document.getElementById(`wizard-step-${step}`).classList.remove('hidden');
+            document.getElementById(`step-dot-${step+1}`).classList.remove('active');
+            document.getElementById(`step-dot-${step}`).classList.add('active');
+        }
+
+        async function completeSetup() {
+            showLoading('Configurando...');
+            try {
+                const { data: inst, error: ie } = await sb.from('instituciones').insert([{
+                    nombre: wizardData.institucion.nombre, codigo: wizardData.codigo, email: wizardData.institucion.email,
+                    limite_alumnos: parseInt(wizardData.institucion.limiteAlumnos), limite_usuarios: parseInt(wizardData.institucion.limiteUsuarios), estado: 'activo'
+                }]).select().single();
+                if (ie) throw new Error(ie.message);
+                const { error: ue } = await sb.from('usuarios').insert([{
+                    username: wizardData.superAdmin.username, password: wizardData.superAdmin.password,
+                    nombre_completo: wizardData.superAdmin.nombre, email: wizardData.superAdmin.email, rol: 'super_admin', institucion_id: inst.id
+                }]);
+                if (ue) throw new Error(ue.message);
+                await sb.from('logs_sistema').insert([{ accion: 'setup_completado', usuario: wizardData.superAdmin.username, detalles: 'Sistema configurado', institucion_id: inst.id }]);
+                localStorage.setItem('renam_setup_complete', 'true');
+                hideLoading();
+                showNotification('¡Setup completado!', 'success');
+                setTimeout(() => {
+                    document.getElementById('onboarding-screen').classList.add('hidden');
+                    document.getElementById('login-screen').classList.remove('hidden');
+                    loadInstituciones();
+                }, 2000);
+            } catch (e) {
+                hideLoading();
+                showNotification(e.message, 'error');
             }
-            
-            // Ya hay usuarios, setup ya fue hecho
-            localStorage.setItem('renam_setup_complete', 'true');
-            return true;
         }
 
         async function loadInstituciones() {
-            try {
-                const { data, error } = await sb.from('instituciones').select('*').order('nombre');
-                const select = document.getElementById('login-institucion');
-                const selectSA = document.getElementById('sa-user-institucion');
-                
-                if (error) throw error;
-                
-                if (data && data.length > 0) {
-                    const options = data.map(i => `<option value="${i.id}">${i.nombre}</option>`).join('');
-                    select.innerHTML = options;
-                    if (selectSA) selectSA.innerHTML = '<option value="">Seleccionar...</option>' + options;
-                } else {
-                    select.innerHTML = '<option value="">No hay instituciones</option>';
-                }
-            } catch (error) {
-                console.error('Error cargando instituciones:', error);
-                document.getElementById('login-institucion').innerHTML = '<option value="">Error al cargar</option>';
+            const { data } = await sb.from('instituciones').select('*').order('nombre');
+            const select = document.getElementById('login-institucion');
+            const selectSA = document.getElementById('sa-user-institucion');
+            if (data?.length > 0) {
+                const opts = data.map(i => `<option value="${i.id}">${i.nombre}</option>`).join('');
+                if (select) select.innerHTML = opts;
+                if (selectSA) selectSA.innerHTML = '<option value="">Seleccionar...</option>' + opts;
             }
         }
 
-        // LOGIN
         document.getElementById('login-form').onsubmit = async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('login-btn');
-            btn.disabled = true;
-            btn.textContent = 'Verificando...';
-
+            showLoading('Verificando...');
             try {
-                const username = sanitizeInput(document.getElementById('login-username').value);
-                const password = document.getElementById('login-password').value;
-                const institucionId = document.getElementById('login-institucion').value;
-
-                const { data: user, error } = await sb
-                    .from('usuarios')
+                const { data: user, error } = await sb.from('usuarios')
                     .select('*, instituciones(nombre)')
-                    .eq('username', username)
-                    .eq('password', password)
-                    .eq('institucion_id', institucionId)
+                    .eq('username', sanitize(document.getElementById('login-username').value))
+                    .eq('password', document.getElementById('login-password').value)
+                    .eq('institucion_id', document.getElementById('login-institucion').value)
                     .single();
-
                 if (error || !user) throw new Error('Credenciales inválidas');
-
                 currentSession = {
-                    user: user.username,
-                    rol: user.rol,
-                    institucion_id: user.institucion_id,
-                    institucion_nombre: user.instituciones.nombre,
-                    user_id: user.id,
-                    nombre_completo: user.nombre_completo
+                    user: user.username, rol: user.rol, institucion_id: user.institucion_id,
+                    institucion_nombre: user.instituciones.nombre, nombre_completo: user.nombre_completo
                 };
-
                 localStorage.setItem('renam_session', JSON.stringify(currentSession));
-                
-                // Log de inicio de sesión
-                await sb.from('logs_sistema').insert([{
-                    accion: 'login',
-                    usuario: user.username,
-                    detalles: 'Inicio de sesión exitoso',
-                    institucion_id: user.institucion_id
-                }]);
-
+                await sb.from('logs_sistema').insert([{ accion: 'login', usuario: user.username, detalles: 'Inicio de sesión', institucion_id: user.institucion_id }]);
+                document.getElementById('login-screen').classList.add('hidden');
                 if (user.rol === 'super_admin') {
-                    await setupSuperAdminMode();
+                    document.getElementById('superadmin-panel').classList.remove('hidden');
+                    document.getElementById('superadmin-user-info').textContent = `${currentSession.nombre_completo || currentSession.user} | ${currentSession.institucion_nombre}`;
+                    await loadDashboard();
                 } else {
-                    await setupAdminMode();
+                    document.getElementById('admin-panel').classList.remove('hidden');
+                    document.getElementById('admin-user-info').textContent = `${currentSession.institucion_nombre} | ${currentSession.user}`;
+                    document.getElementById('admin-role-badge').textContent = currentSession.rol.toUpperCase();
+                    document.getElementById('admin-role-badge').className = `badge badge-${currentSession.rol}`;
+                    document.getElementById('institucion').value = currentSession.institucion_nombre;
+                    logosManager.init();
+                    await loadCourses();
+                    setupFormHandlers();
                 }
-                
+                hideLoading();
                 showNotification('¡Bienvenido!', 'success');
-
-            } catch (err) {
-                showNotification(err.message, 'error');
-                btn.disabled = false;
-                btn.textContent = '🔐 Iniciar Sesión';
+            } catch (e) {
+                hideLoading();
+                showNotification(e.message, 'error');
             }
         };
 
         function logout() {
             if (!confirm('¿Cerrar sesión?')) return;
-            
-            // Log de cierre de sesión
             if (currentSession) {
-                sb.from('logs_sistema').insert([{
-                    accion: 'logout',
-                    usuario: currentSession.user,
-                    detalles: 'Cierre de sesión',
-                    institucion_id: currentSession.institucion_id
-                }]);
+                sb.from('logs_sistema').insert([{ accion: 'logout', usuario: currentSession.user, detalles: 'Cierre de sesión', institucion_id: currentSession.institucion_id }]);
             }
-            
             localStorage.removeItem('renam_session');
             currentSession = null;
             document.getElementById('login-screen').classList.remove('hidden');
-            document.getElementById('admin-panel').classList.add('hidden');
             document.getElementById('superadmin-panel').classList.add('hidden');
-            document.getElementById('login-username').value = '';
-            document.getElementById('login-password').value = '';
+            document.getElementById('admin-panel').classList.add('hidden');
             showNotification('Sesión cerrada', 'info');
         }
 
-        // SUPER ADMIN MODE
-        async function setupSuperAdminMode() {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('superadmin-panel').classList.remove('hidden');
-            
-            document.getElementById('superadmin-user-info').textContent = 
-                `${currentSession.nombre_completo || currentSession.user} | ${currentSession.institucion_nombre}`;
-            
-            await loadDashboardStats();
-            await loadInstitucionesTable();
-        }
-
-        function switchSuperAdminTab(tab) {
-            const tabs = ['dashboard', 'instituciones', 'usuarios', 'logs', 'config'];
-            tabs.forEach(t => {
-                const content = document.getElementById('sa-content-' + t);
-                const btn = document.getElementById('sa-tab-' + t);
-                if (content) content.classList.toggle('hidden', t !== tab);
-                if (btn) btn.classList.toggle('tab-active', t === tab);
+        function switchSATab(tab) {
+            ['dashboard', 'instituciones', 'usuarios', 'logs'].forEach(t => {
+                document.getElementById('sa-content-' + t)?.classList.toggle('hidden', t !== tab);
+                document.getElementById('sa-tab-' + t)?.classList.toggle('tab-active', t === tab);
             });
-            
             if (tab === 'instituciones') loadInstitucionesTable();
             if (tab === 'usuarios') loadUsuariosTable();
             if (tab === 'logs') loadLogsTable();
-            if (tab === 'config') loadSystemConfig();
         }
 
-        async function loadDashboardStats() {
-            try {
-                const { data: instituciones } = await sb.from('instituciones').select('*', { count: 'exact', head: true });
-                const { data: usuarios } = await sb.from('usuarios').select('*', { count: 'exact', head: true });
-                const { data: credenciales } = await sb.from('historial_emisiones').select('*', { count: 'exact', head: true });
-                
-                document.getElementById('stat-instituciones').textContent = instituciones?.length || 0;
-                document.getElementById('stat-usuarios').textContent = usuarios?.length || 0;
-                document.getElementById('stat-credenciales').textContent = credenciales?.length || 0;
-                
-                // Actividad reciente
-                const { data: logs } = await sb.from('logs_sistema')
-                    .select('*, instituciones(nombre)')
-                    .order('created_at', { ascending: false })
-                    .limit(5);
-                
-                const activityDiv = document.getElementById('recent-activity');
-                if (logs && logs.length > 0) {
-                    activityDiv.innerHTML = logs.map(log => `
-                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                            <div>
-                                <p class="text-sm font-bold text-slate-800">${log.accion}</p>
-                                <p class="text-xs text-slate-500">${log.usuario} | ${log.instituciones?.nombre || 'N/A'}</p>
-                            </div>
-                            <span class="text-xs text-slate-400">${new Date(log.created_at).toLocaleString('es-AR')}</span>
-                        </div>
-                    `).join('');
-                } else {
-                    activityDiv.innerHTML = '<p class="text-sm text-slate-400 text-center py-4">Sin actividad reciente</p>';
-                }
-                
-                // Alertas (instituciones cerca del límite)
-                const { data: instData } = await sb.from('instituciones').select('*, alumnos(count)');
-                const alertsDiv = document.getElementById('alerts-list');
-                const alerts = [];
-                
-                if (instData) {
-                    instData.forEach(inst => {
-                        const count = inst.alumnos?.length || 0;
-                        const limit = inst.limite_alumnos || 1000;
-                        const percentage = (count / limit) * 100;
-                        
-                        if (percentage >= 80) {
-                            alerts.push(`
-                                <div class="flex items-center justify-between p-3 bg-orange-50 rounded-lg border-l-4 border-orange-500">
-                                    <div>
-                                        <p class="text-sm font-bold text-orange-800">${inst.nombre}</p>
-                                        <p class="text-xs text-orange-600">Alumnos: ${count}/${limit} (${percentage.toFixed(0)}%)</p>
-                                    </div>
-                                    <span class="text-2xl">⚠️</span>
-                                </div>
-                            `);
-                        }
-                    });
-                }
-                
-                if (alerts.length > 0) {
-                    alertsDiv.innerHTML = alerts.join('');
-                } else {
-                    alertsDiv.innerHTML = '<p class="text-sm text-slate-400 text-center py-4">✅ Sin alertas</p>';
-                }
-                
-            } catch (error) {
-                console.error('Error cargando dashboard:', error);
+        function switchAdminTab(tab) {
+            ['generador', 'alumnos', 'cursos'].forEach(t => {
+                document.getElementById('admin-content-' + t)?.classList.toggle('hidden', t !== tab);
+                document.getElementById('admin-tab-' + t)?.classList.toggle('tab-active', t === tab);
+            });
+            if (tab === 'alumnos') loadAlumnosList();
+            if (tab === 'cursos') loadCoursesList();
+        }
+
+        async function loadDashboard() {
+            const { data: inst, count: ic } = await sb.from('instituciones').select('*', { count: 'exact' });
+            const { data: users, count: uc } = await sb.from('usuarios').select('*', { count: 'exact' });
+            const { data: creds, count: cc } = await sb.from('historial_emisiones').select('*', { count: 'exact' });
+            document.getElementById('stat-inst').textContent = ic || 0;
+            document.getElementById('stat-users').textContent = uc || 0;
+            document.getElementById('stat-creds').textContent = cc || 0;
+            const { data: logs } = await sb.from('logs_sistema').select('*, instituciones(nombre)').order('created_at', { ascending: false }).limit(5);
+            const actDiv = document.getElementById('recent-activity');
+            if (logs?.length > 0) {
+                actDiv.innerHTML = logs.map(l => `
+                    <div class="flex justify-between p-3 bg-slate-50 rounded-lg mb-2">
+                        <div><p class="text-sm font-bold">${l.accion}</p><p class="text-xs text-slate-500">${l.usuario}</p></div>
+                        <span class="text-xs text-slate-400">${new Date(l.created_at).toLocaleString('es-AR')}</span>
+                    </div>
+                `).join('');
+            } else {
+                actDiv.innerHTML = '<p class="text-sm text-slate-400 text-center py-4">Sin actividad</p>';
             }
         }
 
-        // GESTIÓN DE INSTITUCIONES
         async function loadInstitucionesTable() {
-            showLoading('Cargando instituciones...');
-            
-            try {
-                const { data } = await sb.from('instituciones')
-                    .select('*, usuarios(count), alumnos(count)')
-                    .order('created_at', { ascending: false });
-                
-                const table = document.getElementById('instituciones-table');
-                if (data && data.length > 0) {
-                    table.innerHTML = `
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <th>Código</th>
-                                    <th>Email</th>
-                                    <th>Usuarios</th>
-                                    <th>Alumnos</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${data.map(inst => {
-                                    const usuariosCount = inst.usuarios?.[0]?.count || 0;
-                                    const alumnosCount = inst.alumnos?.[0]?.count || 0;
-                                    return `
-                                        <tr>
-                                            <td class="font-bold">${inst.nombre}</td>
-                                            <td><code class="text-xs bg-slate-100 px-2 py-1 rounded">${inst.codigo}</code></td>
-                                            <td class="text-xs">${inst.email || 'N/A'}</td>
-                                            <td>${usuariosCount}/${inst.limite_usuarios || 50}</td>
-                                            <td>${alumnosCount}/${inst.limite_alumnos || 1000}</td>
-                                            <td><span class="badge badge-${inst.estado}">${inst.estado.toUpperCase()}</span></td>
-                                            <td>
-                                                <button onclick="editarInstitucion(${inst.id})" class="action-btn btn-edit">✏️</button>
-                                                <button onclick="suspenderInstitucion(${inst.id}, '${inst.estado}')" class="action-btn btn-suspend">${inst.estado === 'activo' ? '⏸️' : '▶️'}</button>
-                                                <button onclick="verDetallesInstitucion(${inst.id})" class="action-btn btn-view">👁️</button>
-                                            </td>
-                                        </tr>
-                                    `;
-                                }).join('')}
-                            </tbody>
-                        </table>
-                    `;
-                } else {
-                    table.innerHTML = '<p class="text-center text-gray-400 p-8">No hay instituciones registradas</p>';
-                }
-                
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification('Error cargando instituciones', 'error');
-            } finally {
-                hideLoading();
+            showLoading();
+            const { data } = await sb.from('instituciones').select('*').order('created_at', { ascending: false });
+            const table = document.getElementById('instituciones-table');
+            if (data?.length > 0) {
+                table.innerHTML = `<table class="data-table"><thead><tr><th>Nombre</th><th>Código</th><th>Email</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${data.map(i => `<tr><td class="font-bold">${i.nombre}</td><td><code class="text-xs bg-slate-100 px-2 py-1 rounded">${i.codigo}</code></td><td class="text-xs">${i.email || 'N/A'}</td><td><span class="badge badge-${i.estado}">${i.estado.toUpperCase()}</span></td><td><button onclick="suspenderInst(${i.id}, '${i.estado}')" class="action-btn btn-suspend">${i.estado === 'activo' ? '⏸️' : '▶️'}</button></td></tr>`).join('')}</tbody></table>`;
+            } else {
+                table.innerHTML = '<p class="text-center text-gray-400 p-8">Sin instituciones</p>';
             }
-            
-            // Búsqueda
-            document.getElementById('search-instituciones').oninput = (e) => {
-                const search = e.target.value.toLowerCase();
-                const rows = document.querySelectorAll('#instituciones-table tbody tr');
-                rows.forEach(row => {
-                    const match = row.textContent.toLowerCase().includes(search);
-                    row.style.display = match ? '' : 'none';
-                });
-            };
+            hideLoading();
         }
 
         async function crearInstitucion() {
-            const nombre = sanitizeInput(document.getElementById('sa-inst-nombre').value);
-            const email = sanitizeInput(document.getElementById('sa-inst-email').value);
-            const limiteAlumnos = parseInt(document.getElementById('sa-inst-limite-alumnos').value) || 1000;
-            const limiteUsuarios = parseInt(document.getElementById('sa-inst-limite-usuarios').value) || 50;
-            
-            if (!nombre || !email) {
-                return showNotification('Completa todos los campos obligatorios', 'error');
-            }
-            
-            showLoading('Creando institución...');
-            
+            const nombre = sanitize(document.getElementById('sa-inst-nombre').value);
+            const email = sanitize(document.getElementById('sa-inst-email').value);
+            if (!nombre || !email) return showNotification('Completa los campos', 'error');
+            showLoading();
             try {
-                const codigo = generateInstitucionCode();
-                
-                const { error } = await sb.from('instituciones').insert([{
-                    nombre,
-                    codigo,
-                    email,
-                    limite_alumnos: limiteAlumnos,
-                    limite_usuarios: limiteUsuarios,
-                    estado: 'activo'
+                const codigo = `INST-${Math.floor(1000 + Math.random() * 9000)}-2026`;
+                await sb.from('instituciones').insert([{
+                    nombre, codigo, email,
+                    limite_alumnos: parseInt(document.getElementById('sa-inst-limite-alumnos').value),
+                    limite_usuarios: parseInt(document.getElementById('sa-inst-limite-usuarios').value), estado: 'activo'
                 }]);
-                
-                if (error) throw error;
-                
-                // Log
-                await sb.from('logs_sistema').insert([{
-                    accion: 'crear_institucion',
-                    usuario: currentSession.user,
-                    detalles: `Institución creada: ${nombre} (${codigo})`,
-                    institucion_id: currentSession.institucion_id
-                }]);
-                
-                showNotification('✅ Institución creada exitosamente', 'success');
-                limpiarFormInstitucion();
+                await sb.from('logs_sistema').insert([{ accion: 'crear_institucion', usuario: currentSession.user, detalles: `${nombre} (${codigo})`, institucion_id: currentSession.institucion_id }]);
+                showNotification('✅ Institución creada', 'success');
+                document.getElementById('sa-inst-nombre').value = '';
+                document.getElementById('sa-inst-email').value = '';
                 await loadInstitucionesTable();
                 await loadInstituciones();
-                
-            } catch (error) {
-                showNotification('Error: ' + error.message, 'error');
+            } catch (e) {
+                showNotification('Error: ' + e.message, 'error');
             } finally {
                 hideLoading();
             }
         }
 
-        function limpiarFormInstitucion() {
-            document.getElementById('sa-inst-nombre').value = '';
-            document.getElementById('sa-inst-email').value = '';
-            document.getElementById('sa-inst-limite-alumnos').value = '1000';
-            document.getElementById('sa-inst-limite-usuarios').value = '50';
-        }
-
-        async function suspenderInstitucion(id, estadoActual) {
-            const nuevoEstado = estadoActual === 'activo' ? 'suspendido' : 'activo';
-            const confirmar = confirm(`¿${nuevoEstado === 'suspendido' ? 'Suspender' : 'Reactivar'} esta institución?`);
-            
-            if (!confirmar) return;
-            
+        async function suspenderInst(id, estado) {
+            const nuevo = estado === 'activo' ? 'suspendido' : 'activo';
+            if (!confirm(`¿${nuevo === 'suspendido' ? 'Suspender' : 'Reactivar'}?`)) return;
             try {
-                const { error } = await sb.from('instituciones').update({ estado: nuevoEstado }).eq('id', id);
-                if (error) throw error;
-                
-                // Log
-                await sb.from('logs_sistema').insert([{
-                    accion: nuevoEstado === 'suspendido' ? 'suspender_institucion' : 'reactivar_institucion',
-                    usuario: currentSession.user,
-                    detalles: `Institución ID: ${id}`,
-                    institucion_id: currentSession.institucion_id
-                }]);
-                
-                showNotification(`✅ Institución ${nuevoEstado === 'suspendido' ? 'suspendida' : 'reactivada'}`, 'success');
+                await sb.from('instituciones').update({ estado: nuevo }).eq('id', id);
+                await sb.from('logs_sistema').insert([{ accion: nuevo === 'suspendido' ? 'suspender_inst' : 'reactivar_inst', usuario: currentSession.user, detalles: `ID: ${id}`, institucion_id: currentSession.institucion_id }]);
+                showNotification(`✅ ${nuevo === 'suspendido' ? 'Suspendida' : 'Reactivada'}`, 'success');
                 await loadInstitucionesTable();
-                
-            } catch (error) {
-                showNotification('Error: ' + error.message, 'error');
+            } catch (e) {
+                showNotification('Error: ' + e.message, 'error');
             }
         }
 
-        // GESTIÓN DE USUARIOS
-        function generarPassword() {
-            const password = generateSecurePassword(14);
-            document.getElementById('sa-user-password').value = password;
-            
-            const strength = checkPasswordStrength(password);
-            const display = document.getElementById('password-strength-display');
-            if (display) {
-                display.innerHTML = `Seguridad: <span class="${strength.class}">${strength.text}</span>`;
-            }
-        }
-
-        // Auto-generar username cuando se ingresa nombre
-        document.addEventListener('DOMContentLoaded', () => {
-            const nombreInput = document.getElementById('sa-user-nombre');
-            if (nombreInput) {
-                nombreInput.oninput = (e) => {
-                    const username = generateUsername(e.target.value);
-                    document.getElementById('sa-user-username').value = username;
-                };
-            }
+        document.getElementById('sa-user-nombre')?.addEventListener('input', (e) => {
+            document.getElementById('sa-user-username').value = generateUsername(e.target.value);
         });
 
         async function crearUsuario() {
-            const institucionId = document.getElementById('sa-user-institucion').value;
+            const instId = document.getElementById('sa-user-institucion').value;
             const rol = document.getElementById('sa-user-rol').value;
-            const nombre = sanitizeInput(document.getElementById('sa-user-nombre').value);
-            const email = sanitizeInput(document.getElementById('sa-user-email').value);
-            let username = document.getElementById('sa-user-username').value;
-            let password = document.getElementById('sa-user-password').value;
-            
-            if (!institucionId || !nombre || !email) {
-                return showNotification('Completa todos los campos', 'error');
-            }
-            
-            // Generar credenciales si están vacías
-            if (!username) username = generateUsername(nombre);
-            if (!password) password = generateSecurePassword(14);
-            
-            showLoading('Creando usuario...');
-            
+            const nombre = sanitize(document.getElementById('sa-user-nombre').value);
+            const email = sanitize(document.getElementById('sa-user-email').value);
+            let username = document.getElementById('sa-user-username').value || generateUsername(nombre);
+            let password = document.getElementById('sa-user-password').value || generatePassword();
+            if (!instId || !nombre || !email) return showNotification('Completa los campos', 'error');
+            showLoading();
             try {
-                const { error } = await sb.from('usuarios').insert([{
-                    username,
-                    password,
-                    nombre_completo: nombre,
-                    email,
-                    rol,
-                    institucion_id: institucionId
-                }]);
-                
-                if (error) throw error;
-                
-                // Log
-                await sb.from('logs_sistema').insert([{
-                    accion: 'crear_usuario',
-                    usuario: currentSession.user,
-                    detalles: `Usuario creado: ${username} (${rol})`,
-                    institucion_id: currentSession.institucion_id
-                }]);
-                
-                // Mostrar credenciales generadas
-                document.getElementById('generated-username-display').textContent = username;
-                document.getElementById('generated-password-display').textContent = password;
+                await sb.from('usuarios').insert([{ username, password, nombre_completo: nombre, email, rol, institucion_id: instId }]);
+                await sb.from('logs_sistema').insert([{ accion: 'crear_usuario', usuario: currentSession.user, detalles: `${username} (${rol})`, institucion_id: currentSession.institucion_id }]);
+                document.getElementById('gen-username').textContent = username;
+                document.getElementById('gen-password').textContent = password;
                 document.getElementById('password-display-area').classList.remove('hidden');
-                document.getElementById('copy-credentials-btn').classList.remove('hidden');
-                
-                const strength = checkPasswordStrength(password);
-                document.getElementById('password-strength-display').innerHTML = 
-                    `Seguridad: <span class="${strength.class}">${strength.text}</span>`;
-                
-                showNotification('✅ Usuario creado exitosamente', 'success');
+                document.getElementById('copy-btn').classList.remove('hidden');
+                showNotification('✅ Usuario creado', 'success');
                 await loadUsuariosTable();
-                
-            } catch (error) {
-                if (error.message.includes('duplicate')) {
-                    showNotification('El usuario ya existe. Prueba con otro nombre', 'error');
-                } else {
-                    showNotification('Error: ' + error.message, 'error');
-                }
+            } catch (e) {
+                showNotification(e.message.includes('duplicate') ? 'Usuario duplicado' : 'Error: ' + e.message, 'error');
             } finally {
                 hideLoading();
             }
         }
 
-        function copiarCredenciales() {
-            const username = document.getElementById('generated-username-display').textContent;
-            const password = document.getElementById('generated-password-display').textContent;
-            const text = `Usuario: ${username}\nContraseña: ${password}`;
-            
-            navigator.clipboard.writeText(text);
-            showNotification('✅ Credenciales copiadas al portapapeles', 'success');
+        function copiarCreds() {
+            const u = document.getElementById('gen-username').textContent;
+            const p = document.getElementById('gen-password').textContent;
+            navigator.clipboard.writeText(`Usuario: ${u}\nContraseña: ${p}`);
+            showNotification('✅ Copiado', 'success');
         }
 
         async function loadUsuariosTable() {
-            showLoading('Cargando usuarios...');
-            
-            try {
-                const { data } = await sb.from('usuarios')
-                    .select('*, instituciones(nombre)')
-                    .order('created_at', { ascending: false });
-                
-                const table = document.getElementById('usuarios-table');
-                if (data && data.length > 0) {
-                    table.innerHTML = `
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Usuario</th>
-                                    <th>Nombre</th>
-                                    <th>Email</th>
-                                    <th>Rol</th>
-                                    <th>Institución</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${data.map(user => `
-                                    <tr>
-                                        <td class="font-mono font-bold">${user.username}</td>
-                                        <td>${user.nombre_completo || 'N/A'}</td>
-                                        <td class="text-xs">${user.email || 'N/A'}</td>
-                                        <td><span class="badge badge-${user.rol}">${user.rol.replace('_', ' ').toUpperCase()}</span></td>
-                                        <td class="text-xs">${user.instituciones?.nombre || 'N/A'}</td>
-                                        <td>
-                                            <button onclick="resetPasswordUsuario(${user.id}, '${user.username}')" class="action-btn btn-edit">🔑</button>
-                                            <button onclick="eliminarUsuario(${user.id}, '${user.username}')" class="action-btn btn-delete">🗑️</button>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    `;
-                } else {
-                    table.innerHTML = '<p class="text-center text-gray-400 p-8">No hay usuarios registrados</p>';
-                }
-                
-            } catch (error) {
-                console.error('Error:', error);
-            } finally {
-                hideLoading();
+            showLoading();
+            const { data } = await sb.from('usuarios').select('*, instituciones(nombre)').order('created_at', { ascending: false });
+            const table = document.getElementById('usuarios-table');
+            if (data?.length > 0) {
+                table.innerHTML = `<table class="data-table"><thead><tr><th>Usuario</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Institución</th><th>Acciones</th></tr></thead><tbody>${data.map(u => `<tr><td class="font-mono font-bold">${u.username}</td><td>${u.nombre_completo || 'N/A'}</td><td class="text-xs">${u.email || 'N/A'}</td><td><span class="badge badge-${u.rol}">${u.rol.replace('_', ' ').toUpperCase()}</span></td><td class="text-xs">${u.instituciones?.nombre || 'N/A'}</td><td><button onclick="resetPwd(${u.id}, '${u.username}')" class="action-btn btn-edit">🔑</button><button onclick="delUser(${u.id}, '${u.username}')" class="action-btn btn-delete">🗑️</button></td></tr>`).join('')}</tbody></table>`;
+            } else {
+                table.innerHTML = '<p class="text-center text-gray-400 p-8">Sin usuarios</p>';
             }
+            hideLoading();
         }
 
-        async function resetPasswordUsuario(id, username) {
-            const newPassword = generateSecurePassword(14);
-            
-            showModal('🔑 Resetear Contraseña', `
-                <p class="mb-4">Se generará una nueva contraseña para: <strong>${username}</strong></p>
-                <div class="password-display">
-                    <div class="text-xs text-gray-400 mb-2">NUEVA CONTRASEÑA</div>
-                    <div id="modal-new-password">${newPassword}</div>
-                </div>
-                <p class="text-xs text-yellow-600 font-bold mt-3">⚠️ Guarda esta contraseña. No podrás verla nuevamente.</p>
-            `, [{
-                text: '✅ Confirmar Reset',
-                class: 'bg-green-600 text-white',
-                action: `confirmResetPassword(${id}, '${newPassword}', '${username}')`
-            }]);
-        }
-
-        async function confirmResetPassword(id, newPassword, username) {
+        async function resetPwd(id, username) {
+            const newPwd = generatePassword();
+            if (!confirm(`¿Resetear contraseña de ${username}?`)) return;
             try {
-                const { error } = await sb.from('usuarios').update({ password: newPassword }).eq('id', id);
-                if (error) throw error;
-                
-                // Log
-                await sb.from('logs_sistema').insert([{
-                    accion: 'reset_password',
-                    usuario: currentSession.user,
-                    detalles: `Reset password para: ${username}`,
-                    institucion_id: currentSession.institucion_id
-                }]);
-                
+                await sb.from('usuarios').update({ password: newPwd }).eq('id', id);
+                await sb.from('logs_sistema').insert([{ accion: 'reset_password', usuario: currentSession.user, detalles: `Para: ${username}`, institucion_id: currentSession.institucion_id }]);
+                alert(`Nueva contraseña para ${username}:\n\n${newPwd}\n\nGuárdala, no podrás verla nuevamente.`);
                 showNotification('✅ Contraseña actualizada', 'success');
-                closeModal();
-                
-            } catch (error) {
-                showNotification('Error: ' + error.message, 'error');
+            } catch (e) {
+                showNotification('Error: ' + e.message, 'error');
             }
         }
 
-        async function eliminarUsuario(id, username) {
-            if (username === currentSession.user) {
-                return showNotification('No puedes eliminar tu propio usuario', 'error');
-            }
-            
-            if (!confirm(`¿Eliminar usuario ${username}?`)) return;
-            
+        async function delUser(id, username) {
+            if (username === currentSession.user) return showNotification('No puedes eliminar tu usuario', 'error');
+            if (!confirm(`¿Eliminar ${username}?`)) return;
             try {
-                const { error } = await sb.from('usuarios').delete().eq('id', id);
-                if (error) throw error;
-                
-                // Log
-                await sb.from('logs_sistema').insert([{
-                    accion: 'eliminar_usuario',
-                    usuario: currentSession.user,
-                    detalles: `Usuario eliminado: ${username}`,
-                    institucion_id: currentSession.institucion_id
-                }]);
-                
+                await sb.from('usuarios').delete().eq('id', id);
+                await sb.from('logs_sistema').insert([{ accion: 'eliminar_usuario', usuario: currentSession.user, detalles: username, institucion_id: currentSession.institucion_id }]);
                 showNotification('✅ Usuario eliminado', 'success');
                 await loadUsuariosTable();
-                
-            } catch (error) {
-                showNotification('Error: ' + error.message, 'error');
+            } catch (e) {
+                showNotification('Error: ' + e.message, 'error');
             }
         }
 
-        // LOGS
         async function loadLogsTable() {
-            showLoading('Cargando logs...');
-            
+            showLoading();
+            const { data } = await sb.from('logs_sistema').select('*, instituciones(nombre)').order('created_at', { ascending: false }).limit(100);
+            const table = document.getElementById('logs-table');
+            if (data?.length > 0) {
+                table.innerHTML = `<table class="data-table"><thead><tr><th>Fecha/Hora</th><th>Usuario</th><th>Acción</th><th>Detalles</th><th>Institución</th></tr></thead><tbody>${data.map(l => `<tr><td class="text-xs">${new Date(l.created_at).toLocaleString('es-AR')}</td><td class="font-bold">${l.usuario}</td><td><span class="badge badge-admin">${l.accion}</span></td><td class="text-xs">${l.detalles || '-'}</td><td class="text-xs">${l.instituciones?.nombre || 'Sistema'}</td></tr>`).join('')}</tbody></table>`;
+            } else {
+                table.innerHTML = '<p class="text-center text-gray-400 p-8">Sin logs</p>';
+            }
+            hideLoading();
+        }
+
+        async function loadCourses() {
+            const { data } = await sb.from('cursos').select('*').eq('institucion_id', currentSession.institucion_id).order('nombre_curso');
+            const select = document.getElementById('curso-select');
+            if (data?.length > 0) {
+                select.innerHTML = data.map(c => `<option value="${c.id}">${c.nombre_curso.toUpperCase()}</option>`).join('');
+            } else {
+                select.innerHTML = '<option>No hay cursos</option>';
+            }
+        }
+
+        async function loadCoursesList() {
+            const { data } = await sb.from('cursos').select('*').eq('institucion_id', currentSession.institucion_id).order('nombre_curso');
+            const display = document.getElementById('course-list-display');
+            if (data?.length > 0) {
+                display.innerHTML = data.map(c => `<div class="flex justify-between p-3 border-b hover:bg-green-50 rounded mb-2"><span class="font-bold">${c.nombre_curso}</span><div><button onclick="editCourse(${c.id}, '${c.nombre_curso.replace(/'/g, "\\'")}' )" class="action-btn btn-edit">✏️</button><button onclick="deleteCourse(${c.id})" class="action-btn btn-delete">🗑️</button></div></div>`).join('');
+            }
+        }
+
+        async function addCourse() {
+            if (currentSession.rol === 'visor') return showNotification('Sin permisos', 'error');
+            const name = sanitize(document.getElementById('new-course-name').value);
+            if (!name) return showNotification('Ingresa un nombre', 'error');
             try {
-                const { data } = await sb.from('logs_sistema')
-                    .select('*, instituciones(nombre)')
-                    .order('created_at', { ascending: false })
-                    .limit(100);
-                
-                const table = document.getElementById('logs-table');
-                if (data && data.length > 0) {
-                    table.innerHTML = `
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Fecha/Hora</th>
-                                    <th>Usuario</th>
-                                    <th>Acción</th>
-                                    <th>Detalles</th>
-                                    <th>Institución</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${data.map(log => `
-                                    <tr>
-                                        <td class="text-xs">${new Date(log.created_at).toLocaleString('es-AR')}</td>
-                                        <td class="font-bold">${log.usuario}</td>
-                                        <td><span class="badge badge-admin">${log.accion}</span></td>
-                                        <td class="text-xs">${log.detalles || '-'}</td>
-                                        <td class="text-xs">${log.instituciones?.nombre || 'Sistema'}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    `;
-                } else {
-                    table.innerHTML = '<p class="text-center text-gray-400 p-8">Sin logs registrados</p>';
+                await sb.from('cursos').insert([{ nombre_curso: name, institucion_id: currentSession.institucion_id }]);
+                showNotification('✓ Curso añadido', 'success');
+                document.getElementById('new-course-name').value = '';
+                loadCourses();
+                loadCoursesList();
+            } catch (e) {
+                showNotification('Error: ' + e.message, 'error');
+            }
+        }
+
+        async function quickAddCourse() {
+            if (currentSession.rol === 'visor') return showNotification('Sin permisos', 'error');
+            const name = sanitize(document.getElementById('quick-course-name').value);
+            if (!name) return showNotification('Ingresa un nombre', 'error');
+            try {
+                const { data } = await sb.from('cursos').insert([{ nombre_curso: name, institucion_id: currentSession.institucion_id }]).select();
+                showNotification('✓ Curso creado', 'success');
+                document.getElementById('quick-course-name').value = '';
+                await loadCourses();
+                const select = document.getElementById('curso-select');
+                const newOpt = Array.from(select.options).find(opt => opt.value == data[0].id);
+                if (newOpt) {
+                    newOpt.selected = true;
+                    select.dispatchEvent(new Event('change'));
                 }
-                
-            } catch (error) {
-                console.error('Error:', error);
-            } finally {
-                hideLoading();
+            } catch (e) {
+                showNotification('Error: ' + e.message, 'error');
             }
         }
 
-        async function filtrarLogs() {
-            const desde = document.getElementById('logs-fecha-desde').value;
-            const hasta = document.getElementById('logs-fecha-hasta').value;
-            
-            if (!desde || !hasta) {
-                return showNotification('Selecciona ambas fechas', 'error');
-            }
-            
-            showLoading('Filtrando...');
-            
-            try {
-                const { data } = await sb.from('logs_sistema')
-                    .select('*, instituciones(nombre)')
-                    .gte('created_at', desde)
-                    .lte('created_at', hasta + ' 23:59:59')
-                    .order('created_at', { ascending: false });
-                
-                const table = document.getElementById('logs-table');
-                if (data && data.length > 0) {
-                    table.innerHTML = `
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Fecha/Hora</th>
-                                    <th>Usuario</th>
-                                    <th>Acción</th>
-                                    <th>Detalles</th>
-                                    <th>Institución</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${data.map(log => `
-                                    <tr>
-                                        <td class="text-xs">${new Date(log.created_at).toLocaleString('es-AR')}</td>
-                                        <td class="font-bold">${log.usuario}</td>
-                                        <td><span class="badge badge-admin">${log.accion}</span></td>
-                                        <td class="text-xs">${log.detalles || '-'}</td>
-                                        <td class="text-xs">${log.instituciones?.nombre || 'Sistema'}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    `;
-                } else {
-                    table.innerHTML = '<p class="text-center text-gray-400 p-8">Sin resultados en ese rango</p>';
+        function editCourse(id, name) { showNotification('Función disponible próximamente', 'info'); }
+        function deleteCourse(id) { showNotification('Función disponible próximamente', 'info'); }
+        function loadAlumnosList() { showNotification('Función disponible próximamente', 'info'); }
+
+        function setupFormHandlers() {
+            document.getElementById('photo-upload').onchange = (e) => {
+                if (e.target.files[0]) {
+                    const r = new FileReader();
+                    r.onload = (ev) => document.getElementById('photo-preview').src = ev.target.result;
+                    r.readAsDataURL(e.target.files[0]);
                 }
-                
-            } catch (error) {
-                showNotification('Error: ' + error.message, 'error');
-            } finally {
-                hideLoading();
+            };
+
+            document.getElementById('watermark-upload').onchange = (e) => {
+                if (e.target.files[0]) {
+                    const r = new FileReader();
+                    r.onload = (ev) => document.getElementById('watermark-asari').src = ev.target.result;
+                    r.readAsDataURL(e.target.files[0]);
+                }
+            };
+
+            document.getElementById('watermark-opacity').oninput = (e) => {
+                const value = e.target.value;
+                document.getElementById('opacity-value').textContent = `${value}%`;
+                document.getElementById('watermark-asari').style.opacity = value / 100;
+            };
+
+            document.getElementById('color-picker').oninput = (e) => {
+                document.documentElement.style.setProperty('--primary-color', e.target.value);
+                document.documentElement.style.setProperty('--text-blue', e.target.value);
+            };
+
+            document.getElementById('curso-select').onchange = () => {
+                const count = document.getElementById('curso-select').selectedOptions.length;
+                document.getElementById('selected-count').textContent = `${count} curso(s)`;
+                updatePreview();
+            };
+
+            document.getElementById('curso-search').oninput = (e) => {
+                const search = e.target.value.toLowerCase();
+                const options = document.getElementById('curso-select').options;
+                for (let opt of options) {
+                    opt.style.display = opt.text.toLowerCase().includes(search) ? 'block' : 'none';
+                }
+            };
+
+            const form = document.getElementById('carnet-form');
+            form.oninput = updatePreview;
+
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                if (currentSession.rol === 'visor') return showNotification('Sin permisos', 'error');
+                const btn = document.getElementById('submit-btn');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="loader"></span> Procesando...';
+                try {
+                    const dni = document.getElementById('dni').value.replace(/\D/g, '');
+                    const nombre = sanitize(document.getElementById('nombre').value).toUpperCase();
+                    const selectedCursos = Array.from(document.getElementById('curso-select').selectedOptions);
+                    if (!nombre) throw new Error('Ingresa el nombre');
+                    if (selectedCursos.length === 0) throw new Error('Selecciona al menos un curso');
+                    const photoFile = document.getElementById('photo-upload').files[0];
+                    if (!photoFile) throw new Error('Sube una foto');
+
+                    const publicUrl = await uploadPhoto(dni, photoFile);
+                    let { data: alumno } = await sb.from('alumnos').select('matricula_arg').eq('dni', dni).eq('institucion_id', currentSession.institucion_id).single();
+                    let matricula = alumno?.matricula_arg;
+                    if (!matricula) {
+                        let isUnique = false;
+                        while (!isUnique) {
+                            matricula = `ARG-${Math.floor(10000000 + Math.random() * 90000000)}`;
+                            const { data: exists } = await sb.from('alumnos').select('matricula_arg').eq('matricula_arg', matricula).single();
+                            if (!exists) isUnique = true;
+                        }
+                    }
+
+                    await sb.from('alumnos').upsert({ dni, nombre_completo: nombre, matricula_arg: matricula, foto_url: publicUrl, institucion_id: currentSession.institucion_id });
+
+                    const vence = new Date();
+                    vence.setFullYear(vence.getFullYear() + 1);
+                    for (const curso of selectedCursos) {
+                        await sb.from('certificaciones').upsert({ alumno_dni: dni, curso_id: parseInt(curso.value), fecha_vencimiento: vence.toISOString().split('T')[0], institucion_id: currentSession.institucion_id });
+                    }
+
+                    await sb.from('historial_emisiones').insert({ alumno_dni: dni, usuario_emisor: currentSession.user, institucion_id: currentSession.institucion_id });
+
+                    document.getElementById('matricula-container').textContent = `MATRÍCULA: ${matricula}`;
+                    document.getElementById('vence-display-preview').textContent = `EMISIÓN: ${new Date().toLocaleDateString('es-AR')}`;
+
+                    new QRious({ element: document.getElementById('qr-code-preview'), value: `https://renam.com/verificar?m=${matricula}`, size: 100, level: 'H' });
+
+                    showNotification('✓ ¡Credencial emitida!', 'success');
+                } catch (err) {
+                    showNotification(err.message, 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '🎓 Emitir Credencial';
+                }
+            };
+        }
+
+        function updatePreview() {
+            const dni = document.getElementById('dni')?.value;
+            const nombre = document.getElementById('nombre')?.value;
+            const inst = document.getElementById('institucion')?.value;
+            const selectedOptions = Array.from(document.getElementById('curso-select')?.selectedOptions || []);
+            if (dni) document.getElementById('dni-container').textContent = `DNI: ${dni}`;
+            if (nombre) document.getElementById('nombre-preview').textContent = nombre.toUpperCase();
+            if (inst) document.getElementById('institucion-preview').textContent = inst.toUpperCase();
+            const cursosSection = document.getElementById('cursos-section');
+            if (cursosSection) {
+                if (selectedOptions.length > 0) {
+                    cursosSection.innerHTML = selectedOptions.map(opt => `<div class="curso-item-clean">${opt.text}</div>`).join('');
+                } else {
+                    cursosSection.innerHTML = '<div class="curso-item-clean">SELECCIONAR CURSOS</div>';
+                }
             }
         }
 
-        // CONFIGURACIÓN
-        async function loadSystemConfig() {
-            try {
-                const { data: instituciones } = await sb.from('instituciones').select('*');
-                const { data: usuarios } = await sb.from('usuarios').select('*');
-                const { data: alumnos } = await sb.from('alumnos').select('*');
-                const { data: cursos } = await sb.from('cursos').select('*');
-                const { data: credenciales } = await sb.from('historial_emisiones').select('*');
-                
-                const statsDiv = document.getElementById('system-stats');
-                statsDiv.innerHTML = `
-                    <div class="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
-                        <p class="text-xs font-bold text-blue-900 mb-1">Instituciones</p>
-                        <p class="text-3xl font-black text-blue-600">${instituciones?.length || 0}</p>
-                    </div>
-                    <div class="bg-purple-50 p-4 rounded-xl border-2 border-purple-200">
-                        <p class="text-xs font-bold text-purple-900 mb-1">Usuarios</p>
-                        <p class="text-3xl font-black text-purple-600">${usuarios?.length || 0}</p>
-                    </div>
-                    <div class="bg-green-50 p-4 rounded-xl border-2 border-green-200">
-                        <p class="text-xs font-bold text-green-900 mb-1">Alumnos</p>
-                        <p class="text-3xl font-black text-green-600">${alumnos?.length || 0}</p>
-                    </div>
-                    <div class="bg-orange-50 p-4 rounded-xl border-2 border-orange-200">
-                        <p class="text-xs font-bold text-orange-900 mb-1">Cursos</p>
-                        <p class="text-3xl font-black text-orange-600">${cursos?.length || 0}</p>
-                    </div>
-                    <div class="bg-indigo-50 p-4 rounded-xl border-2 border-indigo-200">
-                        <p class="text-xs font-bold text-indigo-900 mb-1">Credenciales</p>
-                        <p class="text-3xl font-black text-indigo-600">${credenciales?.length || 0}</p>
-                    </div>
-                    <div class="bg-pink-50 p-4 rounded-xl border-2 border-pink-200">
-                        <p class="text-xs font-bold text-pink-900 mb-1">Almacenamiento</p>
-                        <p class="text-3xl font-black text-pink-600">N/A</p>
-                    </div>
-                `;
-                
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        async function exportarTodosSistema() {
-            showLoading('Exportando datos...');
-            
-            try {
-                const { data: instituciones } = await sb.from('instituciones').select('*');
-                const { data: usuarios } = await sb.from('usuarios').select('*');
-                const { data: alumnos } = await sb.from('alumnos').select('*');
-                const { data: cursos } = await sb.from('cursos').select('*');
-                
-                let csv = "TIPO,ID,NOMBRE,DETALLES\n";
-                
-                instituciones?.forEach(i => csv += `INSTITUCION,${i.id},${i.nombre},"${i.codigo}"\n`);
-                usuarios?.forEach(u => csv += `USUARIO,${u.id},${u.username},"${u.rol}"\n`);
-                alumnos?.forEach(a => csv += `ALUMNO,${a.dni},${a.nombre_completo},"${a.matricula_arg}"\n`);
-                cursos?.forEach(c => csv += `CURSO,${c.id},${c.nombre_curso},""\n`);
-                
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = URL.createObjectURL(blob);
+        window.downloadImage = function(fmt) {
+            html2canvas(document.getElementById('preview-container'), { scale: 3, useCORS: true, allowTaint: true, backgroundColor: '#ffffff' }).then(canvas => {
                 const a = document.createElement('a');
-                a.href = url;
-                a.download = `RENAM_BACKUP_${new Date().toISOString().split('T')[0]}.csv`;
+                const dniVal = document.getElementById('dni').value || 'RENAM';
+                a.download = `RENAM_${dniVal}_${new Date().toISOString().split('T')[0]}.${fmt === 'jpeg' ? 'jpg' : 'png'}`;
+                a.href = canvas.toDataURL(`image/${fmt}`, fmt === 'jpeg' ? 0.92 : 1.0);
                 a.click();
-                
-                showNotification('✅ Exportado exitosamente', 'success');
-                
-                // Log
-                await sb.from('logs_sistema').insert([{
-                    accion: 'exportar_sistema',
-                    usuario: currentSession.user,
-                    detalles: 'Exportación completa del sistema',
-                    institucion_id: currentSession.institucion_id
-                }]);
-                
-            } catch (error) {
-                showNotification('Error: ' + error.message, 'error');
-            } finally {
-                hideLoading();
+                showNotification('✓ Descargado', 'success');
+            }).catch(err => {
+                showNotification('Error al descargar', 'error');
+                console.error(err);
+            });
+        }
+
+        async function checkSetup() {
+            const complete = localStorage.getItem('renam_setup_complete');
+            if (complete) return true;
+            const { data, error } = await sb.from('usuarios').select('*').limit(1);
+            if (error) {
+                alert('⚠️ ERROR: Las tablas no existen.\n\nEjecuta el script SQL en Supabase antes de continuar.');
+                return false;
             }
+            if (!data || data.length === 0) return false;
+            localStorage.setItem('renam_setup_complete', 'true');
+            return true;
         }
 
-        async function verificarIntegridad() {
-            showLoading('Verificando integridad...');
-            
-            try {
-                // Verificar alumnos sin institución
-                const { data: alumnosSinInst } = await sb.from('alumnos').select('*').is('institucion_id', null);
-                
-                // Verificar cursos sin institución
-                const { data: cursosSinInst } = await sb.from('cursos').select('*').is('institucion_id', null);
-                
-                // Verificar usuarios sin institución
-                const { data: usuariosSinInst } = await sb.from('usuarios').select('*').is('institucion_id', null);
-                
-                let problemas = [];
-                if (alumnosSinInst?.length > 0) problemas.push(`${alumnosSinInst.length} alumnos sin institución`);
-                if (cursosSinInst?.length > 0) problemas.push(`${cursosSinInst.length} cursos sin institución`);
-                if (usuariosSinInst?.length > 0) problemas.push(`${usuariosSinInst.length} usuarios sin institución`);
-                
-                hideLoading();
-                
-                if (problemas.length === 0) {
-                    showModal('✅ Integridad Verificada', `
-                        <div class="bg-green-50 p-6 rounded-xl border-2 border-green-200 text-center">
-                            <div class="text-6xl mb-4">✅</div>
-                            <p class="text-xl font-black text-green-900">Base de Datos Íntegra</p>
-                            <p class="text-sm text-green-700 mt-2">No se encontraron problemas</p>
-                        </div>
-                    `, []);
-                } else {
-                    showModal('⚠️ Problemas Detectados', `
-                        <div class="bg-orange-50 p-6 rounded-xl border-2 border-orange-200">
-                            <p class="font-bold text-orange-900 mb-3">Se encontraron los siguientes problemas:</p>
-                            <ul class="list-disc list-inside space-y-1 text-sm text-orange-800">
-                                ${problemas.map(p => `<li>${p}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `, []);
-                }
-                
-            } catch (error) {
-                hideLoading();
-                showNotification('Error: ' + error.message, 'error');
-            }
-        }
-
-        async function limpiarLogsAntiguos() {
-            if (!confirm('¿Eliminar logs de más de 90 días?')) return;
-            
-            showLoading('Limpiando logs...');
-            
-            try {
-                const hace90dias = new Date();
-                hace90dias.setDate(hace90dias.getDate() - 90);
-                
-                const { error } = await sb.from('logs_sistema')
-                    .delete()
-                    .lt('created_at', hace90dias.toISOString());
-                
-                if (error) throw error;
-                
-                showNotification('✅ Logs antiguos eliminados', 'success');
-                
-                // Log de limpieza
-                await sb.from('logs_sistema').insert([{
-                    accion: 'limpiar_logs',
-                    usuario: currentSession.user,
-                    detalles: 'Limpieza de logs >90 días',
-                    institucion_id: currentSession.institucion_id
-                }]);
-                
-            } catch (error) {
-                showNotification('Error: ' + error.message, 'error');
-            } finally {
-                hideLoading();
-            }
-        }
-
-        function optimizarBD() {
-            showNotification('Función disponible próximamente', 'info');
-        }
-
-        function verDetallesInstitucion(id) {
-            showNotification('Función disponible próximamente', 'info');
-        }
-
-        function editarInstitucion(id) {
-            showNotification('Función disponible próximamente', 'info');
-        }
-
-        // ADMIN MODE (Sistema Normal)
-        async function setupAdminMode() {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('admin-panel').classList.remove('hidden');
-            showNotification('Panel de administración normal (funcionalidad completa del sistema)', 'info');
-        }
-
-        // INICIALIZACIÓN
         document.addEventListener('DOMContentLoaded', async () => {
-            showLoading('Inicializando RENAM...');
-            
+            showLoading('Inicializando...');
             try {
-                const setupComplete = await checkSetupStatus();
-                
-                if (!setupComplete) {
-                    // Mostrar wizard de onboarding
+                const setupOk = await checkSetup();
+                if (!setupOk) {
                     hideLoading();
                     document.getElementById('onboarding-screen').classList.remove('hidden');
                     return;
                 }
-                
-                // Sistema ya configurado, cargar instituciones
                 await loadInstituciones();
-                
-                // Verificar sesión guardada
-                const savedSession = localStorage.getItem('renam_session');
-                if (savedSession) {
+                const saved = localStorage.getItem('renam_session');
+                if (saved) {
                     try {
-                        currentSession = JSON.parse(savedSession);
-                        
+                        currentSession = JSON.parse(saved);
                         if (currentSession.rol === 'super_admin') {
-                            await setupSuperAdminMode();
+                            document.getElementById('superadmin-panel').classList.remove('hidden');
+                            document.getElementById('superadmin-user-info').textContent = currentSession.nombre_completo || currentSession.user;
+                            await loadDashboard();
                         } else {
-                            await setupAdminMode();
+                            document.getElementById('admin-panel').classList.remove('hidden');
+                            document.getElementById('admin-user-info').textContent = `${currentSession.institucion_nombre} | ${currentSession.user}`;
+                            document.getElementById('admin-role-badge').textContent = currentSession.rol.toUpperCase();
+                            document.getElementById('admin-role-badge').className = `badge badge-${currentSession.rol}`;
+                            document.getElementById('institucion').value = currentSession.institucion_nombre;
+                            logosManager.init();
+                            await loadCourses();
+                            setupFormHandlers();
                         }
-                        
                         hideLoading();
                         return;
                     } catch (e) {
                         localStorage.removeItem('renam_session');
                     }
                 }
-                
-                // Mostrar login
                 hideLoading();
                 document.getElementById('login-screen').classList.remove('hidden');
-                
-            } catch (error) {
+            } catch (e) {
                 hideLoading();
-                console.error('Error en inicialización:', error);
-                showNotification('Error al inicializar el sistema', 'error');
+                console.error(e);
+                showNotification('Error al inicializar', 'error');
             }
         });
     </script>
@@ -1068,621 +831,108 @@ CREATE POLICY IF NOT EXISTS "Public access" ON logs_sistema FOR ALL USING (true)
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     
     <style>
-        :root { 
-            --primary-color: #1e40af;
-            --text-blue: #1d4ed8;
-            --dark-blue: #172554;
-        }
+        :root { --primary-color: #1e40af; --text-blue: #1d4ed8; --dark-blue: #172554; }
         body { font-family: 'Roboto', sans-serif; background: #f0f2f5; }
-
-        .loading-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.8);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .loading-overlay .spinner {
-            width: 60px;
-            height: 60px;
-            border: 6px solid #f3f3f3;
-            border-top: 6px solid #3b82f6;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 9998;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.2s;
-        }
-        .modal-content {
-            background: white;
-            border-radius: 24px;
-            padding: 32px;
-            max-width: 800px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        .data-table th {
-            background: #1e40af;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.5px;
-        }
-        .data-table td {
-            padding: 12px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .data-table tr:hover {
-            background: #f8fafc;
-        }
-
-        .pagination {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            margin-top: 20px;
-        }
-        .pagination button {
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-        .pagination button:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-        .pagination button.active {
-            background: #1e40af;
-            color: white;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        
+        /* LOADING & MODAL */
+        .loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
+        .loading-overlay .spinner { width: 60px; height: 60px; border: 6px solid #f3f3f3; border-top: 6px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9998; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.2s; }
+        .modal-content { background: white; border-radius: 24px; padding: 32px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        /* TABLES */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .data-table th { background: #1e40af; color: white; padding: 12px; text-align: left; font-weight: 700; text-transform: uppercase; font-size: 11px; }
+        .data-table td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
+        .data-table tr:hover { background: #f8fafc; }
+        
+        /* BADGES */
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
         .badge-super-admin { background: #7c3aed; color: white; }
         .badge-admin { background: #1e40af; color: white; }
         .badge-editor { background: #059669; color: white; }
         .badge-visor { background: #64748b; color: white; }
         .badge-activo { background: #10b981; color: white; }
         .badge-suspendido { background: #ef4444; color: white; }
-
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            padding: 24px;
-            color: white;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-        }
-        .stat-card .number {
-            font-size: 48px;
-            font-weight: 900;
-            line-height: 1;
-        }
-        .stat-card .label {
-            font-size: 14px;
-            opacity: 0.9;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 8px;
-        }
-
-        #download-area { 
-            width: 856px; 
-            padding: 20px; 
-            background: #e2e8f0; 
-            border-radius: 20px; 
-            margin: 0 auto; 
-        }
         
-        .carnet-preview { 
-            width: 856px; 
-            height: 540px; 
-            position: relative; 
-            overflow: hidden; 
-            background: #ffffff;
-            font-family: 'Roboto', sans-serif;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
+        /* STATS */
+        .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; padding: 24px; color: white; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3); }
+        .stat-card .number { font-size: 48px; font-weight: 900; line-height: 1; }
+        .stat-card .label { font-size: 14px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; }
         
-        .security-guilloche {
-            position: absolute;
-            inset: 0;
-            z-index: 2;
-            pointer-events: none;
-            background:
-                repeating-linear-gradient(45deg, transparent 0px, transparent 6px, rgba(30, 64, 175, 0.04) 6px, rgba(30, 64, 175, 0.04) 7px),
-                repeating-linear-gradient(-45deg, transparent 0px, transparent 6px, rgba(30, 64, 175, 0.04) 6px, rgba(30, 64, 175, 0.04) 7px),
-                repeating-linear-gradient(90deg, transparent 0px, transparent 10px, rgba(30, 64, 175, 0.03) 10px, rgba(30, 64, 175, 0.03) 11px),
-                repeating-linear-gradient(0deg, transparent 0px, transparent 10px, rgba(30, 64, 175, 0.03) 10px, rgba(30, 64, 175, 0.03) 11px);
-            background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
-        }
-
-        .holographic-stripe-svg {
-            position: absolute;
-            top: 0; 
-            right: -30px; 
-            bottom: 0;
-            width: 120px;
-            z-index: 5;
-            pointer-events: none;
-            transform: skewX(-15deg);
-        }
-
-        .microprint {
-            position: absolute;
-            font-size: 4px;
-            font-weight: 700;
-            color: rgba(30, 64, 175, 0.15);
-            letter-spacing: 0.5px;
-            line-height: 5px;
-            transform: scaleY(0.8);
-            z-index: 3;
-            overflow: hidden;
-            white-space: nowrap;
-        }
+        /* CREDENCIAL */
+        #download-area { width: 856px; padding: 20px; background: #e2e8f0; border-radius: 20px; margin: 0 auto; }
+        .carnet-preview { width: 856px; height: 540px; position: relative; overflow: hidden; background: #ffffff; font-family: 'Roboto', sans-serif; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .security-guilloche { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: repeating-linear-gradient(45deg, transparent 0px, transparent 6px, rgba(30, 64, 175, 0.04) 6px, rgba(30, 64, 175, 0.04) 7px), repeating-linear-gradient(-45deg, transparent 0px, transparent 6px, rgba(30, 64, 175, 0.04) 6px, rgba(30, 64, 175, 0.04) 7px); }
+        .holographic-stripe-svg { position: absolute; top: 0; right: -30px; bottom: 0; width: 120px; z-index: 5; pointer-events: none; transform: skewX(-15deg); }
+        .microprint { position: absolute; font-size: 4px; font-weight: 700; color: rgba(30, 64, 175, 0.15); letter-spacing: 0.5px; line-height: 5px; transform: scaleY(0.8); z-index: 3; overflow: hidden; white-space: nowrap; }
         .microprint-bottom { bottom: 52px; left: 360px; right: 40px; }
         .microprint-left { bottom: 200px; left: 40px; writing-mode: vertical-lr; transform: rotate(180deg) scaleX(0.8); }
         .microprint-top { top: 90px; left: 360px; right: 40px; }
-
-        .security-rosette {
-            position: absolute;
-            bottom: 65px;
-            right: 55px;
-            width: 55px;
-            height: 55px;
-            opacity: 0.18;
-            z-index: 3;
-        }
-
-        .header-bar {
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 85px;
-            background: var(--primary-color); 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            padding: 0 50px; 
-            z-index: 50; 
-            color: white;
-        }
-
-        .inst-title {
-            font-size: 28px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: -0.5px;
-        }
-
-        .id-label {
-            font-size: 12px;
-            font-weight: 900;
-            opacity: 0.85;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .renam-header-logo {
-            position: absolute;
-            left: 50%; 
-            top: 50%;
-            transform: translate(-50%, -50%);
-            height: 70px; 
-            width: 70px;
-            background: radial-gradient(circle at 30% 30%, #ffffff, #f0f0f0);
-            border-radius: 50%;
-            padding: 3px;
-            border: 3px solid #fbbf24;
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.25);
-        }
+        .security-rosette { position: absolute; bottom: 65px; right: 55px; width: 55px; height: 55px; opacity: 0.18; z-index: 3; }
+        .header-bar { position: absolute; top: 0; left: 0; width: 100%; height: 85px; background: var(--primary-color); display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 50; color: white; }
+        .inst-title { font-size: 28px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px; }
+        .id-label { font-size: 12px; font-weight: 900; opacity: 0.85; text-transform: uppercase; letter-spacing: 2px; }
+        .renam-header-logo { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); height: 70px; width: 70px; background: radial-gradient(circle at 30% 30%, #ffffff, #f0f0f0); border-radius: 50%; padding: 3px; border: 3px solid #fbbf24; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 12px rgba(0,0,0,0.25); }
+        .renam-text-logo { font-weight: 900; color: var(--primary-color); font-size: 16px; text-align: center; line-height: 0.9; }
+        .footer-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 50px; background: var(--primary-color); display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 50; color: white; }
+        .footer-text { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+        #photo-preview { position: absolute; top: 115px; left: 50px; width: 280px; height: 340px; object-fit: cover; z-index: 10; background: linear-gradient(135deg, #f1f5f9, #e2e8f0); border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-radius: 3px; }
+        #avales-container { position: absolute; top: 105px; left: 360px; right: 50px; display: flex; gap: 18px; align-items: center; height: 60px; z-index: 25; }
+        .aval-logo { height: 50px; width: auto; max-width: 75px; object-fit: contain; }
+        #cursos-section { position: absolute; top: 185px; left: 360px; right: 50px; z-index: 20; max-height: 180px; overflow: hidden; }
+        .curso-item-clean { font-size: 16px; font-weight: 700; color: var(--text-blue); text-transform: uppercase; margin-bottom: 12px; line-height: 1.2; display: flex; align-items: flex-start; }
+        .curso-item-clean::before { content: '•'; color: var(--text-blue); margin-right: 12px; font-size: 22px; line-height: 16px; }
+        #nombre-preview { position: absolute; bottom: 160px; left: 360px; right: 50px; font-size: 36px; font-weight: 900; color: var(--dark-blue); text-transform: uppercase; z-index: 30; line-height: 1.1; }
+        #dni-container { position: absolute; bottom: 130px; left: 360px; font-size: 18px; font-weight: 600; color: #475569; z-index: 30; text-transform: uppercase; }
+        #matricula-container { position: absolute; bottom: 102px; left: 360px; font-size: 22px; font-weight: 900; color: #000000; z-index: 30; }
+        #vence-display-preview { position: absolute; bottom: 75px; left: 360px; font-size: 13px; font-weight: 700; color: #64748b; z-index: 30; text-transform: uppercase; }
+        .qr-container { position: absolute; bottom: 75px; left: 50px; z-index: 110; }
+        .qr-label { font-size: 8px; font-weight: 900; color: var(--primary-color); text-align: center; letter-spacing: 0.5px; margin-bottom: 2px; }
+        .qr-box { width: 110px; height: 110px; background: white; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border: 1px solid #e2e8f0; border-radius: 3px; }
+        #watermark-asari { position: absolute; top: 50%; right: 70px; transform: translateY(-50%) rotate(5deg); width: 350px; height: 350px; opacity: 0.15; z-index: 1; object-fit: contain; pointer-events: none; }
         
-        .renam-text-logo { 
-            font-weight: 900; 
-            color: var(--primary-color); 
-            font-size: 16px; 
-            text-align: center; 
-            line-height: 0.9;
-        }
-
-        .footer-bar {
-            position: absolute; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 50px;
-            background: var(--primary-color);
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            padding: 0 50px; 
-            z-index: 50; 
-            color: white;
-        }
+        /* LOGOS */
+        .logo-slot { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 8px; min-height: 85px; display: flex; align-items: center; justify-content: center; position: relative; background: #f8fafc; transition: all 0.2s; }
+        .logo-slot:hover { border-color: #3b82f6; background: #eff6ff; transform: translateY(-2px); }
+        .logo-slot.has-logo { border-style: solid; border-color: #10b981; background: #f0fdf4; }
+        .logo-slot-preview { max-width: 100%; max-height: 70px; object-fit: contain; }
+        .logo-remove-btn { position: absolute; top: 4px; right: 4px; background: #ef4444; color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; font-weight: 900; }
+        .logo-remove-btn:hover { background: #dc2626; transform: scale(1.15); }
         
-        .footer-text { 
-            font-size: 11px; 
-            font-weight: 900; 
-            text-transform: uppercase; 
-            letter-spacing: 1px; 
-        }
-
-        #photo-preview {
-            position: absolute; 
-            top: 115px; 
-            left: 50px; 
-            width: 280px; 
-            height: 340px;
-            object-fit: cover; 
-            z-index: 10;
-            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-            border: 3px solid white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            border-radius: 3px;
-        }
-
-        #avales-container { 
-            position: absolute; 
-            top: 105px; 
-            left: 360px; 
-            right: 50px;
-            display: flex; 
-            gap: 18px; 
-            align-items: center; 
-            height: 60px; 
-            z-index: 25;
-        }
-        
-        .aval-logo { 
-            height: 50px; 
-            width: auto;
-            max-width: 75px;
-            object-fit: contain;
-        }
-
-        #cursos-section { 
-            position: absolute; 
-            top: 185px; 
-            left: 360px; 
-            right: 50px; 
-            z-index: 20;
-            max-height: 180px;
-            overflow: hidden;
-        }
-        
-        .curso-item-clean {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-blue);
-            text-transform: uppercase;
-            margin-bottom: 12px;
-            line-height: 1.2;
-            display: flex; 
-            align-items: flex-start;
-        }
-        
-        .curso-item-clean::before {
-            content: '•';
-            color: var(--text-blue);
-            margin-right: 12px;
-            font-size: 22px;
-            line-height: 16px;
-        }
-
-        #nombre-preview {
-            position: absolute; 
-            bottom: 160px; 
-            left: 360px; 
-            right: 50px;
-            font-size: 36px; 
-            font-weight: 900; 
-            color: var(--dark-blue);
-            text-transform: uppercase; 
-            z-index: 30; 
-            line-height: 1.1;
-        }
-
-        #dni-container { 
-            position: absolute; 
-            bottom: 130px; 
-            left: 360px; 
-            font-size: 18px; 
-            font-weight: 600; 
-            color: #475569; 
-            z-index: 30; 
-            text-transform: uppercase;
-        }
-        
-        #matricula-container { 
-            position: absolute; 
-            bottom: 102px; 
-            left: 360px; 
-            font-size: 22px; 
-            font-weight: 900; 
-            color: #000000; 
-            z-index: 30; 
-        }
-        
-        #vence-display-preview {
-            position: absolute; 
-            bottom: 75px; 
-            left: 360px; 
-            font-size: 13px; 
-            font-weight: 700; 
-            color: #64748b; 
-            z-index: 30;
-            text-transform: uppercase;
-        }
-
-        .qr-container {
-            position: absolute; 
-            bottom: 75px; 
-            left: 50px;
-            z-index: 110;
-        }
-
-        .qr-label {
-            font-size: 8px;
-            font-weight: 900;
-            color: var(--primary-color);
-            text-align: center;
-            letter-spacing: 0.5px;
-            margin-bottom: 2px;
-        }
-
-        .qr-box {
-            width: 110px; 
-            height: 110px;
-            background: white; 
-            padding: 5px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            border: 1px solid #e2e8f0;
-            border-radius: 3px;
-        }
-
-        #watermark-asari {
-            position: absolute; 
-            top: 50%; 
-            right: 70px; 
-            transform: translateY(-50%) rotate(5deg);
-            width: 350px; 
-            height: 350px; 
-            opacity: 0.15;
-            z-index: 1; 
-            object-fit: contain; 
-            pointer-events: none;
-        }
-
-        .logo-slot {
-            border: 2px dashed #cbd5e1;
-            border-radius: 12px;
-            padding: 8px;
-            min-height: 85px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            background: #f8fafc;
-            transition: all 0.2s;
-        }
-
-        .logo-slot:hover {
-            border-color: #3b82f6;
-            background: #eff6ff;
-            transform: translateY(-2px);
-        }
-
-        .logo-slot.has-logo {
-            border-style: solid;
-            border-color: #10b981;
-            background: #f0fdf4;
-        }
-
-        .logo-slot-preview {
-            max-width: 100%;
-            max-height: 70px;
-            object-fit: contain;
-        }
-
-        .logo-remove-btn {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            background: #ef4444;
-            color: white;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: 900;
-        }
-
-        .watermark-section {
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
-            border: 2px solid #fbbf24;
-        }
-
-        .tab-btn { 
-            text-align: center; 
-            padding-bottom: 0.5rem; 
-            text-transform: uppercase; 
-            font-weight: 700; 
-            font-size: 0.875rem; 
-            color: #94a3b8; 
-            transition: all 0.2s; 
-            cursor: pointer; 
-            border: none; 
-            background: none;
-        }
+        /* TABS & BUTTONS */
+        .tab-btn { text-align: center; padding-bottom: 0.5rem; text-transform: uppercase; font-weight: 700; font-size: 0.875rem; color: #94a3b8; transition: all 0.2s; cursor: pointer; border: none; background: none; }
         .tab-btn:hover { color: #1e40af; }
-        .tab-active { 
-            border-bottom: 4px solid var(--primary-color); 
-            color: var(--primary-color);
-        }
-
-        .loader { 
-            border: 4px solid #f3f3f3; 
-            border-top: 4px solid #3498db; 
-            border-radius: 50%; 
-            width: 20px; 
-            height: 20px; 
-            animation: spin 1s linear infinite; 
-            display: inline-block; 
-            vertical-align: middle; 
-        }
-        @keyframes spin { 
-            0% { transform: rotate(0deg); } 
-            100% { transform: rotate(360deg); } 
-        }
-
-        .notification {
-            position: fixed; 
-            top: 20px; 
-            right: 20px; 
-            z-index: 9999;
-            padding: 16px 24px; 
-            border-radius: 12px; 
-            font-weight: 700;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            animation: slideIn 0.3s ease-out;
-        }
-        .notification.success { background: #10b981; color: white; }
-        .notification.error { background: #ef4444; color: white; }
-        .notification.info { background: #3b82f6; color: white; }
-        @keyframes slideIn { 
-            from { transform: translateX(400px); opacity: 0; } 
-            to { transform: translateX(0); opacity: 1; } 
-        }
-
-        .required-field::after {
-            content: '*';
-            color: #ef4444;
-            margin-left: 4px;
-            font-weight: 900;
-        }
-
-        .action-btn {
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-        }
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
+        .tab-active { border-bottom: 4px solid var(--primary-color); color: var(--primary-color); }
+        .action-btn { padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: all 0.2s; border: none; }
+        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .btn-edit { background: #3b82f6; color: white; }
         .btn-delete { background: #ef4444; color: white; }
         .btn-view { background: #10b981; color: white; }
-        .btn-download { background: #8b5cf6; color: white; }
         .btn-suspend { background: #f59e0b; color: white; }
-
-        .wizard-step {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .step-indicator {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 30px;
-        }
-        .step-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #e2e8f0;
-            transition: all 0.3s;
-        }
-        .step-dot.active {
-            background: #1e40af;
-            width: 40px;
-            border-radius: 6px;
-        }
-
-        .password-display {
-            background: #1e293b;
-            color: #10b981;
-            padding: 20px;
-            border-radius: 12px;
-            font-family: 'Courier New', monospace;
-            font-size: 24px;
-            font-weight: 900;
-            text-align: center;
-            letter-spacing: 3px;
-            margin: 20px 0;
-            position: relative;
-        }
-        .password-strength {
-            font-size: 12px;
-            margin-top: 8px;
-            font-weight: 700;
-        }
-        .strength-weak { color: #ef4444; }
-        .strength-medium { color: #f59e0b; }
-        .strength-strong { color: #10b981; }
+        
+        /* NOTIFICATIONS */
+        .notification { position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 16px 24px; border-radius: 12px; font-weight: 700; box-shadow: 0 10px 25px rgba(0,0,0,0.15); animation: slideIn 0.3s; }
+        .notification.success { background: #10b981; color: white; }
+        .notification.error { background: #ef4444; color: white; }
+        .notification.info { background: #3b82f6; color: white; }
+        @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        /* WIZARD */
+        .wizard-step { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto; }
+        .step-indicator { display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; }
+        .step-dot { width: 12px; height: 12px; border-radius: 50%; background: #e2e8f0; transition: all 0.3s; }
+        .step-dot.active { background: #1e40af; width: 40px; border-radius: 6px; }
+        .password-display { background: #1e293b; color: #10b981; padding: 20px; border-radius: 12px; font-family: 'Courier New', monospace; font-size: 24px; font-weight: 900; text-align: center; letter-spacing: 3px; margin: 20px 0; }
+        .watermark-section { background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #fbbf24; }
     </style>
 </head>
 <body class="p-4 lg:p-8 min-h-screen">
 
-    <!-- ONBOARDING WIZARD -->
+    <!-- ==================== ONBOARDING WIZARD ==================== -->
     <div id="onboarding-screen" class="min-h-screen flex items-center justify-center hidden">
         <div class="wizard-step">
             <div class="text-center mb-8">
@@ -1692,596 +942,128 @@ CREATE POLICY IF NOT EXISTS "Public access" ON logs_sistema FOR ALL USING (true)
                 <h1 class="text-3xl font-black text-slate-800 mb-2">¡Bienvenido a RENAM!</h1>
                 <p class="text-sm text-slate-500 font-bold">Configuración Inicial del Sistema</p>
             </div>
-
             <div class="step-indicator">
                 <div class="step-dot active" id="step-dot-1"></div>
                 <div class="step-dot" id="step-dot-2"></div>
                 <div class="step-dot" id="step-dot-3"></div>
             </div>
-
-            <!-- STEP 1: Super Admin -->
             <div id="wizard-step-1">
                 <h2 class="text-2xl font-black text-slate-800 mb-4">Crear Super Administrador</h2>
-                <p class="text-sm text-slate-600 mb-6">Este será el usuario principal con acceso total al sistema</p>
-                
                 <div class="space-y-4">
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Nombre Completo</label>
-                        <input type="text" id="wizard-super-nombre" placeholder="Juan Pérez" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200 focus:ring-purple-600">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Email</label>
-                        <input type="email" id="wizard-super-email" placeholder="admin@empresa.com" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200 focus:ring-purple-600">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Usuario</label>
-                        <input type="text" id="wizard-super-username" placeholder="superadmin" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200 focus:ring-purple-600">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Contraseña</label>
-                        <div class="flex gap-2">
-                            <input type="password" id="wizard-super-password" placeholder="Mínimo 8 caracteres" class="flex-1 p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200 focus:ring-purple-600">
-                            <button onclick="togglePasswordVisibility('wizard-super-password')" class="px-4 bg-slate-200 rounded-xl hover:bg-slate-300">👁️</button>
-                        </div>
-                        <div id="password-strength-1" class="mt-2 text-xs"></div>
-                    </div>
+                    <input type="text" id="wizard-super-nombre" placeholder="Nombre Completo" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
+                    <input type="email" id="wizard-super-email" placeholder="Email" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
+                    <input type="text" id="wizard-super-username" placeholder="Usuario" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
+                    <input type="password" id="wizard-super-password" placeholder="Contraseña (min 8 caracteres)" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
                 </div>
-
-                <button onclick="wizardNext(2)" class="w-full mt-6 bg-gradient-to-r from-purple-600 to-blue-900 text-white py-4 rounded-xl font-black text-lg hover:from-purple-500 hover:to-blue-800 transition shadow-xl">
-                    Continuar →
-                </button>
+                <button onclick="wizardNext(2)" class="w-full mt-6 bg-gradient-to-r from-purple-600 to-blue-900 text-white py-4 rounded-xl font-black text-lg hover:from-purple-500 hover:to-blue-800 transition shadow-xl">Continuar →</button>
             </div>
-
-            <!-- STEP 2: Primera Institución -->
             <div id="wizard-step-2" class="hidden">
                 <h2 class="text-2xl font-black text-slate-800 mb-4">Primera Institución</h2>
-                <p class="text-sm text-slate-600 mb-6">Crea la primera institución que usará el sistema</p>
-                
                 <div class="space-y-4">
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Nombre de la Institución</label>
-                        <input type="text" id="wizard-inst-nombre" placeholder="Universidad Nacional" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200 focus:ring-purple-600">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Email de Contacto</label>
-                        <input type="email" id="wizard-inst-email" placeholder="contacto@universidad.edu" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200 focus:ring-purple-600">
-                    </div>
+                    <input type="text" id="wizard-inst-nombre" placeholder="Nombre de la Institución" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
+                    <input type="email" id="wizard-inst-email" placeholder="Email de Contacto" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Límite Alumnos</label>
-                            <input type="number" id="wizard-inst-limite-alumnos" placeholder="1000" value="1000" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200 focus:ring-purple-600">
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Límite Usuarios</label>
-                            <input type="number" id="wizard-inst-limite-usuarios" placeholder="50" value="50" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200 focus:ring-purple-600">
-                        </div>
+                        <input type="number" id="wizard-inst-limite-alumnos" value="1000" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
+                        <input type="number" id="wizard-inst-limite-usuarios" value="50" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
                     </div>
                     <div class="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
-                        <p class="text-xs font-bold text-blue-900 mb-2">Código de Institución (generado automáticamente):</p>
-                        <p id="wizard-inst-codigo-preview" class="text-2xl font-black text-blue-600 font-mono">INST-XXXX-2026</p>
+                        <p class="text-xs font-bold text-blue-900 mb-2">Código (auto):</p>
+                        <p id="wizard-inst-codigo-preview" class="text-2xl font-black text-blue-600 font-mono"></p>
                     </div>
                 </div>
-
                 <div class="flex gap-3 mt-6">
-                    <button onclick="wizardPrev(1)" class="flex-1 bg-slate-200 text-slate-700 py-4 rounded-xl font-black hover:bg-slate-300 transition">
-                        ← Atrás
-                    </button>
-                    <button onclick="wizardNext(3)" class="flex-1 bg-gradient-to-r from-purple-600 to-blue-900 text-white py-4 rounded-xl font-black hover:from-purple-500 hover:to-blue-800 transition shadow-xl">
-                        Continuar →
-                    </button>
+                    <button onclick="wizardPrev(1)" class="flex-1 bg-slate-200 text-slate-700 py-4 rounded-xl font-black">← Atrás</button>
+                    <button onclick="wizardNext(3)" class="flex-1 bg-gradient-to-r from-purple-600 to-blue-900 text-white py-4 rounded-xl font-black shadow-xl">Continuar →</button>
                 </div>
             </div>
-
-            <!-- STEP 3: Confirmación -->
             <div id="wizard-step-3" class="hidden">
-                <h2 class="text-2xl font-black text-slate-800 mb-4">🎉 ¡Listo para Empezar!</h2>
-                <p class="text-sm text-slate-600 mb-6">Revisa los datos antes de completar la configuración</p>
-                
+                <h2 class="text-2xl font-black text-slate-800 mb-4">🎉 ¡Listo!</h2>
                 <div class="space-y-4">
                     <div class="bg-purple-50 p-4 rounded-xl border-2 border-purple-200">
-                        <p class="text-xs font-bold text-purple-900 mb-2">SUPER ADMINISTRADOR</p>
+                        <p class="text-xs font-bold text-purple-900 mb-2">SUPER ADMIN</p>
                         <p id="wizard-confirm-super" class="text-sm font-bold text-purple-700"></p>
                     </div>
                     <div class="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
                         <p class="text-xs font-bold text-blue-900 mb-2">INSTITUCIÓN</p>
                         <p id="wizard-confirm-inst" class="text-sm font-bold text-blue-700"></p>
                     </div>
-                    <div class="bg-green-50 p-4 rounded-xl border-2 border-green-200">
-                        <p class="text-xs font-bold text-green-900 mb-2">✅ CONFIGURACIÓN LISTA</p>
-                        <ul class="text-sm text-green-700 space-y-1 list-disc list-inside">
-                            <li>Base de datos configurada</li>
-                            <li>Super Admin creado</li>
-                            <li>Primera institución lista</li>
-                            <li>Sistema listo para usar</li>
-                        </ul>
-                    </div>
                 </div>
-
                 <div class="flex gap-3 mt-6">
-                    <button onclick="wizardPrev(2)" class="flex-1 bg-slate-200 text-slate-700 py-4 rounded-xl font-black hover:bg-slate-300 transition">
-                        ← Atrás
-                    </button>
-                    <button onclick="completeSetup()" class="flex-1 bg-gradient-to-r from-green-600 to-green-800 text-white py-4 rounded-xl font-black hover:from-green-500 hover:to-green-700 transition shadow-xl">
-                        🚀 Completar Setup
-                    </button>
+                    <button onclick="wizardPrev(2)" class="flex-1 bg-slate-200 text-slate-700 py-4 rounded-xl font-black">← Atrás</button>
+                    <button onclick="completeSetup()" class="flex-1 bg-gradient-to-r from-green-600 to-green-800 text-white py-4 rounded-xl font-black shadow-xl">🚀 Completar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- LOGIN SCREEN -->
+    <!-- ==================== LOGIN ==================== -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center hidden">
         <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-md w-full border-t-8 border-blue-900">
             <div class="text-center mb-8">
                 <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-900 rounded-full flex items-center justify-center text-white mx-auto mb-4 shadow-xl border-4 border-yellow-600">
                     <div class="text-2xl font-black">RENAM</div>
                 </div>
-                <h1 class="text-3xl font-black text-blue-900 mb-2">RENAM v4.0</h1>
+                <h1 class="text-3xl font-black text-blue-900">RENAM v4.0</h1>
                 <p class="text-sm text-gray-500 font-bold">Enterprise Edition</p>
             </div>
-            
             <form id="login-form" class="space-y-6">
-                <div>
-                    <label class="text-xs font-bold text-gray-600 uppercase mb-2 block">Usuario</label>
-                    <input type="text" id="login-username" placeholder="Ingrese usuario" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200 focus:ring-blue-600" required>
-                </div>
-                
-                <div>
-                    <label class="text-xs font-bold text-gray-600 uppercase mb-2 block">Contraseña</label>
-                    <input type="password" id="login-password" placeholder="••••••••" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200 focus:ring-blue-600" required>
-                </div>
-
-                <div>
-                    <label class="text-xs font-bold text-gray-600 uppercase mb-2 block">Institución</label>
-                    <select id="login-institucion" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200 focus:ring-blue-600" required>
-                        <option value="">Cargando...</option>
-                    </select>
-                </div>
-                
-                <button type="submit" id="login-btn" class="w-full bg-gradient-to-r from-blue-900 to-blue-700 text-white py-5 rounded-xl font-black text-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-xl uppercase">
-                    🔐 Iniciar Sesión
-                </button>
+                <input type="text" id="login-username" placeholder="Usuario" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200" required>
+                <input type="password" id="login-password" placeholder="Contraseña" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200" required>
+                <select id="login-institucion" class="w-full p-4 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200" required>
+                    <option value="">Cargando...</option>
+                </select>
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-900 to-blue-700 text-white py-5 rounded-xl font-black text-lg shadow-xl uppercase">🔐 Iniciar Sesión</button>
             </form>
         </div>
     </div>
 
-    <!-- SUPER ADMIN PANEL -->
+    <!-- ==================== SUPER ADMIN PANEL ==================== -->
     <div id="superadmin-panel" class="max-w-7xl mx-auto hidden">
         <header class="bg-gradient-to-r from-purple-600 to-blue-900 p-6 rounded-3xl shadow-lg mb-8 text-white">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex justify-between items-center">
                 <div class="flex items-center gap-4">
-                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-xl border-4 border-yellow-400">
-                        <div class="text-center">
-                            <div class="text-xl font-black text-purple-600">RENAM</div>
-                        </div>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-black">Panel Super Admin</h1>
-                        <p class="text-xs opacity-90 font-bold" id="superadmin-user-info">Cargando...</p>
-                    </div>
+                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-xl"><div class="text-xl font-black text-purple-600">RENAM</div></div>
+                    <div><h1 class="text-2xl font-black">Panel Super Admin</h1><p class="text-xs opacity-90 font-bold" id="superadmin-user-info"></p></div>
                 </div>
-                <div class="flex items-center gap-4">
-                    <button onclick="logout()" class="bg-red-600 text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-red-700 transition">
-                        🚪 Cerrar Sesión
-                    </button>
-                </div>
+                <button onclick="logout()" class="bg-red-600 px-6 py-2 rounded-xl font-bold hover:bg-red-700">🚪 Salir</button>
             </div>
             <nav class="flex gap-6 mt-6">
-                <button onclick="switchSuperAdminTab('dashboard')" id="sa-tab-dashboard" class="tab-btn tab-active text-white">
-                    <span>📊 Dashboard</span>
-                </button>
-                <button onclick="switchSuperAdminTab('instituciones')" id="sa-tab-instituciones" class="tab-btn text-white">
-                    <span>🏢 Instituciones</span>
-                </button>
-                <button onclick="switchSuperAdminTab('usuarios')" id="sa-tab-usuarios" class="tab-btn text-white">
-                    <span>👥 Usuarios</span>
-                </button>
-                <button onclick="switchSuperAdminTab('logs')" id="sa-tab-logs" class="tab-btn text-white">
-                    <span>📜 Logs</span>
-                </button>
-                <button onclick="switchSuperAdminTab('config')" id="sa-tab-config" class="tab-btn text-white">
-                    <span>⚙️ Config</span>
-                </button>
+                <button onclick="switchSATab('dashboard')" id="sa-tab-dashboard" class="tab-btn tab-active text-white">📊 Dashboard</button>
+                <button onclick="switchSATab('instituciones')" id="sa-tab-instituciones" class="tab-btn text-white">🏢 Instituciones</button>
+                <button onclick="switchSATab('usuarios')" id="sa-tab-usuarios" class="tab-btn text-white">👥 Usuarios</button>
+                <button onclick="switchSATab('logs')" id="sa-tab-logs" class="tab-btn text-white">📜 Logs</button>
             </nav>
         </header>
-
-        <!-- TAB: DASHBOARD -->
         <div id="sa-content-dashboard">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    <div class="number" id="stat-instituciones">0</div>
-                    <div class="label">Instituciones Activas</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                    <div class="number" id="stat-usuarios">0</div>
-                    <div class="label">Usuarios Totales</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                    <div class="number" id="stat-credenciales">0</div>
-                    <div class="label">Credenciales Emitidas</div>
-                </div>
+            <div class="grid grid-cols-3 gap-6 mb-8">
+                <div class="stat-card"><div class="number" id="stat-inst">0</div><div class="label">Instituciones</div></div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"><div class="number" id="stat-users">0</div><div class="label">Usuarios</div></div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"><div class="number" id="stat-creds">0</div><div class="label">Credenciales</div></div>
             </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-2xl shadow-lg">
-                    <h3 class="text-xl font-black text-slate-800 mb-4">📈 Actividad Reciente</h3>
-                    <div id="recent-activity" class="space-y-3"></div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl shadow-lg">
-                    <h3 class="text-xl font-black text-slate-800 mb-4">⚠️ Alertas</h3>
-                    <div id="alerts-list" class="space-y-3"></div>
-                </div>
-            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-lg"><h3 class="text-xl font-black mb-4">📈 Actividad</h3><div id="recent-activity"></div></div>
         </div>
-
-        <!-- TAB: INSTITUCIONES -->
         <div id="sa-content-instituciones" class="hidden">
             <div class="bg-white p-8 rounded-3xl shadow-xl mb-6">
-                <h2 class="text-2xl font-black text-slate-800 mb-6">➕ Nueva Institución</h2>
+                <h2 class="text-2xl font-black mb-6">➕ Nueva Institución</h2>
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Nombre Institución</label>
-                        <input type="text" id="sa-inst-nombre" placeholder="Universidad XYZ" class="w-full p-3 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Email Contacto</label>
-                        <input type="email" id="sa-inst-email" placeholder="contacto@universidad.edu" class="w-full p-3 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Límite Alumnos</label>
-                        <input type="number" id="sa-inst-limite-alumnos" placeholder="1000" value="1000" class="w-full p-3 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Límite Usuarios</label>
-                        <input type="number" id="sa-inst-limite-usuarios" placeholder="50" value="50" class="w-full p-3 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
-                    </div>
+                    <input type="text" id="sa-inst-nombre" placeholder="Nombre" class="w-full p-3 bg-slate-50 rounded-xl font-bold">
+                    <input type="email" id="sa-inst-email" placeholder="Email" class="w-full p-3 bg-slate-50 rounded-xl font-bold">
+                    <input type="number" id="sa-inst-limite-alumnos" value="1000" class="w-full p-3 bg-slate-50 rounded-xl font-bold">
+                    <input type="number" id="sa-inst-limite-usuarios" value="50" class="w-full p-3 bg-slate-50 rounded-xl font-bold">
                 </div>
-                <div class="mt-4 flex gap-3">
-                    <button onclick="crearInstitucion()" class="flex-1 bg-gradient-to-r from-purple-600 to-blue-900 text-white py-4 rounded-xl font-black hover:from-purple-500 hover:to-blue-800 transition shadow-xl">
-                        🏢 Crear Institución
-                    </button>
-                    <button onclick="limpiarFormInstitucion()" class="px-6 bg-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-300">
-                        🔄 Limpiar
-                    </button>
-                </div>
+                <button onclick="crearInstitucion()" class="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-900 text-white py-4 rounded-xl font-black shadow-xl">🏢 Crear</button>
             </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow-lg">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-black text-slate-800">Instituciones Registradas</h3>
-                    <input type="text" id="search-instituciones" placeholder="🔍 Buscar..." class="p-2 bg-slate-50 rounded-lg text-sm font-bold ring-1 ring-slate-200">
-                </div>
-                <div id="instituciones-table"></div>
-            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-lg"><h3 class="text-xl font-black mb-4">Instituciones</h3><div id="instituciones-table"></div></div>
         </div>
-
-        <!-- TAB: USUARIOS -->
         <div id="sa-content-usuarios" class="hidden">
             <div class="bg-white p-8 rounded-3xl shadow-xl mb-6">
-                <h2 class="text-2xl font-black text-slate-800 mb-6">👤 Nuevo Usuario</h2>
+                <h2 class="text-2xl font-black mb-6">👤 Nuevo Usuario</h2>
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Institución</label>
-                        <select id="sa-user-institucion" class="w-full p-3 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
-                            <option value="">Seleccionar...</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Rol</label>
-                        <select id="sa-user-rol" class="w-full p-3 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
-                            <option value="admin">Admin</option>
-                            <option value="editor">Editor</option>
-                            <option value="visor">Visor</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Nombre Completo</label>
-                        <input type="text" id="sa-user-nombre" placeholder="Juan Pérez" class="w-full p-3 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Email</label>
-                        <input type="email" id="sa-user-email" placeholder="usuario@email.com" class="w-full p-3 bg-slate-50 rounded-xl font-bold ring-2 ring-slate-200">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Usuario (generado auto)</label>
-                        <input type="text" id="sa-user-username" placeholder="Se genera automáticamente" class="w-full p-3 bg-slate-100 rounded-xl font-bold ring-2 ring-slate-200" readonly>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 uppercase mb-2 block">Contraseña</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="sa-user-password" placeholder="Se genera automáticamente" class="flex-1 p-3 bg-slate-100 rounded-xl font-bold ring-2 ring-slate-200" readonly>
-                            <button onclick="generarPassword()" class="px-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700">🎲</button>
-                        </div>
-                    </div>
+                    <select id="sa-user-institucion" class="w-full p-3 bg-slate-50 rounded-xl font-bold"><option value="">Institución...</option></select>
+                    <select id="sa-user-rol" class="w-full p-3 bg-slate-50 rounded-xl font-bold"><option value="admin">Admin</option><option value="editor">Editor</option><option value="visor">Visor</option></select>
+                    <input type="text" id="sa-user-nombre" placeholder="Nombre" class="w-full p-3 bg-slate-50 rounded-xl font-bold">
+                    <input type="email" id="sa-user-email" placeholder="Email" class="w-full p-3 bg-slate-50 rounded-xl font-bold">
+                    <input type="text" id="sa-user-username" placeholder="Username (auto)" class="w-full p-3 bg-slate-100 rounded-xl font-bold" readonly>
+                    <input type="text" id="sa-user-password" placeholder="Password (auto)" class="w-full p-3 bg-slate-100 rounded-xl font-bold" readonly>
                 </div>
-                <div id="password-display-area" class="hidden mt-4">
-                    <div class="password-display">
-                        <div class="text-xs text-gray-400 mb-2">CREDENCIALES GENERADAS</div>
-                        <div>Usuario: <span id="generated-username-display"></span></div>
-                        <div>Password: <span id="generated-password-display"></span></div>
-                        <div class="password-strength" id="password-strength-display"></div>
-                    </div>
-                    <p class="text-xs text-yellow-600 font-bold mt-2">⚠️ Guarda estas credenciales. No podrás verlas nuevamente.</p>
-                </div>
-                <div class="mt-4 flex gap-3">
-                    <button onclick="crearUsuario()" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-800 text-white py-4 rounded-xl font-black hover:from-blue-500 hover:to-blue-700 transition shadow-xl">
-                        👤 Crear Usuario
-                    </button>
-                    <button onclick="copiarCredenciales()" id="copy-credentials-btn" class="px-6 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 hidden">
-                        📋 Copiar
-                    </button>
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow-lg">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-black text-slate-800">Usuarios del Sistema</h3>
-                    <input type="text" id="search-usuarios" placeholder="🔍 Buscar..." class="p-2 bg-slate-50 rounded-lg text-sm font-bold ring-1 ring-slate-200">
-                </div>
-                <div id="usuarios-table"></div>
-            </div>
-        </div>
-
-        <!-- TAB: LOGS -->
-        <div id="sa-content-logs" class="hidden">
-            <div class="bg-white p-6 rounded-2xl shadow-lg">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-black text-slate-800">📜 Registro de Actividad</h3>
-                    <div class="flex gap-2">
-                        <input type="date" id="logs-fecha-desde" class="p-2 bg-slate-50 rounded-lg text-sm font-bold">
-                        <input type="date" id="logs-fecha-hasta" class="p-2 bg-slate-50 rounded-lg text-sm font-bold">
-                        <button onclick="filtrarLogs()" class="px-4 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700">Filtrar</button>
-                    </div>
-                </div>
-                <div id="logs-table"></div>
-            </div>
-        </div>
-
-        <!-- TAB: CONFIG -->
-        <div id="sa-content-config" class="hidden">
-            <div class="bg-white p-8 rounded-3xl shadow-xl">
-                <h2 class="text-2xl font-black text-slate-800 mb-6">⚙️ Configuración del Sistema</h2>
-                
-                <div class="space-y-6">
-                    <div class="border-b pb-6">
-                        <h3 class="text-lg font-black text-slate-700 mb-3">🗄️ Base de Datos</h3>
-                        <div class="flex gap-3">
-                            <button onclick="exportarTodosSistema()" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700">
-                                📥 Exportar Todo (CSV)
-                            </button>
-                            <button onclick="verificarIntegridad()" class="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700">
-                                ✅ Verificar Integridad
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="border-b pb-6">
-                        <h3 class="text-lg font-black text-slate-700 mb-3">🔄 Mantenimiento</h3>
-                        <div class="grid grid-cols-2 gap-3">
-                            <button onclick="limpiarLogsAntiguos()" class="bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700">
-                                🧹 Limpiar Logs (>90 días)
-                            </button>
-                            <button onclick="optimizarBD()" class="bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700">
-                                ⚡ Optimizar BD
-                            </button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="text-lg font-black text-slate-700 mb-3">📊 Estadísticas</h3>
-                        <div id="system-stats" class="grid grid-cols-2 gap-4"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ADMIN PANEL (Sistema Normal) -->
-    <div id="admin-panel" class="max-w-7xl mx-auto hidden">
-        <!-- [El código del admin panel normal va aquí - es muy largo, lo resumo] -->
-        <div class="text-center py-20">
-            <h1 class="text-4xl font-black text-slate-800">Panel de Administración</h1>
-            <p class="text-slate-600 mt-4">Contenido del sistema normal (generador de credenciales, etc.)</p>
-            <button onclick="logout()" class="mt-6 bg-red-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-red-700">
-                Cerrar Sesión
-            </button>
-        </div>
-    </div>
-
-    <script>
-        const CONFIG = {
-            supabaseUrl: 'https://fuxnsebrhxxbalqfmtzs.supabase.co',
-            supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1eG5zZWJyaHh4YmFscWZtdHpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc0Nzc2NzAsImV4cCI6MjA1MzA1MzY3MH0.fH3SZw8Y2V0ZOTr-_bsv5LXy0gxj2VPnBzLqo5M2n6E'
-        };
-
-        const sb = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
-
-        let currentSession = null;
-
-        // UTILIDADES
-        function showNotification(msg, type = 'info') {
-            const div = document.createElement('div');
-            div.className = `notification ${type}`;
-            div.textContent = msg;
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 3000);
-        }
-
-        function showLoading(text = 'Cargando...') {
-            const existing = document.querySelector('.loading-overlay');
-            if (existing) return;
-            const div = document.createElement('div');
-            div.className = 'loading-overlay';
-            div.innerHTML = `<div class="spinner"></div><p class="text-white font-bold text-xl">${text}</p>`;
-            document.body.appendChild(div);
-        }
-
-        function hideLoading() {
-            const loading = document.querySelector('.loading-overlay');
-            if (loading) loading.remove();
-        }
-
-        function showModal(title, content, buttons = []) {
-            const modal = document.createElement('div');
-            modal.className = 'modal-overlay';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <h2 class="text-2xl font-black text-slate-800 mb-4">${title}</h2>
-                    <div class="mb-6">${content}</div>
-                    <div class="flex gap-3 justify-end">
-                        ${buttons.map(btn => `<button onclick="${btn.action}" class="action-btn ${btn.class}">${btn.text}</button>`).join('')}
-                        <button onclick="closeModal()" class="action-btn bg-gray-500 text-white">Cerrar</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
-        }
-
-        function closeModal() {
-            const modal = document.querySelector('.modal-overlay');
-            if (modal) modal.remove();
-        }
-
-        function sanitizeInput(str) {
-            return str.trim().replace(/[<>\"\']/g, '');
-        }
-
-        function generateSecurePassword(length = 12) {
-            const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-            const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            const numbers = '0123456789';
-            const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-            const all = lowercase + uppercase + numbers + symbols;
-            
-            let password = '';
-            password += lowercase[Math.floor(Math.random() * lowercase.length)];
-            password += uppercase[Math.floor(Math.random() * uppercase.length)];
-            password += numbers[Math.floor(Math.random() * numbers.length)];
-            password += symbols[Math.floor(Math.random() * symbols.length)];
-            
-            for (let i = 4; i < length; i++) {
-                password += all[Math.floor(Math.random() * all.length)];
-            }
-            
-            return password.split('').sort(() => Math.random() - 0.5).join('');
-        }
-
-        function checkPasswordStrength(password) {
-            let strength = 0;
-            if (password.length >= 8) strength++;
-            if (password.length >= 12) strength++;
-            if (/[a-z]/.test(password)) strength++;
-            if (/[A-Z]/.test(password)) strength++;
-            if (/[0-9]/.test(password)) strength++;
-            if (/[^a-zA-Z0-9]/.test(password)) strength++;
-            
-            if (strength <= 2) return { level: 'weak', text: 'Débil', class: 'strength-weak' };
-            if (strength <= 4) return { level: 'medium', text: 'Media', class: 'strength-medium' };
-            return { level: 'strong', text: 'Fuerte', class: 'strength-strong' };
-        }
-
-        function generateInstitucionCode() {
-            const year = new Date().getFullYear();
-            const random = Math.floor(1000 + Math.random() * 9000);
-            return `INST-${random}-${year}`;
-        }
-
-        function generateUsername(nombre) {
-            const parts = nombre.toLowerCase().split(' ');
-            const firstName = parts[0] || 'user';
-            const lastName = parts[parts.length - 1] || '';
-            const random = Math.floor(100 + Math.random() * 900);
-            return `${firstName}.${lastName}${random}`.replace(/[^a-z0-9.]/g, '');
-        }
-
-        // ONBOARDING WIZARD
-        let wizardData = {
-            superAdmin: {},
-            institucion: {},
-            codigo: generateInstitucionCode()
-        };
-
-        function wizardNext(step) {
-            if (step === 2) {
-                const nombre = document.getElementById('wizard-super-nombre').value.trim();
-                const email = document.getElementById('wizard-super-email').value.trim();
-                const username = document.getElementById('wizard-super-username').value.trim();
-                const password = document.getElementById('wizard-super-password').value;
-                
-                if (!nombre || !email || !username || !password) {
-                    return showNotification('Completa todos los campos', 'error');
-                }
-                
-                if (password.length < 8) {
-                    return showNotification('La contraseña debe tener al menos 8 caracteres', 'error');
-                }
-                
-                wizardData.superAdmin = { nombre, email, username, password };
-                document.getElementById('wizard-inst-codigo-preview').textContent = wizardData.codigo;
-            }
-            
-            if (step === 3) {
-                const nombre = document.getElementById('wizard-inst-nombre').value.trim();
-                const email = document.getElementById('wizard-inst-email').value.trim();
-                const limiteAlumnos = document.getElementById('wizard-inst-limite-alumnos').value;
-                const limiteUsuarios = document.getElementById('wizard-inst-limite-usuarios').value;
-                
-                if (!nombre || !email) {
-                    return showNotification('Completa los campos obligatorios', 'error');
-                }
-                
-                wizardData.institucion = { nombre, email, limiteAlumnos, limiteUsuarios };
-                
-                document.getElementById('wizard-confirm-super').textContent = 
-                    `${wizardData.superAdmin.nombre} (${wizardData.superAdmin.username})`;
-                document.getElementById('wizard-confirm-inst').textContent = 
-                    `${wizardData.institucion.nombre} - ${wizardData.codigo}`;
-            }
-            
-            document.getElementById(`wizard-step-${step - 1}`).classList.add('hidden');
-            document.getElementById(`wizard-step-${step}`).classList.remove('hidden');
-            document.getElementById(`step-dot-${step - 1}`).classList.remove('active');
-            document.getElementById(`step-dot-${step}`).classList.add('active');
-        }
-
-        function wizardPrev(step) {
-            document.getElementById(`wizard-step-${step + 1}`).classList.add('hidden');
-            document.getElementById(`wizard-step-${step}`).classList.remove('hidden');
-            document.getElementById(`step-dot-${step + 1}`).classList.remove('active');
-            document.getElementById(`step-dot-${step}`).classList.add('active');
-        }
-
-        async function completeSetup() {
-            showLoading('Configurando sistema...');
-            
-            try {
-                // 1. Crear institución
-                const { data: inst, error: instError } = await sb.from('instituciones').insert([{
-                    nombre: wizardData.institucion.nombre,
-                    codigo: wizardData.codigo,
-                    email: wizardData.institucion.email,
-                    limite_alumnos: parseInt(wizardData.institucion.limiteAlumnos),
-                    limite_usuarios: parseInt(wizardData.institucion.limiteUsuarios),
-                    estado: 'activo'
-                }]).select().single();
-                
-                if (instError) throw new Error('Error creando institución: ' + instError.message);
-                
-                // 2. Crear super admin
-                const { error: userError } = await sb.from('usuarios').insert([{
-                    username: wizardData.superAdmin.username,
-                    password: wizardData.superAdmin.password,
-                    nombre_completo: wizardData.superAdmin.nombre,
-                    email: wizardData.superAdmin.email,
-                    rol: 'super_admin',
-                    institucion_id: inst.id
-                }]);
-                
-                if (userError) throw new Error('Error creando usuario: ' + userError.message);
-                
-                // 3. Log de configuración inicial
-                await sb.from('logs_sistema').insert([{
-                    accion: 'setup_completado',
-                    usuario: wizardData.superAdmin.username,
-                    detalles: `Sistema configurado. Institución: ${wizardData
+                <div id="password-display-area" class="hidden mt-4"><div class="password-display"><div class="text-xs mb-2">CREDENCIALES</div><div>Usuario:
